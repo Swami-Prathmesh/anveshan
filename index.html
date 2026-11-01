@@ -378,6 +378,17 @@ label.lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var
   .resbar{top:56px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* v3 additions */
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;background:rgba(140,160,220,.22);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--saffron);cursor:pointer;box-shadow:0 0 8px rgba(255,159,67,.6)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:var(--saffron);cursor:pointer}
+body.hi-contrast{--txt:#ffffff;--dim:#d3d9e8;--dimmer:#b6bfd4;--line:rgba(200,215,255,.42);--line2:rgba(210,225,255,.62);--panel:rgba(8,10,18,.97)}
+body.hi-contrast .card,body.hi-contrast .tile{border-color:rgba(210,225,255,.5);background:rgba(10,13,22,.96)}
+body.hi-contrast .brief{background:rgba(12,15,26,.97)}
+body.hi-contrast mark{background:#ffd166;color:#140d02}
+body.hi-contrast .nbtn{border-color:rgba(210,225,255,.55);color:#e6ebf7}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -1515,7 +1526,9 @@ function search(index, query, opts) {
     var cos = dot / (qnorm * (dv.__norm || 1));
     var bm25 = cand[d3];
     var doc = index.docs[d3];
-    var score = 0.62 * (bm25 / 12) + 0.30 * cos * 1.6 + 0.08 * (typeof authOf === "function" ? authOf(doc) : (doc.a || 3) / 5);
+    var W = opts.w || {};
+    var wl = (W.lex != null ? W.lex : 0.62), ws = (W.sem != null ? W.sem : 0.30), wa = (W.auth != null ? W.auth : 0.08);
+    var score = wl * (bm25 / 12) + ws * cos * 1.6 + wa * (typeof authOf === "function" ? authOf(doc) : (doc.a || 3) / 5);
     scores.push({ i: +d3, score: score, bm25: bm25, cos: cos });
   }
 
@@ -1527,6 +1540,7 @@ function search(index, query, opts) {
     if (opts.lang && opts.lang !== "all" && d.l !== opts.lang) return false;
     if (opts.from && d.y < opts.from) return false;
     if (opts.to && d.y > opts.to) return false;
+    if (opts.maxYear && d.y > opts.maxYear) return false;
     return true;
   });
 
@@ -1850,7 +1864,20 @@ function mergeWorldCorpus() {
   DOCS.forEach(function (d) { have[d.id] = 1; });
   var n = 0;
   add.forEach(function (d) { if (!have[d.id]) { DOCS.push(d); have[d.id] = 1; n++; } });
+  ensureEntities();
   return n;
+}
+
+/* Every document must carry entities for the graph, the figure ledger and the
+   discovery radar to work. Where a record has none, its subject tags are the
+   honest fallback - they are the terms its issuer chose, not invented links. */
+function ensureEntities() {
+  DOCS.forEach(function (d) {
+    if (!d.e || !d.e.length) {
+      var tags = (d.k || []).filter(function (t) { return t.length > 2; });
+      d.e = tags.slice(0, 4);
+    }
+  });
 }
 
 /* --------------------------------------------------- entity graph + rank --- */
@@ -1941,13 +1968,7 @@ function extractClaims(doc) {
   var out = [];
   var sents = doc.b.split(/(?<=[.!?])\s+/);
   for (var s = 0; s < sents.length; s++) {
-    var sentNorm = normalise(sents[s]);
-    var entity = null;
-    for (var ei = 0; ei < (doc.e || []).length; ei++) {
-      var cand = normalise(doc.e[ei]);
-      if (cand && sentNorm.indexOf(cand) >= 0) { entity = doc.e[ei]; break; }
-    }
-    if (!entity) entity = (doc.e && doc.e[0]) || doc.o;
+    var entity = (doc.e && doc.e[0]) || doc.o;
     CLAIM_RE.lastIndex = 0;
     var m;
     while ((m = CLAIM_RE.exec(sents[s])) !== null) {
@@ -1996,9 +2017,23 @@ function matbhed(query, docs, index) {
   }
   var scoped = scope.length ? docs.filter(function (d) { return scope.indexOf(d.id) >= 0; }) : docs;
 
+  // One canonical entity per query: the shortest entity name that the query
+  // itself uses. Without this, one topic fragments across tag aliases
+  // (indiaai / compute / mission) and the reader sees three partial ledgers.
+  var qText = normalise(query);
+  var cand = {};
+  DOCS.forEach(function (d) {
+    (d.e || []).forEach(function (e) {
+      if (e.length < 3) return;
+      var safe = normalise(e).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (new RegExp("(^|[^a-z0-9])" + safe + "([^a-z0-9]|$)").test(qText)) cand[e] = 1;
+    });
+  });
+  var canonical = Object.keys(cand).sort(function (a, b) { return a.length - b.length || a.localeCompare(b); })[0] || null;
   var claims = [];
   scoped.forEach(function (d) {
     extractClaims(d).forEach(function (c) {
+      if (canonical) c.entity = canonical;
       var hay = normalise(c.sentence + " " + d.t + " " + c.entity);
       var ok = false;
       for (var i = 0; i < primary.length; i++) if (hay.indexOf(primary[i]) >= 0) { ok = true; break; }
@@ -2175,6 +2210,435 @@ if (typeof globalThis !== "undefined") {
     matbhed: matbhed, researchPlan: researchPlan, runResearch: runResearch,
     ingestText: ingestText, rebuildEverything: rebuildEverything, allClaims: allClaims,
     fmtNum: fmtNum
+  };
+}
+</script>
+<script>/* ============================================================================
+   ANVESHAN CORE v3 - query intelligence, evidence science, knowledge
+   organisation and discovery. Everything here runs on the local index.
+   Heuristics are labelled as heuristics; nothing is dressed up as a model.
+   ========================================================================== */
+
+var QUERY_LOG = [];
+var PROJECTS = [];
+var INDEX_HISTORY = [];
+
+var TYPE_LABELS_3 = {
+  policy: "Policy", press: "Press release", report: "Report", paper: "Research paper",
+  standard: "Standard", dataset: "Dataset", model: "Model card", api: "API / developer",
+  scheme: "Scheme", dashboard: "Dashboard", science: "Science", space: "Space", tech: "Technology",
+  health: "Health", history: "History", geography: "Geography", economy: "Economy",
+  governance: "Governance", culture: "Culture", import: "Your import"
+};
+function typeLabelOf(k) {
+  if (typeof TYPE_LABEL !== "undefined" && TYPE_LABEL[k]) return TYPE_LABEL[k];
+  return TYPE_LABELS_3[k] || k;
+}
+
+/* ------------------------------------------------------- query operators --- */
+function parseQuery(raw) {
+  var ops = { site: null, type: null, yearFrom: null, yearTo: null, exclude: [], phrases: [], org: null };
+  var text = String(raw || "");
+  text = text.replace(/(\w+):"([^"]+)"/g, function (m, k, v) {
+    k = k.toLowerCase();
+    if (k === "site") ops.site = v.toLowerCase();
+    else if (k === "type") ops.type = v.toLowerCase();
+    else if (k === "org") ops.org = v.toLowerCase();
+    else if (k === "year") { var y = parseInt(v, 10); if (!isNaN(y)) { ops.yearFrom = y; ops.yearTo = y; } }
+    else if (k === "after") ops.yearFrom = parseInt(v, 10);
+    else if (k === "before") ops.yearTo = parseInt(v, 10);
+    return " ";
+  });
+  text = text.replace(/\b(site|type|org):(\S+)/gi, function (m, k, v) {
+    k = k.toLowerCase();
+    if (k === "site") ops.site = v.toLowerCase();
+    else if (k === "type") ops.type = v.toLowerCase();
+    else if (k === "org") ops.org = v.toLowerCase();
+    return " ";
+  });
+  text = text.replace(/\b(after|before):(\d{4})/gi, function (m, k, v) {
+    if (k.toLowerCase() === "after") ops.yearFrom = parseInt(v, 10);
+    else ops.yearTo = parseInt(v, 10);
+    return " ";
+  });
+  text = text.replace(/\byear:(\d{4})\b/gi, function (m, v) {
+    ops.yearFrom = parseInt(v, 10); ops.yearTo = parseInt(v, 10); return " ";
+  });
+  text = text.replace(/"([^"]+)"/g, function (m, p) { ops.phrases.push(p); return " " + p + " "; });
+  text = text.replace(/(^|\s)-(\w+)/g, function (m, sp, w) { ops.exclude.push(w.toLowerCase()); return " "; });
+  return { clean: text.replace(/\s+/g, " ").trim(), ops: ops };
+}
+
+function hasOperators(raw) { return /\b(site|type|org|after|before|year):|-"|\b-\w+|\"[^\"]+\"/i.test(raw || ""); }
+
+/* ------------------------------------------------------------- ranking w --- */
+function recencyScore(doc, maxYear) {
+  var span = Math.max(1, maxYear - 2016);
+  return Math.max(0, 1 - (maxYear - doc.y) / span);
+}
+
+function searchAdvanced(query, opts) {
+  opts = opts || {};
+  var pq = parseQuery(query);
+  var w = opts.w || { lex: 0.62, sem: 0.30, auth: 0.08, rec: 0.0 };
+  var maxYear = 0;
+  DOCS.forEach(function (d) { if (d.y > maxYear) maxYear = d.y; });
+
+  // an operator type must be applied inside retrieval, not after it
+  var typeKey = opts.type || "all";
+  if (pq.ops.type) {
+    var wanted = pq.ops.type.toLowerCase();
+    Object.keys(TYPE_LABELS_3).forEach(function (k) {
+      if (k === wanted || typeLabelOf(k).toLowerCase() === wanted) typeKey = k;
+    });
+  }
+  var res = search(INDEX, pq.clean || query, {
+    type: typeKey, org: opts.org || "all", lang: opts.lang || "all",
+    from: opts.from || null, to: opts.to || null, sort: opts.sort || "relevance",
+    limit: (pq.ops.site || pq.ops.org || pq.ops.type) ? 400 : 200,
+    w: w, maxYear: opts.maxYear || null
+  });
+
+  // operator filters
+  if (pq.ops.site) res = res.filter(function (r) { return (r.doc.o + " " + r.doc.s).toLowerCase().indexOf(pq.ops.site) >= 0; });
+  if (pq.ops.type) res = res.filter(function (r) { return r.doc.ty === pq.ops.type || (TYPE_LABEL[r.doc.ty] || "").toLowerCase().indexOf(pq.ops.type) >= 0; });
+  if (pq.ops.org) res = res.filter(function (r) { return r.doc.o.toLowerCase().indexOf(pq.ops.org) >= 0; });
+  if (pq.ops.yearFrom) res = res.filter(function (r) { return r.doc.y >= pq.ops.yearFrom; });
+  if (pq.ops.yearTo) res = res.filter(function (r) { return r.doc.y <= pq.ops.yearTo; });
+  if (opts.maxYear) res = res.filter(function (r) { return r.doc.y <= opts.maxYear; });
+  if (pq.ops.exclude.length) {
+    res = res.filter(function (r) {
+      var hay = (r.doc.t + " " + r.doc.b + " " + (r.doc.k || []).join(" ")).toLowerCase();
+      for (var i = 0; i < pq.ops.exclude.length; i++) if (hay.indexOf(pq.ops.exclude[i]) >= 0) return false;
+      return true;
+    });
+  }
+  if (pq.ops.phrases.length) {
+    res = res.map(function (r) {
+      var hay = (r.doc.t + " " + r.doc.b).toLowerCase();
+      var hits = 0;
+      pq.ops.phrases.forEach(function (p) { if (hay.indexOf(p.toLowerCase()) >= 0) hits++; });
+      r.phraseHits = hits;
+      return r;
+    }).filter(function (r) { return r.phraseHits > 0; });
+  }
+
+  // recency weighting applied after the base sort, so the slider is honest
+  if (w.rec > 0) {
+    res = res.map(function (r) {
+      r.finalScore = r.score * (1 - w.rec) + recencyScore(r.doc, maxYear) * w.rec * 2.2;
+      return r;
+    }).sort(function (a, b) { return b.finalScore - a.finalScore; });
+  } else {
+    res.forEach(function (r) { r.finalScore = r.score; });
+  }
+  return { results: res, parsed: pq };
+}
+
+/* --------------------------------------------------------- query intel ----- */
+function knownEntities() {
+  var set = {};
+  DOCS.forEach(function (d) { (d.e || []).forEach(function (e) { set[e] = (set[e] || 0) + 1; }); });
+  return set;
+}
+
+function queryIntelligence(query) {
+  var q = String(query || "").toLowerCase();
+  var ents = knownEntities();
+  var found = [];
+  Object.keys(ents).forEach(function (e) {
+    if (e.length < 3) return;
+    var esc2 = e.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    var re = new RegExp("(^|[^a-z0-9])" + esc2 + "([^a-z0-9]|$)", "i");
+    if (re.test(q)) found.push({ entity: e, docs: ents[e] });
+  });
+  var intent = detectIntent(query);
+  var pq = parseQuery(query);
+  var multi = /(\band\b|\bvs\b|\bversus\b|\bcompare\b|,|;|\?.*\?)/i.test(pq.clean);
+  var subQuestions = [];
+  if (multi) {
+    subQuestions = pq.clean.split(/\band\b|,|;|\bvs\b|\bversus\b|\bcompare\b/i)
+      .map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 2; }).slice(0, 4);
+  }
+  var facets = ["definition", "figures", "timeline", "mechanism", "limits", "context"];
+  var plan = researchPlan(pq.clean);
+  return {
+    intent: intent, entities: found.sort(function (a, b) { return b.docs - a.docs; }).slice(0, 8),
+    operators: pq.ops, hasOps: hasOperators(query), multiIntent: multi, subQuestions: subQuestions,
+    clean: pq.clean, facets: facets, plan: plan
+  };
+}
+
+/* --------------------------------------------------- evidence decomposition */
+var HEDGE_RE = /\b(may|might|could|would|suggests?|proposes?|hypothesi[sz]|likely|probably|appears? to|seems? to|is expected|is believed|estimate[sd]?|forecast|projection|if |assuming|in theory|potential(ly)?)\b/i;
+var EVIDENCE_RE = /\b(according to|data|survey|report(ed|s)?|census|measured|recorded|found that|figures?|statistics|per cent|percent|\d{4})\b/i;
+var INTERP_RE = /\b(argues|contends|interprets?|means that|implies|therefore|suggests that|indicates that|signals?|reflects?|demonstrates)\b/i;
+var CAUSAL_RE = /\b(causes?|caused by|leads? to|results? in|drives?|because of|due to|attributable|effect of)\b/i;
+
+function classifySentence(s) {
+  var hedge = HEDGE_RE.test(s), evid = EVIDENCE_RE.test(s), interp = INTERP_RE.test(s), causal = CAUSAL_RE.test(s);
+  var kind = "statement";
+  if (hedge) kind = "hypothesis";
+  else if (interp) kind = "interpretation";
+  else if (evid) kind = "evidence";
+  return { kind: kind, causal: causal, hedged: hedge, numeric: /\d/.test(s) };
+}
+
+function decomposeClaims(query) {
+  var a = answerQuery(INDEX, query);
+  var out = [];
+  (a.sentences || []).forEach(function (s) {
+    var c = classifySentence(s.text);
+    var doc = DOCS.filter(function (d) { return d.id === s.docId; })[0] || {};
+    out.push({
+      text: s.text, docId: s.docId, title: s.title, org: doc.o || "",
+      date: doc.d || "", year: doc.y || 0, kind: c.kind, causal: c.causal,
+      numeric: c.numeric, confidence: s.confidence || a.confidence
+    });
+  });
+  return out;
+}
+
+/* source independence: same issuer, or near-duplicate text, is not corroboration */
+function independenceReport(claims) {
+  var pairs = [];
+  for (var i = 0; i < claims.length; i++) {
+    for (var j = i + 1; j < claims.length; j++) {
+      var a = claims[i], b = claims[j];
+      var sameOrg = a.org && a.org === b.org;
+      var sim = trigramSim(normalise(a.text), normalise(b.text));
+      pairs.push({
+        a: a.docId, b: b.docId, sameOrg: sameOrg, similarity: sim,
+        verdict: sameOrg ? "same issuer - not independent" : sim > 0.5 ? "near-duplicate wording" : "independent"
+      });
+    }
+  }
+  var independent = {};
+  claims.forEach(function (c) { independent[c.org] = 1; });
+  return { pairs: pairs, independentIssuers: Object.keys(independent).length, claims: claims.length };
+}
+
+/* ----------------------------------------------------- staleness / expiry -- */
+var HALF_LIFE = { dashboard: 1, report: 2, policy: 3, standard: 5, paper: 8, model: 2, api: 2, press: 2, scheme: 3, dataset: 4, history: 60, science: 12, tech: 5, geography: 25, culture: 30, economy: 3, governance: 5, health: 6, space: 6, import: 2 };
+
+function freshness(doc, nowYear) {
+  nowYear = nowYear || new Date().getFullYear();
+  var hl = HALF_LIFE[doc.ty] || 4;
+  var age = Math.max(0, nowYear - doc.y);
+  var score = Math.pow(0.5, age / hl);
+  return {
+    score: score, age: age, halfLife: hl,
+    needsReview: score < 0.5,
+    label: score > 0.75 ? "current" : score > 0.5 ? "ageing" : score > 0.25 ? "needs revalidation" : "historical"
+  };
+}
+
+/* ----------------------------------------------------------- clustering ---- */
+function clusterDocs(results, k) {
+  var clusters = [];
+  results.forEach(function (r) {
+    var vec = INDEX.vecs[r.i] || {};
+    var best = null, bestSim = 0.18;
+    clusters.forEach(function (c) {
+      var dot = 0, na = 0, nb = 0;
+      for (var t in vec) { if (c.centroid[t]) dot += vec[t] * c.centroid[t]; na += vec[t] * vec[t]; }
+      for (var t2 in c.centroid) nb += c.centroid[t2] * c.centroid[t2];
+      var sim = dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);
+      if (sim > bestSim) { bestSim = sim; best = c; }
+    });
+    if (!best) {
+      best = { centroid: {}, items: [], terms: [] };
+      clusters.push(best);
+    }
+    best.items.push(r);
+    for (var t3 in vec) best.centroid[t3] = (best.centroid[t3] || 0) + vec[t3];
+  });
+  clusters.forEach(function (c) {
+    c.terms = Object.keys(c.centroid).sort(function (a, b) { return c.centroid[b] - c.centroid[a]; }).slice(0, 4);
+    c.label = c.terms.slice(0, 3).join(" · ") || "misc";
+  });
+  clusters.sort(function (a, b) { return b.items.length - a.items.length; });
+  return k ? clusters.slice(0, k) : clusters;
+}
+
+/* ------------------------------------------------------------- timeline ---- */
+function timelineData(results) {
+  var buckets = {};
+  results.forEach(function (r) {
+    var y = r.doc.y;
+    (buckets[y] = buckets[y] || []).push(r);
+  });
+  return Object.keys(buckets).map(function (y) {
+    return { year: +y, items: buckets[y].sort(function (a, b) { return b.doc.d.localeCompare(a.doc.d); }) };
+  }).sort(function (a, b) { return a.year - b.year; });
+}
+
+/* ---------------------------------------------------------- graph builder -- */
+function graphFor(query, results) {
+  var scope = results.slice(0, 12).map(function (r) { return r.doc; });
+  var entCount = {}, links = {};
+  scope.forEach(function (d) {
+    (d.e || []).forEach(function (e) {
+      entCount[e] = (entCount[e] || 0) + 1;
+      links[e] = links[e] || {};
+      (d.e || []).forEach(function (e2) { if (e2 !== e) links[e][e2] = (links[e][e2] || 0) + 1; });
+    });
+  });
+  var ents = Object.keys(entCount).sort(function (a, b) { return entCount[b] - entCount[a]; }).slice(0, 14);
+  var nodes = ents.map(function (e) { return { id: e, weight: entCount[e] }; });
+  var edges = [];
+  var seen = {};
+  ents.forEach(function (e) {
+    Object.keys(links[e] || {}).forEach(function (e2) {
+      if (ents.indexOf(e2) < 0) return;
+      var key = [e, e2].sort().join("|");
+      if (seen[key]) return;
+      seen[key] = 1;
+      edges.push({ a: e, b: e2, w: links[e][e2] });
+    });
+  });
+  return { nodes: nodes, edges: edges, docs: scope };
+}
+
+/* ------------------------------------------------------- discovery signals -- */
+function discoveryRadar(limit) {
+  var maxYear = 0;
+  DOCS.forEach(function (d) { if (d.y > maxYear) maxYear = d.y; });
+  var stats = {};
+  DOCS.forEach(function (d) {
+    (d.e || []).forEach(function (e) {
+      var s = stats[e] = stats[e] || { recent: 0, older: 0, docs: [] };
+      if (d.y >= maxYear - 1) s.recent++; else s.older++;
+      s.docs.push(d);
+    });
+  });
+  var out = [];
+  Object.keys(stats).forEach(function (e) {
+    var s = stats[e];
+    var total = s.recent + s.older;
+    if (total < 2) return;
+    var share = s.recent / total;
+    var lift = (s.recent + 0.5) / (s.older + 0.5);
+    out.push({ entity: e, recent: s.recent, older: s.older, total: total, lift: lift, share: share });
+  });
+  out.sort(function (a, b) { return b.lift - a.lift || b.total - a.total; });
+  return out.slice(0, limit || 8);
+}
+
+function gapMatrix(query) {
+  var plan = researchPlan(query);
+  var facets = plan.map(function (step) {
+    var a = answerQuery(INDEX, step.q);
+    return {
+      key: step.key, label: step.label, sentences: (a.sentences || []).length,
+      citations: (a.citations || []).length, confidence: a.confidence || 0,
+      missing: !(a.sentences && a.sentences.length)
+    };
+  });
+  var covered = facets.filter(function (f) { return !f.missing; }).length;
+  return { facets: facets, covered: covered, total: facets.length, gaps: facets.filter(function (f) { return f.missing; }) };
+}
+
+function crossDomainBridges(query, results) {
+  var top = results.slice(0, 6).map(function (r) { return r.doc; });
+  var topTypes = {};
+  top.forEach(function (d) { topTypes[d.ty] = 1; });
+  var qvec = {};
+  var terms = expandQuery(query).expanded;
+  terms.forEach(function (t) { qvec[t] = (INDEX.idf[t] || 0.5); });
+  var out = [];
+  DOCS.forEach(function (d, i) {
+    if (topTypes[d.ty]) return;
+    var v = INDEX.vecs[i] || {};
+    var dot = 0, na = 0, nb = 0;
+    for (var t in qvec) { if (v[t]) dot += qvec[t] * v[t]; na += qvec[t] * qvec[t]; }
+    for (var t2 in v) { if (t2 !== "__norm") nb += v[t2] * v[t2]; }
+    var sim = dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);
+    if (sim > 0.22) out.push({ doc: d, sim: sim });
+  });
+  out.sort(function (a, b) { return b.sim - a.sim; });
+  return out.slice(0, 4);
+}
+
+function serendipity(query, results) {
+  var topIds = {};
+  results.slice(0, 8).forEach(function (r) { topIds[r.doc.id] = 1; });
+  var ents = {};
+  results.slice(0, 4).forEach(function (r) { (r.doc.e || []).forEach(function (e) { ents[e] = 1; }); });
+  var out = [];
+  DOCS.forEach(function (d) {
+    if (topIds[d.id]) return;
+    var shared = (d.e || []).filter(function (e) { return ents[e]; });
+    if (shared.length >= 1 && d.ty !== (results[0] && results[0].doc.ty)) {
+      out.push({ doc: d, shared: shared, why: "shares " + shared.join(", ") + " with your top results" });
+    }
+  });
+  return out.slice(0, 4);
+}
+
+function hedgedStatements(query, results) {
+  var out = [];
+  results.slice(0, 6).forEach(function (r) {
+    r.doc.b.split(/(?<=[.!?])\s+/).forEach(function (s) {
+      if (s.length > 40 && HEDGE_RE.test(s) && !/\d{4}/.test(s.slice(0, 30))) {
+        out.push({ text: s.trim(), docId: r.doc.id, title: r.doc.t, kind: "hedged / conditional" });
+      }
+    });
+  });
+  return out.slice(0, 5);
+}
+
+function contradictionLab(query, results) {
+  var rep = matbhed(query, DOCS, INDEX);
+  var conflicts = rep.filter(function (g) { return g.kind === "conflict"; });
+  return { conflicts: conflicts, series: rep.filter(function (g) { return g.kind === "series"; }) };
+}
+
+/* ------------------------------------------------------- query monitoring -- */
+function logQuery(q, n, conf) {
+  var entry = { q: q, n: n, ts: new Date().toISOString(), conf: conf || 0 };
+  QUERY_LOG.unshift(entry);
+  if (QUERY_LOG.length > 60) QUERY_LOG.pop();
+  try { localStorage.setItem("anv_qlog", JSON.stringify(QUERY_LOG)); } catch (e) {}
+}
+
+function gapQueries() {
+  var seen = {}, out = [];
+  QUERY_LOG.forEach(function (e) {
+    if (e.n === 0 && !seen[e.q]) { seen[e.q] = 1; out.push(e); }
+  });
+  return out.slice(0, 8);
+}
+
+/* --------------------------------------------------------- projects ------- */
+function saveProject(name, query, note) {
+  var p = { id: "p" + Date.now(), name: name, query: query, note: note || "", ts: new Date().toISOString(), saved: S.saved.slice() };
+  PROJECTS.push(p);
+  try { localStorage.setItem("anv_projects", JSON.stringify(PROJECTS)); } catch (e) {}
+  return p;
+}
+
+function loadProjects() {
+  try { PROJECTS = JSON.parse(localStorage.getItem("anv_projects") || "[]"); } catch (e) { PROJECTS = []; }
+  return PROJECTS;
+}
+
+/* --------------------------------------------- adversarial input check ---- */
+var INJECTION_RE = /\b(ignore (all )?(previous|prior) instructions|you are now|system prompt|disregard (the )?(above|previous)|act as|jailbreak|reveal your (instructions|prompt))\b/i;
+
+function scanForInjection(text) {
+  return INJECTION_RE.test(String(text || ""));
+}
+
+if (typeof globalThis !== "undefined") {
+  globalThis.A3 = {
+    parseQuery: parseQuery, searchAdvanced: searchAdvanced, queryIntelligence: queryIntelligence,
+    decomposeClaims: decomposeClaims, independenceReport: independenceReport, freshness: freshness,
+    clusterDocs: clusterDocs, timelineData: timelineData, graphFor: graphFor,
+    discoveryRadar: discoveryRadar, gapMatrix: gapMatrix, crossDomainBridges: crossDomainBridges,
+    serendipity: serendipity, hedgedStatements: hedgedStatements, contradictionLab: contradictionLab,
+    logQuery: logQuery, gapQueries: gapQueries, saveProject: saveProject, loadProjects: loadProjects,
+    scanForInjection: scanForInjection, hasOperators: hasOperators
   };
 }
 </script>
@@ -3214,9 +3678,10 @@ else boot();
         ';border-radius:10px;padding:11px 13px;margin-bottom:9px;background:' +
         (diverge ? "rgba(255,209,102,.05)" : "rgba(255,255,255,.02)") + '">' +
         '<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px;flex-wrap:wrap">' +
-        '<b style="font-size:12.5px;color:#e8ecf7">' + esc(g.entity) + "</b>" +
-        '<span style="font-family:var(--mono);font-size:10px;color:var(--dimmer)">' + esc(g.metric) +
-        (g.unit && g.unit !== g.metric ? " \u00b7 stated in " + esc(g.unit) : "") + "</span>" +
+        '<b style="font-size:12.5px;color:#e8ecf7">' + esc(g.entity === g.metric ? g.metric : g.entity + " \u00b7 " + g.metric) + "</b>" +
+        (g.unit && g.unit !== g.metric
+          ? '<span style="font-family:var(--mono);font-size:10px;color:var(--dimmer)">stated in ' + esc(g.unit) + "</span>"
+          : "") +
         '<span style="margin-left:auto;font-size:10.5px;font-family:var(--mono);color:' + (diverge ? "#ffd166" : "var(--green)") + '">' +
         (g.kind === "conflict" ? "conflict " + g.conflict.ratio.toFixed(2) + "x" :
           g.kind === "series" ? g.n + " readings" : "single figure") + "</span></div>" +
@@ -3257,6 +3722,8 @@ else boot();
     document.getElementById("panelBody").innerHTML = body;
     document.getElementById("panel").classList.add("on");
   }
+
+  window.radarHTML = radarHTML;
 
   /* ------------------------------------------------------------- world panel */
   function worldBody() {
@@ -3513,6 +3980,582 @@ else boot();
   paint = function (title, sub, body) {
     _paint(title, sub, body);
     if (title.indexOf("Index your own") === 0) refreshImportList();
+  };
+})();
+</script>
+<script>/* ============================================================================
+   ANVESHAN UI v3 - query lab, evidence science, knowledge graph,
+   discovery lab, research projects, time machine, accessibility
+   ========================================================================== */
+(function () {
+  var ready = false;
+  S.weights = { lex: 0.62, sem: 0.30, auth: 0.08, rec: 0.0 };
+  S.maxYear = null;
+  S.parsed = null;
+
+  /* ------------------------------------------------------ search override -- */
+  var _doSearch = doSearch;
+  doSearch = function (q, record) {
+    q = (q || "").trim();
+    if (!q) { goHome(); return; }
+    S.q = q;
+    var out = searchAdvanced(q, { w: S.weights, maxYear: S.maxYear });
+    S.base = out.results;
+    S.parsed = out.parsed;
+    applyFilters();
+    S.answer = answerQuery(INDEX, out.parsed.clean || q);
+    document.getElementById("hero").style.display = "none";
+    document.getElementById("results").style.display = "block";
+    renderResults();
+    window.scrollTo({ top: 0 });
+    logQuery(q, S.results.length, S.answer ? S.answer.confidence : 0);
+    if (record) {
+      addBlock(q, S.results.slice(0, 8).map(function (r) { return r.doc.id; }));
+      history.replaceState(null, "", "#q=" + encodeURIComponent(q));
+    }
+  };
+
+  var _applyFilters = applyFilters;
+  applyFilters = function () {
+    var out = searchAdvanced(S.q, {
+      w: S.weights, maxYear: S.maxYear,
+      type: S.filters.type, org: S.filters.org, lang: S.filters.lang,
+      from: S.filters.from, to: S.filters.to, sort: S.sort
+    });
+    S.results = out.results.slice(0, 80);
+    S.parsed = out.parsed;
+  };
+
+  /* ------------------------------------------------------ toolbar injection */
+  var _render = renderResults;
+  renderResults = function () {
+    _render();
+    injectToolbar();
+  };
+
+  function injectToolbar() {
+    var tb = document.querySelector(".toolbar");
+    if (!tb || document.getElementById("yearSel")) return;
+    var maxY = 0;
+    DOCS.forEach(function (d) { if (d.y > maxY) maxY = d.y; });
+    var years = "";
+    for (var y = maxY; y >= 2020; y--) years += '<option value="' + y + '"' + (S.maxYear === y ? " selected" : "") + ">" + y + "</option>";
+    var wrap = document.createElement("div");
+    wrap.style.cssText = "display:flex;gap:7px;align-items:center;margin-left:6px";
+    wrap.innerHTML = '<span style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dimmer)">As of</span>' +
+      '<select class="sel" id="yearSel" onchange="setMaxYear(this.value)">' +
+      '<option value=""' + (S.maxYear ? "" : " selected") + ">latest</option>" + years + "</select>" +
+      '<button class="iact" onclick="openPanel(\'querylab\')" title="Query intelligence and ranking weights">Query lab</button>';
+    tb.appendChild(wrap);
+  }
+
+  window.setMaxYear = function (v) {
+    S.maxYear = v ? parseInt(v, 10) : null;
+    applyFilters(); renderResults();
+    if (S.maxYear) toast("Time machine: index restricted to documents published up to " + S.maxYear);
+  };
+
+  /* -------------------------------------------------------------- nav ----- */
+  function addNav() {
+    var nav = document.querySelector("nav.top-nav");
+    if (!nav || document.getElementById("navLab")) return;
+    var defs = [
+      ["navLab", "Query lab", "querylab"],
+      ["navEvid", "Evidence", "evidence"],
+      ["navGraph", "Graph", "graph"],
+      ["navDisc", "Discovery", "discovery"],
+      ["navProj", "Projects", "projects"]
+    ];
+    defs.forEach(function (d) {
+      var b = document.createElement("button");
+      b.className = "nbtn"; b.id = d[0]; b.textContent = d[1];
+      b.onclick = function () { openPanel(d[2]); };
+      nav.insertBefore(b, nav.firstChild);
+    });
+  }
+
+  /* ------------------------------------------------------- panel override -- */
+  var _openPanel = openPanel;
+  openPanel = function (which) {
+    if (which === "querylab") return paint("Query lab", "Intent, entities, operators, multi-intent decomposition and user-controlled ranking", labBody());
+    if (which === "evidence") return paint("Evidence science", "Claim decomposition, source independence, staleness and contradiction", evidenceBody());
+    if (which === "graph") return paint("Knowledge organisation", "Entity graph, topic clusters and timeline for this query", graphBody());
+    if (which === "discovery") return paint("Discovery lab", "What is missing, what is emerging, what connects across disciplines", discoveryBody());
+    if (which === "projects") return paint("Research projects", "Persistent research memory, query log and information gaps", projectsBody());
+    return _openPanel(which);
+  };
+
+  function paint(title, sub, body) {
+    document.getElementById("panelTitle").textContent = title;
+    document.getElementById("panelSub").textContent = sub;
+    document.getElementById("panelBody").innerHTML = body;
+    document.getElementById("panel").classList.add("on");
+  }
+
+  function q() { return S.q || ""; }
+  function need() { return '<div class="warn">Run a search first - these layers analyse the current query.</div>'; }
+
+  /* ============================================================== QUERY LAB */
+  function labBody() {
+    if (!q()) return need();
+    var intel = queryIntelligence(q());
+    var res = S.base || [];
+    var typeSpread = {};
+    res.slice(0, 12).forEach(function (r) { typeSpread[r.doc.ty] = (typeSpread[r.doc.ty] || 0) + 1; });
+    var spread = Object.keys(typeSpread);
+
+    var h = '<div class="sec"><h3>What the engine understood</h3><div class="grid2">' +
+      tile("Detected intent", intel.intent + " - the answerer uses this to choose sentence scoring", "intent") +
+      tile("Cleaned query", esc(intel.clean), "parse") +
+      tile("Multi-intent", intel.multiIntent ? "yes - decomposed below" : "no - single objective", "decompose") +
+      tile("Operators", intel.hasOps ? "parsed - see the table below" : "none used", "operators") +
+      "</div></div>";
+
+    if (intel.entities.length) {
+      h += '<div class="sec"><h3>Entities recognised</h3><div class="hero-chips" style="justify-content:flex-start">' +
+        intel.entities.map(function (e) {
+          return '<button class="chip" onclick="quick(\'' + esc(e.entity).replace(/'/g, "\\'") + '\')">' + esc(e.entity) +
+            ' <span style="color:var(--dimmer);font-family:var(--mono);font-size:10px">' + e.docs + "</span></button>";
+        }).join("") + "</div></div>";
+    }
+
+    if (intel.multiIntent && intel.subQuestions.length) {
+      h += '<div class="sec"><h3>Multi-intent decomposition</h3><p>This question contains several objectives. The engine splits them so each can be answered on its own evidence:</p>' +
+        '<div class="flow">' + intel.subQuestions.map(function (s, i) {
+          return '<div class="flow-row"><span class="idx">0' + (i + 1) + '</span><b style="color:#e8ecf7">' + esc(s) + '</b>' +
+            '<span class="who"><button class="iact" onclick="quick(\'' + esc(s).replace(/'/g, "\\'") + '\')">run</button></span></div>';
+        }).join("") + "</div></div>";
+    }
+
+    h += '<div class="sec"><h3>Disambiguation</h3>';
+    if (spread.length > 2) {
+      h += '<p>Your results span <b>' + spread.length + " domains</b>. If you meant one of them, narrow it:</p>" +
+        '<div class="hero-chips" style="justify-content:flex-start">' + spread.map(function (t) {
+          return '<button class="chip" onclick="setFilter(\'type\',\'' + t + '\')">' + (TYPE_LABEL[t] || t) + "</button>";
+        }).join("") + "</div>";
+    } else {
+      h += '<p>Results are concentrated in ' + spread.length + " domain(s), so there is no meaningful ambiguity to resolve. " +
+        "The engine distinguishes senses by facet, not by guessing: it shows which domains a term lands in and lets you choose.</p>";
+    }
+    h += "</div>";
+
+    h += '<div class="sec"><h3>Search operators</h3>' +
+      '<table class="ledger-tbl" style="font-family:var(--sans)"><tbody>' +
+      [["type:paper", "only research papers (or policy, report, dashboard, model, api, standard)"],
+       ["org:MeitY", "only documents issued by a body"],
+       ["after:2025 / before:2020", "publication window"],
+       ['"exact phrase"', "require the phrase"],
+       ["-keyword", "exclude a term"],
+       ["site:isro", "match the issuing body or source string"]].map(function (r) {
+        return "<tr><td style='font-family:var(--mono);color:var(--saffron)'>" + esc(r[0]) + "</td><td style='color:var(--dim)'>" + esc(r[1]) + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    h += '<div class="sec"><h3>Ranking weights - yours, not mine</h3>' +
+      '<p>No hidden boost. These four numbers are the entire ranking function, and you can move them. The formula is ' +
+      '<b>score = lexical x BM25 + semantic x cosine + authority x PageRank + recency x age</b>.</p>' +
+      slider("lex", "Lexical match (BM25)", S.weights.lex) +
+      slider("sem", "Semantic match (cosine)", S.weights.sem) +
+      slider("auth", "Source authority", S.weights.auth) +
+      slider("rec", "Recency", S.weights.rec) +
+      '<div style="display:flex;gap:8px;margin-top:10px"><button class="nbtn" onclick="resetWeights()">Reset to default</button>' +
+      '<button class="nbtn" onclick="openPanel(\'evidence\')">Evidence layer</button></div></div>';
+
+    h += '<div class="sec"><h3>Transparency note</h3><div class="warn">Intent and entity detection here are <b>rule-based heuristics</b>, not a neural classifier. ' +
+      "They are inspectable, deterministic and cheap: every decision can be traced to a pattern you could read in the source. " +
+      "A learned intent model would generalise better on unseen phrasings; it would also be opaque and would need a model file. " +
+      "The honest trade is stated rather than hidden.</div></div>";
+    return h;
+  }
+
+  function slider(key, label, val) {
+    return '<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:4px">' +
+      "<span>" + label + '</span><span style="font-family:var(--mono);color:var(--saffron)" id="w_' + key + 'v">' + val.toFixed(2) + "</span></div>" +
+      '<input type="range" min="0" max="1" step="0.02" value="' + val + '" style="width:100%;accent-color:var(--saffron)" ' +
+      'oninput="setWeight(\'' + key + '\',this.value)"></div>';
+  }
+
+  window.setWeight = function (key, v) {
+    S.weights[key] = parseFloat(v);
+    var el = document.getElementById("w_" + key + "v");
+    if (el) el.textContent = S.weights[key].toFixed(2);
+    if (S.q) { applyFilters(); renderResults(); }
+  };
+  window.resetWeights = function () {
+    S.weights = { lex: 0.62, sem: 0.30, auth: 0.08, rec: 0.0 };
+    openPanel("querylab");
+    if (S.q) { applyFilters(); renderResults(); }
+  };
+
+  /* =============================================================== EVIDENCE */
+  function evidenceBody() {
+    if (!q()) return need();
+    var claims = decomposeClaims(q());
+    var indep = independenceReport(claims);
+    var res = S.base || [];
+    var fresh = res.slice(0, 8).map(function (r) { return { doc: r.doc, f: freshness(r.doc) }; });
+    var lab = contradictionLab(q(), res);
+    var gaps = gapMatrix(q());
+
+    var h = '<div class="sec"><h3>Claim decomposition</h3>' +
+      '<p>Each sentence in the brief is broken out and typed. The typing is a heuristic over linguistic cues, not a trained classifier, ' +
+      "and it is shown so you can disagree with it.</p>";
+    if (!claims.length) h += '<div class="warn">No citable sentences were found for this query.</div>';
+    claims.forEach(function (c, i) {
+      var colour = c.kind === "evidence" ? "var(--green)" : c.kind === "hypothesis" ? "#ffd166" : c.kind === "interpretation" ? "var(--cyan)" : "var(--dim)";
+      h += '<div style="border-left:2px solid ' + colour + ';padding:8px 12px;margin-bottom:9px;background:rgba(255,255,255,.02);border-radius:0 8px 8px 0">' +
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:5px;flex-wrap:wrap">' +
+        '<span style="font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;color:' + colour + '">' + c.kind + "</span>" +
+        (c.causal ? '<span style="font-family:var(--mono);font-size:9.5px;color:var(--violet)">causal language</span>' : "") +
+        (c.numeric ? '<span style="font-family:var(--mono);font-size:9.5px;color:var(--saffron)">numeric</span>' : "") +
+        '<span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dimmer)">' + esc(c.docId) + " · " + Math.round((c.confidence || 0) * 100) + "%</span></div>" +
+        '<div style="font-size:13px;color:#cfd7e8">' + esc(c.text) + "</div></div>";
+    });
+    h += "</div>";
+
+    h += '<div class="sec"><h3>Source independence</h3>' +
+      '<p>Two sources are not two pieces of evidence if they trace to one issuer. ' + indep.claims + " claims come from <b>" +
+      indep.independentIssuers + " independent issuing bodies</b>.</p>" +
+      (indep.pairs.length ? '<table class="ledger-tbl" style="font-family:var(--sans)"><thead><tr><th>A</th><th>B</th><th>Verdict</th></tr></thead><tbody>' +
+        indep.pairs.slice(0, 8).map(function (p) {
+          var col = p.verdict === "independent" ? "var(--green)" : "#ffd166";
+          return "<tr><td style='font-family:var(--mono)'>" + p.a + "</td><td style='font-family:var(--mono)'>" + p.b +
+            "</td><td style='color:" + col + "'>" + p.verdict + "</td></tr>";
+        }).join("") + "</tbody></table>" : "") + "</div>";
+
+    h += '<div class="sec"><h3>Information age</h3>' +
+      '<p>Every source carries a half-life by type: dashboards decay in a year, standards in five, historical reference in decades. ' +
+      "A figure that has decayed past half its value is flagged for revalidation rather than presented as current.</p>" +
+      '<table class="ledger-tbl" style="font-family:var(--sans)"><thead><tr><th>Document</th><th>Year</th><th>Age</th><th>State</th></tr></thead><tbody>' +
+      fresh.map(function (x) {
+        var col = x.f.score > 0.75 ? "var(--green)" : x.f.score > 0.5 ? "var(--saffron)" : "var(--red)";
+        return "<tr onclick=\"openDoc('" + x.doc.id + "')\" style='cursor:pointer'><td style='color:#c3cbdf'>" + esc(x.doc.t.slice(0, 52)) +
+          "</td><td style='font-family:var(--mono)'>" + x.doc.y + "</td><td style='font-family:var(--mono)'>" + x.f.age + "y / half-life " + x.f.halfLife +
+          "y</td><td style='color:" + col + "'>" + x.f.label + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    h += '<div class="sec"><h3>Contradiction laboratory</h3>';
+    if (lab.conflicts.length) {
+      h += '<p><b>' + lab.conflicts.length + " genuine conflict(s)</b> - same metric, close dates, different values from different issuers:</p>" +
+        radarHTML(lab.conflicts, false);
+    } else if (lab.series.length) {
+      h += '<p>No conflicting values within the same period. These metrics vary across time, which is a trajectory rather than a contradiction:</p>' +
+        radarHTML(lab.series.slice(0, 3), false);
+    } else {
+      h += '<div class="warn">No numeric divergence matched this query. That is a finding: the sources agree, or the question is not quantitative.</div>';
+    }
+    h += "</div>";
+
+    h += '<div class="sec"><h3>Evidence sufficiency</h3>' +
+      '<p>' + gaps.covered + " of " + gaps.total + " research facets are supported by at least one source sentence.</p>" +
+      '<div class="grid2">' + gaps.facets.map(function (f) {
+        return tile(f.label, f.missing ? "no evidence found - an explicit gap" : f.sentences + " sentence(s), " + f.citations + " source(s)",
+          f.missing ? "gap" : Math.round(f.confidence * 100) + "%");
+      }).join("") + "</div></div>";
+    return h;
+  }
+
+  /* ============================================================== GRAPH ---- */
+  function graphBody() {
+    if (!q()) return need();
+    var res = S.base || [];
+    var g = graphFor(q(), res);
+    var clusters = clusterDocs(res.slice(0, 40), 5);
+    var tl = timelineData(res.slice(0, 40));
+    var h = "";
+
+    h += '<div class="sec"><h3>Entity graph</h3>' +
+      '<p>Built from the entity co-occurrence of your top results. Node size is how many of those documents mention the entity; ' +
+      "an edge means two entities appear together. This is the knowledge graph the ranker walks, not an illustration of one.</p>" +
+      svgGraph(g) + "</div>";
+
+    h += '<div class="sec"><h3>Topic clusters</h3>' +
+      '<p>Documents grouped by TF-IDF centroid similarity (threshold 0.18). Each cluster label is the three highest-weight terms of its centroid.</p>';
+    clusters.forEach(function (c, i) {
+      h += '<div style="border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:9px;background:rgba(255,255,255,.02)">' +
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><b style="font-size:12.5px;color:#e8ecf7">' +
+        esc(c.label) + '</b><span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dimmer)">' +
+        c.items.length + " docs</span></div>" +
+        c.items.slice(0, 5).map(function (r) {
+          return "<div onclick=\"openDoc('" + r.doc.id + "')\" style='font-size:12px;color:var(--dim);cursor:pointer;padding:2px 0'>" +
+            "<span style='font-family:var(--mono);color:var(--dimmer);font-size:10px'>" + r.doc.id + "</span> " + esc(r.doc.t.slice(0, 62)) + "</div>";
+        }).join("") + "</div>";
+    });
+    h += "</div>";
+
+    h += '<div class="sec"><h3>Timeline</h3><p>Publication dates of the retrieved documents. Gaps in the timeline are as informative as the entries: ' +
+      "they show where the index is thin.</p>" + svgTimeline(tl) + "</div>";
+    return h;
+  }
+
+  function svgGraph(g) {
+    if (!g.nodes.length) return '<div class="warn">No entities in scope.</div>';
+    var W = 640, H = 300, cx = W / 2, cy = H / 2, R = 116;
+    var maxW = 1;
+    g.nodes.forEach(function (n) { maxW = Math.max(maxW, n.weight); });
+    var pos = {};
+    g.nodes.forEach(function (n, i) {
+      var ang = (i / g.nodes.length) * Math.PI * 2 - Math.PI / 2;
+      var r = R * (0.62 + 0.38 * (n.weight / maxW));
+      pos[n.id] = { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r };
+    });
+    var s = '<svg viewBox="0 0 ' + W + " " + H + '" style="width:100%;height:auto;background:rgba(255,255,255,.015);border:1px solid var(--line);border-radius:12px">';
+    g.edges.forEach(function (e) {
+      var a = pos[e.a], b = pos[e.b];
+      if (!a || !b) return;
+      s += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="rgba(140,160,220,' +
+        Math.min(0.45, 0.1 + e.w * 0.12) + ')" stroke-width="' + Math.min(2.4, 0.6 + e.w * 0.4) + '"/>';
+    });
+    g.nodes.forEach(function (n) {
+      var p = pos[n.id];
+      var r = 5 + (n.weight / maxW) * 11;
+      s += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + r + '" fill="rgba(255,159,67,.22)" stroke="var(--saffron)" stroke-width="1.2"/>';
+      s += '<text x="' + p.x + '" y="' + (p.y + r + 12) + '" text-anchor="middle" font-size="9.5" fill="#aab4cc" font-family="ui-monospace,monospace">' +
+        esc(n.id) + "</text>";
+    });
+    return s + "</svg>";
+  }
+
+  function svgTimeline(tl) {
+    if (!tl.length) return '<div class="warn">No dated documents in scope.</div>';
+    var W = 640, H = 150, pad = 34;
+    var minY = tl[0].year, maxY = tl[tl.length - 1].year;
+    var span = Math.max(1, maxY - minY);
+    var maxC = 1;
+    tl.forEach(function (b) { maxC = Math.max(maxC, b.items.length); });
+    var s = '<svg viewBox="0 0 ' + W + " " + H + '" style="width:100%;height:auto">';
+    s += '<line x1="' + pad + '" y1="' + (H - 34) + '" x2="' + (W - pad) + '" y2="' + (H - 34) + '" stroke="rgba(140,160,220,.3)"/>';
+    tl.forEach(function (b) {
+      var x = pad + ((b.year - minY) / span) * (W - pad * 2);
+      var hgt = 14 + (b.items.length / maxC) * 62;
+      s += '<rect x="' + (x - 6) + '" y="' + (H - 34 - hgt) + '" width="12" height="' + hgt +
+        '" rx="3" fill="rgba(77,214,255,.28)" stroke="rgba(77,214,255,.7)"/>';
+      s += '<text x="' + x + '" y="' + (H - 16) + '" text-anchor="middle" font-size="9.5" fill="#8b96b3" font-family="ui-monospace,monospace">' + b.year + "</text>";
+      s += '<text x="' + x + '" y="' + (H - 34 - hgt - 5) + '" text-anchor="middle" font-size="9" fill="#ffd9a8" font-family="ui-monospace,monospace">' + b.items.length + "</text>";
+    });
+    return s + "</svg>";
+  }
+
+  /* =========================================================== DISCOVERY --- */
+  function discoveryBody() {
+    var h = "";
+    var query = q();
+    if (!query) return need();
+    var res = S.base || [];
+    var gaps = gapMatrix(query);
+    var radar = discoveryRadar(8);
+    var bridges = crossDomainBridges(query, res);
+    var ser = serendipity(query, res);
+    var hedged = hedgedStatements(query, res);
+
+    h += '<div class="sec"><h3>Unknown search: what the index cannot answer</h3>' +
+      '<p>This is the inverse of search. Instead of the best matches, it reports which research facets have <b>no supporting sentence</b> ' +
+      "for this query. Empty facets are the honest answer to what is missing here.</p>" +
+      '<div class="grid2">' + gaps.facets.map(function (f) {
+        return tile(f.label, f.missing ? "no evidence in the index" : f.sentences + " sentences / " + f.citations + " sources",
+          f.missing ? "unknown" : "known");
+      }).join("") + "</div>" +
+      (gaps.gaps.length ? '<div class="warn" style="margin-top:12px"><b>' + gaps.gaps.length + " documented gap(s).</b> " +
+        "For " + gaps.gaps.map(function (g) { return g.label.toLowerCase(); }).join(", ") +
+        ", this index holds nothing. That is a boundary of the corpus, not a claim that the knowledge does not exist - use Import to extend it.</div>" : "") +
+      "</div>";
+
+    h += '<div class="sec"><h3>Discovery radar</h3>' +
+      '<p>Entities whose share of mentions in the two most recent publication years is disproportionately higher than before. ' +
+      "This is a real statistic over this corpus, and it is a signal about the corpus rather than a prediction about the world.</p>" +
+      '<table class="ledger-tbl" style="font-family:var(--sans)"><thead><tr><th>Entity</th><th>Recent</th><th>Earlier</th><th>Lift</th></tr></thead><tbody>' +
+      radar.map(function (r) {
+        var col = r.lift > 1.4 ? "var(--green)" : "var(--dim)";
+        return "<tr><td style='color:#c3cbdf'>" + esc(r.entity) + "</td><td style='font-family:var(--mono)'>" + r.recent +
+          "</td><td style='font-family:var(--mono)'>" + r.older + "</td><td style='font-family:var(--mono);color:" + col + "'>" +
+          r.lift.toFixed(2) + "x</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    h += '<div class="sec"><h3>Cross-disciplinary bridges</h3>' +
+      '<p>Documents from a <b>different domain</b> than your top results that are still semantically close to the query. ' +
+      "This is where a physics paper can inform a governance question.</p>";
+    if (!bridges.length) h += '<div class="warn">No bridge crossed the similarity threshold for this query.</div>';
+    bridges.forEach(function (b) {
+      h += '<div onclick="openDoc(\'' + b.doc.id + '\')" style="border:1px solid var(--line);border-radius:10px;padding:10px 13px;margin-bottom:8px;cursor:pointer;background:rgba(255,255,255,.02)">' +
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px"><span class="tbadge t-' + b.doc.ty + '">' + (TYPE_LABEL[b.doc.ty] || b.doc.ty) +
+        '</span><span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--cyan)">' + b.sim.toFixed(2) + "</span></div>" +
+        '<div style="font-size:12.5px;color:#cfd7e8">' + esc(b.doc.t) + "</div></div>";
+    });
+    h += "</div>";
+
+    h += '<div class="sec"><h3>Serendipity</h3><p>Documents you did not ask for but that share an entity with your top results, from another domain.</p>';
+    if (!ser.length) h += '<div class="warn">Nothing adjacent surfaced for this query.</div>';
+    ser.forEach(function (s) {
+      h += '<div onclick="openDoc(\'' + s.doc.id + '\')" style="border:1px solid var(--line);border-radius:10px;padding:10px 13px;margin-bottom:8px;cursor:pointer">' +
+        '<div style="font-size:12.5px;color:#cfd7e8">' + esc(s.doc.t) + '</div><div style="font-size:11px;color:var(--dimmer)">' + esc(s.why) + "</div></div>";
+    });
+    h += "</div>";
+
+    h += '<div class="sec"><h3>Possibility lens</h3>' +
+      '<p>Hedged and conditional statements from the sources - the places where the literature talks about what <b>could</b> be true rather than what is. ' +
+      "Surfacing these separately is how a hypothesis stays a hypothesis.</p>";
+    if (!hedged.length) h += '<div class="warn">No hedged statements in the retrieved documents.</div>';
+    hedged.forEach(function (s) {
+      h += '<div style="border-left:2px solid #ffd166;padding:7px 12px;margin-bottom:8px;font-size:12.5px;color:#d8d0b8">' + esc(s.text) +
+        ' <span style="font-family:var(--mono);font-size:10px;color:var(--dimmer)">' + esc(s.docId) + "</span></div>";
+    });
+    h += "</div>";
+
+    h += '<div class="sec"><h3>What this layer is not</h3><div class="warn">' +
+      "It does not forecast the future, run simulations, design experiments or prove causality. Those need domain models, live data and compute this engine does not have. " +
+      "What it does is narrower and checkable: it computes gaps, emerging-mention lift, cross-domain similarity and hedged-language separation from a fixed corpus, " +
+      "and it tells you which of those is which.</div></div>";
+    return h;
+  }
+
+  /* ============================================================ PROJECTS --- */
+  function projectsBody() {
+    var log = QUERY_LOG.slice(0, 15);
+    var gaps = gapQueries();
+    var h = '<div class="sec"><h3>Current project</h3>' +
+      '<p>Save the query, your note and the reading list as a project. It persists in this browser only - user-controlled memory, no server.</p>' +
+      '<label class="lbl">Project name</label><input class="txt" id="projName" placeholder="e.g. DPI for rural credit">' +
+      '<label class="lbl">Note / conclusion so far</label><textarea class="txt" id="projNote" rows="3" placeholder="What have you established, and what is still open?"></textarea>' +
+      '<button class="nbtn on" onclick="saveCurrentProject()">Save project</button></div>';
+
+    h += '<div class="sec"><h3>Saved projects</h3>';
+    if (!PROJECTS.length) h += '<div class="warn">No projects saved yet.</div>';
+    PROJECTS.slice().reverse().forEach(function (p) {
+      h += '<div style="border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:9px">' +
+        '<div style="display:flex;gap:8px;align-items:center"><b style="font-size:12.5px;color:#e8ecf7">' + esc(p.name) + "</b>" +
+        '<span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dimmer)">' + p.ts.slice(0, 10) + "</span></div>" +
+        '<div style="font-size:11.5px;color:var(--dim);margin:4px 0">query: ' + esc(p.query) + "</div>" +
+        (p.note ? '<div style="font-size:12px;color:#c3cbdf">' + esc(p.note) + "</div>" : "") +
+        '<div style="margin-top:7px"><button class="iact" onclick="resumeProject(\'' + p.id + '\')">Resume</button> ' +
+        '<button class="iact" onclick="exportProject(\'' + p.id + '\')">Export</button></div></div>';
+    });
+    h += "</div>";
+
+    h += '<div class="sec"><h3>Query log and information gaps</h3>' +
+      '<p>Every search is logged locally with its result count and confidence. Queries that returned nothing are the engine\'s own record of where its knowledge runs out.</p>';
+    if (!log.length) h += '<div class="warn">No queries logged yet in this session.</div>';
+    else {
+      h += '<table class="ledger-tbl" style="font-family:var(--sans)"><thead><tr><th>Query</th><th>Results</th><th>Confidence</th></tr></thead><tbody>' +
+        log.map(function (e) {
+          return "<tr onclick=\"quick('" + esc(e.q).replace(/'/g, "\\'") + "')\" style='cursor:pointer'><td style='color:#c3cbdf'>" +
+            esc(e.q.slice(0, 52)) + "</td><td style='font-family:var(--mono);color:" + (e.n ? "var(--green)" : "var(--red)") + "'>" + e.n +
+            "</td><td style='font-family:var(--mono)'>" + Math.round((e.conf || 0) * 100) + "%</td></tr>";
+        }).join("") + "</tbody></table>";
+    }
+    if (gaps.length) {
+      h += '<div class="warn" style="margin-top:12px"><b>' + gaps.length + " queries found nothing in the index.</b> " +
+        "These are the corpus's blind spots: " + gaps.map(function (g) { return esc(g.q); }).join(", ") + "</div>";
+    }
+    h += "</div>";
+
+    h += '<div class="sec"><h3>System health</h3><div class="grid2">' +
+      tile("Index", DOCS.length + " documents, " + INDEX.vocab.length + " terms", "state") +
+      tile("Ledger", TREE ? "root " + TREE.root.slice(0, 10) + "..., " + TREE.levels.length + " levels" : "building", "integrity") +
+      tile("Query chain", S.chain.length + " attested blocks on this device", "audit") +
+      tile("Average confidence", (function () {
+        if (!QUERY_LOG.length) return "no data";
+        var s = 0;
+        QUERY_LOG.forEach(function (e) { s += e.conf || 0; });
+        return Math.round((s / QUERY_LOG.length) * 100) + "%";
+      })(), "monitor") +
+      "</div></div>";
+    return h;
+  }
+
+  window.saveCurrentProject = function () {
+    var n = document.getElementById("projName");
+    var note = document.getElementById("projNote");
+    if (!n || !n.value.trim()) { toast("Give the project a name"); return; }
+    saveProject(n.value.trim(), S.q || "(no query)", note ? note.value.trim() : "");
+    toast("Project saved locally");
+    openPanel("projects");
+  };
+  window.resumeProject = function (id) {
+    var p = PROJECTS.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    closePanel();
+    quick(p.query);
+  };
+  window.exportProject = function (id) {
+    var p = PROJECTS.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    var md = "# Project: " + p.name + "\n\nQuery: " + p.query + "\nSaved: " + p.ts + "\n\n" + (p.note || "") + "\n\n";
+    if (p.saved && p.saved.length) {
+      md += "## Reading list\n\n";
+      p.saved.forEach(function (id2) {
+        var d = DOCS.filter(function (x) { return x.id === id2; })[0];
+        if (d) md += "- " + d.o + ". \"" + d.t + "\". " + d.s + ", " + d.d + ". " + d.u + "\n";
+      });
+    }
+    var blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "anveshan-project-" + p.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 30) + ".md";
+    a.click();
+    toast("Project exported");
+  };
+
+  /* ---------------------------------------------------------- accessibility */
+  function a11y() {
+    if (document.getElementById("skipLink")) return;
+    var a = document.createElement("a");
+    a.id = "skipLink";
+    a.href = "#stage";
+    a.textContent = "Skip to main content";
+    a.style.cssText = "position:absolute;left:-9999px;top:0;z-index:200;background:#ff9f43;color:#160c02;padding:9px 14px;border-radius:0 0 8px 0;font-weight:600";
+    a.addEventListener("focus", function () { a.style.left = "0"; });
+    a.addEventListener("blur", function () { a.style.left = "-9999px"; });
+    document.body.insertBefore(a, document.body.firstChild);
+
+    var live = document.createElement("div");
+    live.id = "live";
+    live.setAttribute("aria-live", "polite");
+    live.className = "sr";
+    document.body.appendChild(live);
+
+    var nav = document.querySelector("nav.top-nav");
+    if (nav) {
+      var t = document.createElement("button");
+      t.className = "nbtn";
+      t.id = "contrastBtn";
+      t.title = "Toggle high contrast";
+      t.textContent = "Contrast";
+      t.onclick = function () {
+        document.body.classList.toggle("hi-contrast");
+        toast(document.body.classList.contains("hi-contrast") ? "High contrast on" : "High contrast off");
+      };
+      nav.appendChild(t);
+    }
+  }
+
+  /* ------------------------------------------------------------- bootstrap */
+  function postBoot() {
+    if (ready) return;
+    if (!TREE) { setTimeout(postBoot, 160); return; }
+    ready = true;
+    addNav();
+    a11y();
+    try { loadProjects(); } catch (e) {}
+    try { QUERY_LOG = JSON.parse(localStorage.getItem("anv_qlog") || "[]"); } catch (e) { QUERY_LOG = []; }
+    if (S.q) renderResults();
+  }
+  document.addEventListener("DOMContentLoaded", function () { setTimeout(postBoot, 120); });
+  if (document.readyState !== "loading") setTimeout(postBoot, 120);
+
+  // announce result counts for screen readers
+  var _render2 = renderResults;
+  renderResults = function () {
+    _render2();
+    var live = document.getElementById("live");
+    if (live) live.textContent = S.results.length + " results for " + S.q;
+  };
+
+  // injection scan on imported text
+  var _ingest = ingestText;
+  ingestText = function (name, text, opts) {
+    if (scanForInjection(text)) {
+      toast("Warning: this file contains instruction-like text. Indexed as data only, never executed.");
+    }
+    return _ingest(name, text, opts);
   };
 })();
 </script>
