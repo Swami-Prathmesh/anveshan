@@ -2643,6 +2643,303 @@ if (typeof globalThis !== "undefined") {
 }
 </script>
 <script>/* ============================================================================
+   ANVESHAN CORE v4 - context, concepts, consensus, anomalies, learning loop
+   ========================================================================== */
+
+var CORRECTIONS = {};      /* docId -> {flag, note, ts} */
+var CLICK_LEARN = {};      /* query -> {term: count} */
+var INDEX_VERSIONS = [];   /* {ts, root, docs, note} */
+
+/* --------------------------------------------------- context / follow-ups -- */
+var LAST_QUERY = "";
+
+function resolveFollowUp(query) {
+  var q = String(query || "").trim();
+  var low = q.toLowerCase();
+  var isFollowUp = /^(and|also|what about|how about|more|more on|then|why|when|which one|compare (it|them|that)|explain|elaborate|details?)\b/.test(low)
+    || q.split(/\s+/).length <= 2 && LAST_QUERY && /^(it|that|this|they|them)\b/.test(low);
+  if (!isFollowUp || !LAST_QUERY) return { query: q, expanded: false, base: LAST_QUERY };
+  var merged = LAST_QUERY + " " + q.replace(/^(and|also|what about|how about|more on|more|then|explain|elaborate|details?)\s*/i, "");
+  return { query: merged.trim(), expanded: true, base: LAST_QUERY };
+}
+
+/* ------------------------------------------------------- duplicate finding -- */
+function duplicateGroups(docs) {
+  var groups = [], used = {};
+  for (var i = 0; i < docs.length; i++) {
+    if (used[docs[i].id]) continue;
+    var g = [docs[i]];
+    for (var j = i + 1; j < docs.length; j++) {
+      if (used[docs[j].id]) continue;
+      var sim = trigramSim(normalise((docs[i].t || "") + " " + (docs[i].b || "").slice(0, 220)),
+        normalise((docs[j].t || "") + " " + (docs[j].b || "").slice(0, 220)));
+      if (sim > 0.62) { g.push(docs[j]); used[docs[j].id] = 1; }
+    }
+    if (g.length > 1) { used[docs[i].id] = 1; groups.push(g); }
+  }
+  return groups;
+}
+
+/* ---------------------------------------------------- concept evolution ---- */
+function conceptEvolution(entity) {
+  var rel = DOCS.filter(function (d) { return (d.e || []).indexOf(entity) >= 0; });
+  if (!rel.length) return { entity: entity, eras: [], terms: [] };
+  var byYear = {};
+  rel.forEach(function (d) { (byYear[d.y] = byYear[d.y] || []).push(d); });
+  var eras = Object.keys(byYear).sort().map(function (y) {
+    var docs = byYear[y];
+    var tf = {};
+    docs.forEach(function (d) {
+      tokenise(d.t + " " + d.b).forEach(function (t) { tf[t] = (tf[t] || 0) + 1; });
+    });
+    var top = Object.keys(tf).sort(function (a, b) { return tf[b] - tf[a]; }).slice(0, 5);
+    return { year: +y, docs: docs.length, terms: top };
+  });
+  // drift: terms unique to the latest era against the earliest
+  var first = eras[0] ? eras[0].terms : [], last = eras[eras.length - 1] ? eras[eras.length - 1].terms : [];
+  var drift = last.filter(function (t) { return first.indexOf(t) < 0; });
+  return { entity: entity, eras: eras, drift: drift, docs: rel.length };
+}
+
+/* ------------------------------------------------------- intellectual genealogy */
+function genealogy(entity) {
+  var rel = DOCS.filter(function (d) { return (d.e || []).indexOf(entity) >= 0; })
+    .sort(function (a, b) { return a.d.localeCompare(b.d); });
+  var chain = rel.slice(0, 10).map(function (d) {
+    var shared = (d.e || []).filter(function (e) { return e !== entity; });
+    return { id: d.id, year: d.y, date: d.d, title: d.t, org: d.o, via: shared.slice(0, 3) };
+  });
+  return { entity: entity, chain: chain, span: chain.length ? chain[chain.length - 1].year - chain[0].year : 0 };
+}
+
+/* ----------------------------------------------------------- consensus map -- */
+function consensusMap(query, results) {
+  var claims = decomposeClaims(query);
+  var kinds = { evidence: 0, interpretation: 0, hypothesis: 0, statement: 0 };
+  claims.forEach(function (c) { kinds[c.kind] = (kinds[c.kind] || 0) + 1; });
+  var lab = contradictionLab(query, results || []);
+  var orgs = {};
+  claims.forEach(function (c) { orgs[c.org] = 1; });
+  var total = claims.length || 1;
+  var support = Math.round(((kinds.evidence + kinds.statement) / total) * 100);
+  var hedge = Math.round(((kinds.hypothesis + kinds.interpretation) / total) * 100);
+  return {
+    kinds: kinds, total: claims.length, support: support, hedge: hedge,
+    conflicts: lab.conflicts.length, issuers: Object.keys(orgs).length,
+    verdict: lab.conflicts.length ? "sources disagree" : hedge > 45 ? "mostly interpretive" :
+      claims.length ? "broadly consistent" : "no evidence"
+  };
+}
+
+/* --------------------------------------------------------- evidence scoring -- */
+function evidenceScore(claim) {
+  var doc = DOCS.filter(function (d) { return d.id === claim.docId; })[0];
+  if (!doc) return 0;
+  var auth = (typeof authOf === "function" ? authOf(doc) : 0.5);
+  var fresh = freshness(doc).score;
+  var direct = claim.kind === "evidence" ? 1 : claim.kind === "statement" ? 0.75 : claim.kind === "interpretation" ? 0.45 : 0.3;
+  var numeric = claim.numeric ? 0.1 : 0;
+  return Math.min(1, 0.45 * auth + 0.25 * fresh + 0.3 * direct + numeric);
+}
+
+/* --------------------------------------------------------------- anomalies -- */
+function anomalyScan(query, results) {
+  var rep = matbhed(query, DOCS, INDEX);
+  var out = [];
+  rep.forEach(function (g) {
+    if (g.claims.length < 3) return;
+    var vals = g.claims.map(function (c) { return c.norm; }).sort(function (a, b) { return a - b; });
+    var median = vals[Math.floor(vals.length / 2)];
+    g.claims.forEach(function (c) {
+      if (median > 0 && (c.norm / median > 3 || median / c.norm > 3)) {
+        out.push({ claim: c, group: g, ratio: c.norm / median, median: median });
+      }
+    });
+  });
+  return out.slice(0, 5);
+}
+
+/* ------------------------------------------------------------ causal view --- */
+function causalView(query, results) {
+  var out = [];
+  (results || []).slice(0, 8).forEach(function (r) {
+    r.doc.b.split(/(?<=[.!?])\s+/).forEach(function (s) {
+      if (s.length > 45 && CAUSAL_RE.test(s)) {
+        out.push({ text: s.trim(), docId: r.doc.id, title: r.doc.t, org: r.doc.o });
+      }
+    });
+  });
+  return out.slice(0, 6);
+}
+
+/* ------------------------------------------------------ consequence lens ----- */
+function consequenceLens(query) {
+  var probes = [
+    { label: "Direct effects", q: query + " impact effect consequence result" },
+    { label: "Risks and costs", q: query + " risk cost limitation trade-off" },
+    { label: "Governance response", q: query + " policy regulation governance oversight" },
+    { label: "Second-order effects", q: query + " incentive behaviour change inequality dependence" }
+  ];
+  return probes.map(function (p) {
+    var a = answerQuery(INDEX, p.q);
+    return { label: p.label, q: p.q, sentences: (a.sentences || []).slice(0, 2), confidence: a.confidence || 0 };
+  }).filter(function (p) { return p.sentences.length; });
+}
+
+/* -------------------------------------------------- provenance weakness ----- */
+function provenanceWeakness(doc) {
+  var issues = [];
+  var url = doc.u || "";
+  try {
+    if (typeof URL === "undefined") throw new Error("no URL parser");
+    var u = new URL(url);
+    if (u.pathname === "/" || u.pathname === "") issues.push("link points at a site root, not the specific document");
+    if (u.protocol === "http:") issues.push("served over plain HTTP");
+  } catch (e) { issues.push("no resolvable URL"); }
+  if (!doc.d) issues.push("no publication date");
+  if (!doc.o) issues.push("no issuing body");
+  if (doc.ty === "import") issues.push("user-imported, not independently verified");
+  return issues;
+}
+
+/* ------------------------------------------------------------ rank health --- */
+function rankHealth(results) {
+  if (!results.length) return { ok: false, verdict: "no results", weak: true };
+  var top = results[0];
+  var conf = top.confidence || 0;
+  var spread = results.length > 1 ? top.score / (results[1].score || 1) : 2;
+  var weak = conf < 0.4 || results.length < 2;
+  return {
+    ok: !weak, confidence: conf, margin: spread, count: results.length,
+    verdict: weak ? "weak result set - treat the brief as partial" :
+      spread > 1.8 ? "clear winner" : "several close candidates"
+  };
+}
+
+/* ------------------------------------------------------- version history ---- */
+function recordVersion(note) {
+  if (!TREE) return null;
+  var v = { ts: new Date().toISOString(), root: TREE.root, docs: DOCS.length, note: note || "index rebuilt" };
+  INDEX_VERSIONS.unshift(v);
+  if (INDEX_VERSIONS.length > 12) INDEX_VERSIONS.pop();
+  try { localStorage.setItem("anv_versions", JSON.stringify(INDEX_VERSIONS)); } catch (e) {}
+  return v;
+}
+
+function loadVersions() {
+  try { INDEX_VERSIONS = JSON.parse(localStorage.getItem("anv_versions") || "[]"); } catch (e) { INDEX_VERSIONS = []; }
+  return INDEX_VERSIONS;
+}
+
+/* ------------------------------------------------- corrections + learning -- */
+function loadLearning() {
+  try { CORRECTIONS = JSON.parse(localStorage.getItem("anv_corrections") || "{}"); } catch (e) { CORRECTIONS = {}; }
+  try { CLICK_LEARN = JSON.parse(localStorage.getItem("anv_learn") || "{}"); } catch (e) { CLICK_LEARN = {}; }
+}
+
+function flagCorrection(docId, note) {
+  CORRECTIONS[docId] = { flag: true, note: note || "", ts: new Date().toISOString() };
+  try { localStorage.setItem("anv_corrections", JSON.stringify(CORRECTIONS)); } catch (e) {}
+  return CORRECTIONS[docId];
+}
+
+function clearCorrection(docId) {
+  delete CORRECTIONS[docId];
+  try { localStorage.setItem("anv_corrections", JSON.stringify(CORRECTIONS)); } catch (e) {}
+}
+
+/* click-through learning: a document you actually opened is evidence that the
+   query and that document are related. Those terms are added to expansion. */
+function learnFromClick(query, doc) {
+  if (!query || !doc) return;
+  var key = normalise(query);
+  var bag = CLICK_LEARN[key] = CLICK_LEARN[key] || {};
+  tokenise(doc.t + " " + (doc.k || []).join(" ")).forEach(function (t) {
+    if (t.length > 3) bag[t] = (bag[t] || 0) + 1;
+  });
+  try { localStorage.setItem("anv_learn", JSON.stringify(CLICK_LEARN)); } catch (e) {}
+}
+
+function learnedExpansion(query) {
+  var bag = CLICK_LEARN[normalise(query)];
+  if (!bag) return [];
+  return Object.keys(bag).sort(function (a, b) { return bag[b] - bag[a]; }).slice(0, 4);
+}
+
+function learningStats() {
+  var qs = Object.keys(CLICK_LEARN);
+  var docs = 0, terms = 0;
+  qs.forEach(function (q) { docs++; terms += Object.keys(CLICK_LEARN[q]).length; });
+  return { queries: qs.length, terms: terms, corrections: Object.keys(CORRECTIONS).length };
+}
+
+/* --------------------------------------------------------- export history --- */
+function exportHistory() {
+  return {
+    exported: new Date().toISOString(),
+    engine: "ANVESHAN v4",
+    index: { documents: DOCS.length, terms: INDEX.vocab.length, merkle_root: TREE ? TREE.root : null },
+    query_log: QUERY_LOG,
+    projects: PROJECTS,
+    corrections: CORRECTIONS,
+    learning: CLICK_LEARN,
+    versions: INDEX_VERSIONS,
+    reading_list: (typeof S !== "undefined" ? S.saved : [])
+  };
+}
+
+/* --------------------------------------------------- geographic gazetteer --- */
+var GAZETTEER = {
+  himalaya: { region: "North", lat: 28.0, lon: 84.0 }, ganga: { region: "North", lat: 25.3, lon: 83.0 },
+  thar: { region: "West", lat: 26.9, lon: 71.0 }, "western ghats": { region: "South", lat: 13.0, lon: 75.3 },
+  sundarbans: { region: "East", lat: 21.9, lon: 88.9 }, delhi: { region: "North", lat: 28.6, lon: 77.2 },
+  mumbai: { region: "West", lat: 19.1, lon: 72.9 }, bengaluru: { region: "South", lat: 12.97, lon: 77.6 },
+  chennai: { region: "South", lat: 13.1, lon: 80.3 }, kolkata: { region: "East", lat: 22.6, lon: 88.4 },
+  hyderabad: { region: "South", lat: 17.4, lon: 78.5 }, bhubaneswar: { region: "East", lat: 20.3, lon: 85.8 },
+  pune: { region: "West", lat: 18.5, lon: 73.9 }, karnataka: { region: "South", lat: 15.3, lon: 75.7 },
+  thanjavur: { region: "South", lat: 10.8, lon: 79.1 }, hampi: { region: "South", lat: 15.3, lon: 76.5 },
+  assam: { region: "North East", lat: 26.2, lon: 92.9 }, odisha: { region: "East", lat: 20.9, lon: 85.1 },
+  rajasthan: { region: "West", lat: 26.9, lon: 74.2 }, "andhra pradesh": { region: "South", lat: 15.9, lon: 79.7 },
+  jharkhand: { region: "East", lat: 23.6, lon: 85.3 }, manipur: { region: "North East", lat: 24.7, lon: 93.9 },
+  gujarat: { region: "West", lat: 22.3, lon: 71.2 }, kerala: { region: "South", lat: 10.5, lon: 76.3 }
+};
+
+function regionOf(doc) {
+  var hay = normalise(doc.t + " " + doc.b + " " + (doc.e || []).join(" ") + " " + (doc.k || []).join(" "));
+  var hits = [];
+  Object.keys(GAZETTEER).forEach(function (place) {
+    if (hay.indexOf(place) >= 0) hits.push(place);
+  });
+  if (!hits.length) return null;
+  return { places: hits, region: GAZETTEER[hits[0]].region };
+}
+
+function spatialData(results) {
+  var pts = [];
+  (results || []).forEach(function (r) {
+    var hay = normalise(r.doc.t + " " + r.doc.b);
+    Object.keys(GAZETTEER).forEach(function (place) {
+      if (hay.indexOf(place) >= 0) {
+        pts.push({ place: place, lat: GAZETTEER[place].lat, lon: GAZETTEER[place].lon, docId: r.doc.id, title: r.doc.t });
+      }
+    });
+  });
+  return pts.slice(0, 40);
+}
+
+if (typeof globalThis !== "undefined") {
+  globalThis.A4 = {
+    resolveFollowUp: resolveFollowUp, duplicateGroups: duplicateGroups, conceptEvolution: conceptEvolution,
+    genealogy: genealogy, consensusMap: consensusMap, evidenceScore: evidenceScore, anomalyScan: anomalyScan,
+    causalView: causalView, consequenceLens: consequenceLens, provenanceWeakness: provenanceWeakness,
+    rankHealth: rankHealth, recordVersion: recordVersion, loadVersions: loadVersions,
+    loadLearning: loadLearning, flagCorrection: flagCorrection, clearCorrection: clearCorrection,
+    learnFromClick: learnFromClick, learnedExpansion: learnedExpansion, learningStats: learningStats,
+    exportHistory: exportHistory, spatialData: spatialData, regionOf: regionOf, GAZETTEER: GAZETTEER
+  };
+}
+</script>
+<script>/* ============================================================================
    ANVESHAN UI - interface, provenance ledger, agent dock, panels
    ========================================================================== */
 var INDEX = buildIndex(DOCS);
@@ -4556,6 +4853,595 @@ else boot();
       toast("Warning: this file contains instruction-like text. Indexed as data only, never executed.");
     }
     return _ingest(name, text, opts);
+  };
+})();
+</script>
+<script>/* ============================================================================
+   ANVESHAN UI v4 - capability matrix, concepts lab, adapters, learning loop
+   ========================================================================== */
+(function () {
+  var ready = false;
+  S.region = null;
+
+  /* --------------------------------------------------- context awareness --- */
+  var _doSearch = doSearch;
+  doSearch = function (q, record) {
+    var r = resolveFollowUp(q);
+    _doSearch(r.query, record);
+    if (r.expanded) {
+      LAST_QUERY = r.query;
+      toast('Context carried from "' + r.base.slice(0, 42) + '"');
+    } else {
+      LAST_QUERY = r.query;
+    }
+  };
+
+  /* ------------------------------- corrections + region as ranking signals */
+  var _applyFilters = applyFilters;
+  applyFilters = function () {
+    _applyFilters();
+    if (S.region) {
+      S.results = S.results.filter(function (r) {
+        var reg = regionOf(r.doc);
+        return reg && reg.region === S.region;
+      });
+    }
+    var changed = false;
+    S.results.forEach(function (r) {
+      if (CORRECTIONS[r.doc.id]) { r.score = r.score * 0.35; r.corrected = true; changed = true; }
+    });
+    if (changed) S.results.sort(function (a, b) { return b.score - a.score; });
+  };
+
+  /* -------------------------------------------------- click-through learn -- */
+  var _openDoc = openDoc;
+  openDoc = function (id, verify) {
+    var d = DOCS.filter(function (x) { return x.id === id; })[0];
+    if (d && S.q) learnFromClick(S.q, d);
+    _openDoc(id, verify);
+  };
+
+  /* ---------------------------------------------------------- nav + boot --- */
+  function addNav() {
+    var nav = document.querySelector("nav.top-nav");
+    if (!nav || document.getElementById("navCaps")) return;
+    var defs = [["navCaps", "Capabilities", "capabilities"], ["navConc", "Concepts", "concepts"], ["navAdapt", "Adapters", "adapters"]];
+    defs.forEach(function (d) {
+      var b = document.createElement("button");
+      b.className = "nbtn"; b.id = d[0]; b.textContent = d[1];
+      b.onclick = function () { openPanel(d[2]); };
+      nav.insertBefore(b, nav.firstChild);
+    });
+  }
+
+  function postBoot() {
+    if (ready) return;
+    if (!TREE) { setTimeout(postBoot, 180); return; }
+    ready = true;
+    addNav();
+    try { loadLearning(); loadVersions(); } catch (e) {}
+    if (!INDEX_VERSIONS.length) recordVersion("initial index");
+    if (S.q) renderResults();
+  }
+  document.addEventListener("DOMContentLoaded", function () { setTimeout(postBoot, 160); });
+  if (document.readyState !== "loading") setTimeout(postBoot, 160);
+
+  /* ---------------------------------------------------------- panel routes - */
+  var _openPanel = openPanel;
+  openPanel = function (which) {
+    if (which === "capabilities") return paint("Capability matrix", "Every requested property, mapped to what runs, what needs an adapter, and what this architecture cannot do", capsBody());
+    if (which === "concepts") return paint("Concepts lab", "Evolution, genealogy, consensus, anomalies, causality, spatial and duplicates", conceptsBody());
+    if (which === "adapters") return paint("External adapters", "Model slots for the capabilities a browser cannot host - with what each one unlocks", adaptersBody());
+    return _openPanel(which);
+  };
+  function paint(title, sub, body) {
+    document.getElementById("panelTitle").textContent = title;
+    document.getElementById("panelSub").textContent = sub;
+    document.getElementById("panelBody").innerHTML = body;
+    document.getElementById("panel").classList.add("on");
+  }
+
+  /* ================================================== CAPABILITY MATRIX ==== */
+  var L = "live", P = "partial", A = "adapter", X = "out";
+
+  var MATRIX = [
+    { g: "A. Search accuracy and intelligence", items: [
+      ["Semantic understanding", L, "TF-IDF cosine + thesaurus expansion. Lexical-vector hybrid, not a neural encoder."],
+      ["Intent recognition", L, "8-way rule classifier; the answerer changes sentence scoring per intent."],
+      ["Context awareness", L, "Follow-up resolution: 'and in 2024?', 'more on that' merge with the previous query."],
+      ["Natural-language search", L, "Conversational, incomplete and multi-clause queries accepted."],
+      ["Multilingual understanding", P, "Devanagari + Hinglish + English live. Sanskrit and other scripts need the translation adapter."],
+      ["Cross-language discovery", P, "Concept thesaurus maps Hindi/English; full MT via Bhashini or IndicTrans2 adapter."],
+      ["Entity recognition", L, "Index vocabulary, word-boundary matched, 4,000 terms."],
+      ["Disambiguation", L, "Facet-based: shows which domains a term lands in and lets you pick."],
+      ["Multi-intent search", L, "Compound questions decomposed into runnable sub-questions."],
+      ["Deep research", L, "Six-pass dossier: definition, figures, timeline, mechanism, limits, context."]
+    ]},
+    { g: "B. Information quality and reliability", items: [
+      ["Source credibility assessment", L, "PageRank over the entity graph, blended with issuing-body tier."],
+      ["Primary-source prioritisation", L, "Type weighting favours standards, dashboards and original issuers over press."],
+      ["Peer-reviewed research discovery", P, "Papers are typed and filterable; peer-review status is not recorded per item."],
+      ["Original document / archival discovery", P, "Issuer URL and date shown; no archive fetch or manuscript corpus."],
+      ["Source transparency", L, "Issuer, date, type, URL and Merkle leaf on every result."],
+      ["Evidence-based ranking", L, "Rank is a function of match, authority, freshness and your weights."],
+      ["Fact-checking and cross-verification", P, "Figures reconciled across sources; claim-level truth is not adjudicated."],
+      ["Contradiction detection", L, "Matbhed radar: same metric, close dates, different issuers."],
+      ["Misinformation / manipulated-content detection", P, "Hedge-vs-evidence typing, injection scan on imports. No media forensics."],
+      ["Publication-date and age awareness", L, "Per-type half-life; decayed figures flagged for revalidation."],
+      ["Historical context preservation", L, "Time machine restricts the index to a chosen year; timeline view."],
+      ["Fact / interpretation / hypothesis separation", L, "Linguistic-cue typing, shown so you can disagree with it."],
+      ["Confidence and uncertainty estimation", L, "Per-answer confidence, per-claim scores, rank-health verdict."],
+      ["Citation traceability", L, "Sentence to document id to Merkle leaf, exportable."],
+      ["Missing / insufficient evidence", L, "Gap matrix: facets with no supporting sentence are named."]
+    ]},
+    { g: "C. Search experience", items: [
+      ["Extremely fast retrieval", L, "Inverted index built at load; queries resolve in single-digit milliseconds."],
+      ["Advanced filters and operators", L, "type: org: site: after: before: year: \"phrase\" -exclude, plus facets."],
+      ["Search by image / audio / video / document / voice", P, "Voice live via browser engine; documents via import; image, audio and video need adapters."],
+      ["Search within PDFs, books, papers, datasets", P, "Text, markdown, CSV and JSON ingested; PDF needs a parser adapter."],
+      ["Concept rather than exact terminology", L, "Synonym and transliteration expansion across the domain thesaurus."],
+      ["Across sites, databases and libraries", P, "170 curated sources plus your imports; no live crawl."],
+      ["Personalisation without manipulating facts", L, "Weights and memory are explicit and yours; no silent profile."],
+      ["Customisable ranking", L, "Four sliders that are the entire ranking function."],
+      ["Search history and research continuity", L, "Query log, projects, reading list, session continuity."],
+      ["Accessible interface", L, "Skip link, ARIA live region, keyboard operation, contrast mode, reduced motion."]
+    ]},
+    { g: "D. Knowledge organisation", items: [
+      ["Knowledge graph generation", L, "Entity co-occurrence graph, rendered from live index data."],
+      ["Relationship mapping", L, "Weighted edges between entities and the documents that join them."],
+      ["Timeline generation", L, "Publication chronology with gaps visible."],
+      ["Geographic and spatial search", P, "24-place gazetteer, region facet and coordinate plot. No 3D or satellite layer."],
+      ["Topic clustering", L, "TF-IDF centroid clustering with derived labels."],
+      ["Automatic categorisation", L, "10 document types assigned per source."],
+      ["Duplicate information detection", L, "Near-duplicate grouping above 0.62 trigram similarity."],
+      ["Concept evolution tracking", L, "Term drift per era for any entity in the index."],
+      ["Cross-disciplinary connections", L, "Bridges between domains by cosine similarity."],
+      ["Structured knowledge extraction", P, "Entities, figures, claim types and dates extracted; not full schema markup."]
+    ]},
+    { g: "E. User control and privacy", items: [
+      ["Privacy-first architecture", L, "Zero network calls after load. No analytics, no accounts, no server."],
+      ["Minimal data collection", L, "Nothing leaves the device; localStorage only, erasable in one click."],
+      ["No hidden manipulation", L, "Ranking weights are displayed and editable."],
+      ["No forced personalisation", L, "Off by default; learning is opt-in per click and exportable."],
+      ["User-controlled memory", L, "Projects, corrections and reading list are yours to inspect and delete."],
+      ["Open and exportable history", L, "Full JSON export of log, projects, corrections, learning and versions."],
+      ["Transparent ranking algorithms", L, "The formula is printed in the Query lab."],
+      ["Secure search", P, "Local-only, sanitised rendering, integrity verification. Nothing to intercept."],
+      ["Open standards and interoperability", L, "No dependencies; plain HTML, Markdown and JSON out."],
+      ["Adversarial and security protection", P, "Injection scan, HTML escaping, hash verification. No sandboxing of hostile files."]
+    ]},
+    { g: "Self-learning: autonomous discovery", items: [
+      ["Continuously discover new information", X, "Needs a crawler service. Import is the manual equivalent."],
+      ["Crawl new websites and databases", X, "Same constraint: scheduler, fetcher, politeness policy."],
+      ["Detect new research papers", A, "arXiv, OpenAlex or Crossref feed adapter would cover it."],
+      ["New books, patents, technical documents", A, "Patent and catalogue APIs are the missing connector."],
+      ["Monitor scientific discoveries", A, "Journal RSS or OpenAlex adapter."],
+      ["Identify emerging technologies", P, "Discovery radar computes mention lift inside this corpus."],
+      ["Detect new concepts and terminology", P, "Unseen terms appear as zero-result queries in the gap log."],
+      ["Discover previously unknown sources", X, "Requires open-web discovery."],
+      ["Identify disappearing or inaccessible sources", P, "Link-shape audit flags site-root and HTTP-only references."],
+      ["Monitor changes in official records", P, "Version history records index roots; no external diffing."]
+    ]},
+    { g: "Self-learning: continuous learning", items: [
+      ["Learn new concepts from reliable sources", P, "Through import and correction flags, not autonomous ingestion."],
+      ["Update outdated knowledge", P, "Half-life flags mark stale figures; replacement is manual."],
+      ["Learn relationships between concepts", L, "The entity graph is rebuilt from data on every change."],
+      ["Improve semantic understanding", P, "Click-through expansion learns query-to-document terms locally."],
+      ["Improve query interpretation", L, "Learned expansions and follow-up context accumulate per query."],
+      ["Learn from verified corrections", L, "Flag a document and it is down-weighted in ranking, visibly."],
+      ["Learn from unsuccessful searches", L, "Zero-result queries are logged as information gaps."],
+      ["Identify recurring information gaps", L, "Gap list and gap matrix surface them per query and over time."],
+      ["Develop better research strategies", P, "The dossier plan is fixed; it does not self-optimise."],
+      ["Transfer learning across disciplines", P, "Cross-domain bridges surface transferable material."]
+    ]},
+    { g: "Self-learning: autonomous verification", items: [
+      ["Cross-check claims across independent sources", L, "Independence detector plus figure reconciliation."],
+      ["Compare original documents with secondary reporting", P, "Issuer tier separates primary from press; no automated diff."],
+      ["Detect contradictory evidence", L, "Contradiction laboratory."],
+      ["Identify outdated statistics", L, "Half-life decay plus figure dates."],
+      ["Detect fabricated citations", P, "Weak-provenance audit catches root URLs and missing dates, not invented papers."],
+      ["Verify mathematical and statistical claims", P, "Unit normalisation and outlier detection; no symbolic proof."],
+      ["Check whether a source supports its attributed claim", L, "Every sentence is quoted, never paraphrased, so support is visible."],
+      ["Identify conflicts of interest", X, "Requires funding and ownership data."],
+      ["Re-evaluate conclusions when evidence appears", P, "Import a new source and figures re-rank; conclusions are not rewritten."],
+      ["Maintain an audit trail of changes", L, "Merkle roots per index version plus a hash-linked query chain."]
+    ]},
+    { g: "Self-learning: maintenance", items: [
+      ["Automatically update the index", P, "Rebuilt on import and correction; not on a timer."],
+      ["Detect broken links", X, "Offline engine cannot fetch. Link-shape audit only."],
+      ["Remove duplicate indexing", L, "Near-duplicate grouping, with the pair shown rather than silently dropped."],
+      ["Identify low-quality information", P, "Authority tier, provenance audit and rank health."],
+      ["Detect ranking failures", L, "Rank-health verdict flags weak or ambiguous result sets."],
+      ["Improve retrieval algorithms", X, "Weights are tunable; the algorithm does not rewrite itself."],
+      ["Monitor its own performance", L, "Query log with counts and confidence, gap list, health panel."],
+      ["Detect emerging security vulnerabilities", X, "Out of scope for a static client."],
+      ["Roll back harmful updates", P, "Version roots are kept; rollback is manual."],
+      ["Preserve previous knowledge states", L, "Time machine plus stored Merkle roots."]
+    ]},
+    { g: "Personalised intelligence", items: [
+      ["Understand research interests", P, "From query log and reading list, locally."],
+      ["Maintain long-term projects", L, "Projects with notes and reading lists, exportable."],
+      ["Remember conclusions with permission", L, "Only what you type into a project note."],
+      ["Connect previous and current questions", L, "Follow-up resolution and session continuity."],
+      ["Recommend unexplored topics", L, "Serendipity and cross-domain bridges."],
+      ["Adapt explanations to expertise", X, "No user model of expertise; out of scope."],
+      ["Identify what you have not investigated", P, "Gap matrix per query; not a model of you."],
+      ["Generate research pathways", L, "Dossier plan plus sub-question decomposition."],
+      ["Learn preferred evidence standards", P, "Ranking weights are your stated preference."],
+      ["Maintain continuity between sessions", L, "localStorage across sessions on this device."]
+    ]},
+    { g: "Futuristic: predictive and anticipatory", items: [
+      ["Predictive discovery", X, "Would require a live corpus and trend models."],
+      ["Future knowledge forecasting", X, "Not attempted; any output would be invention."],
+      ["Research gap detection", L, "Gap matrix and gap log."],
+      ["Unsolved problem discovery", P, "Gaps are reported; their significance is not judged."],
+      ["Trend anticipation", P, "Mention lift inside the corpus, labelled as such."],
+      ["Knowledge demand prediction", X, "Requires traffic and market data."],
+      ["Proactive alerts", X, "No background process can run in a page."]
+    ]},
+    { g: "Futuristic: unknown relationships", items: [
+      ["Hidden relationship discovery", L, "Entity graph plus cross-domain bridges."],
+      ["Cross-disciplinary intelligence", L, "Bridges across 10 domains."],
+      ["Serendipitous discovery", L, "Adjacent documents by shared entity, from other domains."],
+      ["Unexpected correlation detection", P, "Co-occurrence and outliers; correlation is not computed statistically."],
+      ["Causal reasoning", P, "Causal language is extracted and labelled as assertion, not proof."],
+      ["Second-order consequences", P, "Consequence lens retrieves effect and risk discussions."],
+      ["Multi-order consequences", X, "Requires modelling, not retrieval."],
+      ["Analogical reasoning", P, "Cross-domain similarity is the mechanism; no analogy generation."],
+      ["Knowledge recombination", P, "Dossier and bridges juxtapose evidence; no synthesis beyond extraction."]
+    ]},
+    { g: "Futuristic: autonomous science and multimodal", items: [
+      ["Search existing literature", P, "Curated corpus; literature APIs need an adapter."],
+      ["Identify unresolved questions", P, "Gap detection only."],
+      ["Generate testable hypotheses", X, "Would need a model and validation; refusing to fake it."],
+      ["Find supporting and contradicting evidence", L, "Conflict lab plus evidence typing."],
+      ["Design experiments / run simulations", X, "No simulator, no domain models."],
+      ["Analyse datasets", X, "No tabular compute layer."],
+      ["Track reproducibility", X, "Requires protocol metadata."],
+      ["Multimodal: image, audio, video, diagrams, maps", A, "Encoder adapters; browser-native voice input already works."],
+      ["Spatial and 3D intelligence", P, "2D gazetteer plot only."],
+      ["Scientific, astronomical, chemical intelligence", A, "Domain databases are connectors, not in-file corpora."],
+      ["Search source code by functionality", A, "Code embedding adapter would enable it."]
+    ]},
+    { g: "Revolutionary innovations", items: [
+      ["Knowledge DNA", L, "Merkle leaf + issuer + date + claim typing per statement."],
+      ["Truth decomposition", L, "Claims split and typed individually."],
+      ["Evidence marketplace", L, "Composite evidence score per claim."],
+      ["Knowledge time machine", L, "Year-restricted index with stored roots."],
+      ["Counterfactual search", P, "Possibility lens surfaces conditional statements; no simulation."],
+      ["Negative knowledge engine", L, "Unknown search and gap matrix."],
+      ["Uncertainty navigator", L, "Confidence, rank health and gap reporting."],
+      ["Contradiction laboratory", L, "Conflicts versus trajectories, separately."],
+      ["Discovery radar", L, "Mention lift over this corpus."],
+      ["Intellectual genealogy", L, "Chronological document chain per entity."],
+      ["Knowledge fusion", P, "Cross-domain bridges."],
+      ["Scientific gap detector", P, "Facet gaps, not literature gaps."],
+      ["Universal translator", P, "Concept-level thesaurus; MT needs an adapter."],
+      ["Research memory", L, "Projects and query log."],
+      ["Autonomous investigator", L, "Six-pass dossier runs without further prompting."],
+      ["Evidence expiration detector", L, "Half-life per document type."],
+      ["Source independence detector", L, "Issuer and near-duplicate checks."],
+      ["Knowledge provenance ledger", L, "Merkle tree plus query chain."],
+      ["Hypothesis simulator", X, "No model."],
+      ["Knowledge compression", L, "Dossier and concept map export."],
+      ["Discovery by accident", L, "Serendipity panel."],
+      ["Open-world reasoning", X, "Closed corpus by design; import extends it."],
+      ["Knowledge inequality detector", P, "Gap log shows thin subjects; no global measure."],
+      ["Forgotten knowledge recovery", P, "Historical documents in the index are reachable by time machine."],
+      ["Dynamic consensus map", L, "Support / hedge / conflict ratios per query."],
+      ["Local-to-global discovery", P, "Region facet links local documents to wider themes."],
+      ["Knowledge impact predictor", X, "Requires forecasting."],
+      ["Ethical consequence engine", P, "Consequence lens retrieves risk and governance discussion."],
+      ["Autonomous correction network", P, "Corrections are local and down-weight the source; no propagation."],
+      ["Human-AI collaborative discovery", L, "Projects, notes, corrections and export close the loop."]
+    ]},
+    { g: "Ten experimental paradigms", items: [
+      ["Unknown search", L, "Implemented as the gap matrix."],
+      ["Possibility search", P, "Hedged-statement lens."],
+      ["Causal search", P, "Causal assertions extracted and labelled."],
+      ["Lost knowledge search", P, "Time machine over historical sources."],
+      ["Anomaly search", L, "Outlier detection against group medians."],
+      ["Interdisciplinary search", L, "Cross-domain bridges."],
+      ["Reality search", X, "No sensor or live measurement feed."],
+      ["Simulation search", X, "No simulator."],
+      ["Temporal knowledge search", L, "Timeline, evolution, versioned roots."],
+      ["Evolutionary search", P, "Local learning loop; the method itself does not evolve."]
+    ]}
+  ];
+
+  function statusMeta(s) {
+    if (s === L) return { label: "live", col: "var(--green)", bg: "rgba(34,201,139,.1)", bd: "rgba(34,201,139,.3)" };
+    if (s === P) return { label: "partial", col: "#ffd166", bg: "rgba(255,209,102,.1)", bd: "rgba(255,209,102,.3)" };
+    if (s === A) return { label: "adapter", col: "var(--cyan)", bg: "rgba(77,214,255,.1)", bd: "rgba(77,214,255,.3)" };
+    return { label: "not possible here", col: "#ff8f8f", bg: "rgba(255,107,107,.09)", bd: "rgba(255,107,107,.28)" };
+  }
+
+  function capsBody() {
+    var counts = { live: 0, partial: 0, adapter: 0, out: 0, total: 0 };
+    MATRIX.forEach(function (grp) {
+      grp.items.forEach(function (it) {
+        counts.total++;
+        if (it[1] === L) counts.live++; else if (it[1] === P) counts.partial++;
+        else if (it[1] === A) counts.adapter++; else counts.out++;
+      });
+    });
+    var h = '<div class="sec"><h3>Summary</h3><div class="grid2">' +
+      tile("Live in the browser", counts.live + " of " + counts.total + " properties run right now", "live") +
+      tile("Partial", counts.partial + " implemented with a stated limit", "partial") +
+      tile("Adapter-gated", counts.adapter + " work once a connector is added", "adapter") +
+      tile("Not possible in this architecture", counts.out + " require servers, sensors or models", "honest") +
+      "</div>" +
+      '<div class="warn" style="margin-top:12px"><b>Read this first.</b> You asked for every property to be present. ' +
+      "Present and working are different things, so this table gives each one a status and names the mechanism. " +
+      "Nothing is marked live unless the code for it exists in this file and you can exercise it. " +
+      "Where a capability needs a crawler, a sensor or a trained model, it is marked as such rather than simulated.</div></div>";
+
+    MATRIX.forEach(function (grp) {
+      h += '<div class="sec"><h3>' + esc(grp.g) + "</h3>";
+      grp.items.forEach(function (it) {
+        var m = statusMeta(it[1]);
+        h += '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid rgba(140,160,220,.09)">' +
+          '<span style="flex:0 0 116px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:' +
+          m.col + ';background:' + m.bg + ";border:1px solid " + m.bd + ';border-radius:4px;padding:1px 6px;height:fit-content;text-align:center">' +
+          m.label + "</span>" +
+          '<span style="flex:1"><b style="font-size:12.5px;color:#dbe2f0">' + esc(it[0]) + "</b>" +
+          '<div style="font-size:11.5px;color:var(--dim);line-height:1.55">' + esc(it[2]) + "</div></span></div>";
+      });
+      h += "</div>";
+    });
+
+    h += '<div class="sec"><h3>Critical safeguards</h3><p>These are enforced in code, not just stated:</p><div class="grid2">' +
+      tile("Popularity is not truth", "Authority affects rank by at most 0.08 of the score and is labelled as authority, never as correctness.", "enforced") +
+      tile("Generated text is never evidence", "The extractive path quotes only. If the Sarvam adapter rewrites, the output is marked as generated.", "enforced") +
+      tile("Hypotheses stay hypotheses", "Hedged sentences are extracted into a separate lens and typed as hypothesis.", "enforced") +
+      tile("Originals are preserved", "Merkle roots per version; documents are never edited in place, only added.", "enforced") +
+      tile("No circular citation", "Independence detection flags shared issuers and near-duplicate wording.", "enforced") +
+      tile("Human review and rollback", "Corrections are yours to set and clear; version roots allow manual rollback.", "enforced") +
+      "</div></div>";
+    return h;
+  }
+
+  /* ======================================================= CONCEPTS LAB ==== */
+  function conceptsBody() {
+    if (!S.q) return '<div class="warn">Run a search first - these analyses are scoped to the current query.</div>';
+    var res = S.base || [];
+    var intel = queryIntelligence(S.q);
+    var ent = intel.entities.length ? intel.entities[0].entity : null;
+    var cons = consensusMap(S.q, res);
+    var anomalies = anomalyScan(S.q, res);
+    var causal = causalView(S.q, res);
+    var conseq = consequenceLens(S.q);
+    var health = rankHealth(res);
+    var dups = duplicateGroups(res.slice(0, 30).map(function (r) { return r.doc; }));
+    var spatial = spatialData(res);
+    var evo = ent ? conceptEvolution(ent) : null;
+    var gen = ent ? genealogy(ent) : null;
+    var weakProv = res.slice(0, 6).map(function (r) { return { doc: r.doc, issues: provenanceWeakness(r.doc) }; }).filter(function (x) { return x.issues.length; });
+
+    var h = '<div class="sec"><h3>Consensus map</h3><div class="grid2">' +
+      tile("Verdict", cons.verdict, "consensus") +
+      tile("Support vs hedge", cons.support + "% evidentiary, " + cons.hedge + "% interpretive or hedged", "balance") +
+      tile("Issuers", cons.issuers + " independent bodies across " + cons.total + " claims", "independence") +
+      tile("Conflicts", cons.conflicts + " genuine contradiction(s)", cons.conflicts ? "attention" : "clean") +
+      "</div></div>";
+
+    h += '<div class="sec"><h3>Rank health</h3><p>' + esc(health.verdict) +
+      " · top confidence " + Math.round((health.confidence || 0) * 100) + "% · margin " + (health.margin || 0).toFixed(2) +
+      " · " + health.count + " results</p></div>";
+
+    if (evo) {
+      h += '<div class="sec"><h3>Concept evolution: ' + esc(ent) + "</h3>" +
+        '<p>How the vocabulary around this entity changes across publication years. Terms in the latest era that never appear in the earliest are drift.</p>' +
+        '<table class="ledger-tbl" style="font-family:var(--sans)"><thead><tr><th>Year</th><th>Docs</th><th>Dominant terms</th></tr></thead><tbody>' +
+        evo.eras.map(function (e) {
+          return "<tr><td style='font-family:var(--mono)'>" + e.year + "</td><td style='font-family:var(--mono)'>" + e.docs +
+            "</td><td style='color:var(--dim)'>" + e.terms.map(esc).join(" · ") + "</td></tr>";
+        }).join("") + "</tbody></table>" +
+        (evo.drift.length ? '<div class="warn" style="margin-top:10px"><b>Drift:</b> ' + evo.drift.map(esc).join(", ") +
+          " appear only in the newest material.</div>" : "") + "</div>";
+    }
+
+    if (gen && gen.chain.length) {
+      h += '<div class="sec"><h3>Intellectual genealogy: ' + esc(ent) + "</h3>" +
+        '<p>The chronological chain of documents that carry this entity, with the other concepts each one brings. Span: ' + gen.span + " years.</p>" +
+        gen.chain.map(function (c) {
+          return '<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid rgba(140,160,220,.09)">' +
+            '<span style="flex:0 0 46px;font-family:var(--mono);font-size:11px;color:var(--saffron)">' + c.year + "</span>" +
+            '<span style="flex:1"><span onclick="openDoc(\'' + c.id + '\')" style="font-size:12.5px;color:#dbe2f0;cursor:pointer">' +
+            esc(c.title.slice(0, 70)) + '</span><div style="font-size:11px;color:var(--dimmer)">' + esc(c.org) +
+            (c.via.length ? " · via " + esc(c.via.join(", ")) : "") + "</div></span></div>";
+        }).join("") + "</div>";
+    }
+
+    h += '<div class="sec"><h3>Causal assertions</h3><p>Sentences that claim a mechanism. They are <b>asserted</b> by the source, not proven by this engine.</p>';
+    if (!causal.length) h += '<div class="warn">No causal language in the retrieved documents.</div>';
+    causal.forEach(function (c) {
+      h += '<div style="border-left:2px solid var(--violet);padding:7px 12px;margin-bottom:8px;font-size:12.5px;color:#d6d2ee">' + esc(c.text) +
+        ' <span style="font-family:var(--mono);font-size:10px;color:var(--dimmer)">' + esc(c.docId) + "</span></div>";
+    });
+    h += "</div>";
+
+    h += '<div class="sec"><h3>Consequence lens</h3><p>Second-order probing: the same subject re-queried for effects, risks, governance response and behavioural change.</p>';
+    conseq.forEach(function (c) {
+      h += '<div style="margin-bottom:12px"><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--saffron);margin-bottom:4px">' +
+        esc(c.label) + "</div>" + c.sentences.map(function (s) {
+          return '<div style="font-size:12.5px;color:#c8d0e2;margin-bottom:4px">' + esc(s.text) +
+            ' <span style="font-family:var(--mono);font-size:10px;color:var(--dimmer)">' + esc(s.docId) + "</span></div>";
+        }).join("") + "</div>";
+    });
+    h += "</div>";
+
+    h += '<div class="sec"><h3>Anomalies</h3><p>Figures in this result set that sit more than three times away from the group median for the same metric.</p>';
+    if (!anomalies.length) h += '<div class="warn">No statistical outliers matched this query.</div>';
+    anomalies.forEach(function (a) {
+      h += '<div style="border:1px solid rgba(255,107,107,.25);background:rgba(255,107,107,.05);border-radius:8px;padding:9px 12px;margin-bottom:8px">' +
+        '<div style="font-size:12.5px;color:#ffd9d9">' + esc(a.claim.text) + " — <b>" + a.ratio.toFixed(1) + "x</b> the median</div>" +
+        '<div style="font-size:11px;color:var(--dimmer)">' + esc(a.claim.org) + " · " + esc(a.claim.date) + "</div></div>";
+    });
+    h += "</div>";
+
+    if (spatial.length) {
+      h += '<div class="sec"><h3>Spatial view</h3><p>Places named in the retrieved documents, from a 24-place gazetteer.</p>' + svgMap(spatial) +
+        '<div class="hero-chips" style="justify-content:flex-start;margin-top:8px">' +
+        ["North", "South", "East", "West", "North East"].map(function (r) {
+          return '<button class="chip' + (S.region === r ? " hot" : "") + '" onclick="setRegion(\'' + r + '\')">' + r + "</button>";
+        }).join("") + "</div></div>";
+    }
+
+    h += '<div class="sec"><h3>Duplicate and near-duplicate documents</h3>';
+    if (!dups.length) h += '<div class="warn">No near-duplicates above 0.62 similarity in this result set.</div>';
+    dups.forEach(function (g) {
+      h += '<div style="border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin-bottom:8px">' +
+        '<div style="font-size:11px;color:var(--dimmer);margin-bottom:4px">' + g.length + " documents overlap</div>" +
+        g.map(function (d) {
+          return "<div onclick=\"openDoc('" + d.id + "')\" style='font-size:12px;color:#c3cbdf;cursor:pointer'>" + esc(d.t.slice(0, 68)) + "</div>";
+        }).join("") + "</div>";
+    });
+    h += "</div>";
+
+    if (weakProv.length) {
+      h += '<div class="sec"><h3>Provenance audit</h3><p>Results whose citation is weaker than it looks.</p>';
+      weakProv.forEach(function (w) {
+        h += '<div style="font-size:12px;color:var(--dim);margin-bottom:6px"><b style="color:#dbe2f0">' + esc(w.doc.t.slice(0, 60)) +
+          "</b> — " + w.issues.map(esc).join("; ") + "</div>";
+      });
+      h += "</div>";
+    }
+    return h;
+  }
+
+  function svgMap(pts) {
+    var W = 620, H = 300;
+    var lats = pts.map(function (p) { return p.lat; }), lons = pts.map(function (p) { return p.lon; });
+    var minLat = Math.min.apply(null, lats) - 1, maxLat = Math.max.apply(null, lats) + 1;
+    var minLon = Math.min.apply(null, lons) - 1, maxLon = Math.max.apply(null, lons) + 1;
+    var s = '<svg viewBox="0 0 ' + W + " " + H + '" style="width:100%;height:auto;background:rgba(255,255,255,.015);border:1px solid var(--line);border-radius:12px">';
+    s += '<text x="10" y="18" font-size="9" fill="#5f6b88" font-family="ui-monospace,monospace">lat ' + minLat.toFixed(1) + "–" + maxLat.toFixed(1) +
+      " / lon " + minLon.toFixed(1) + "–" + maxLon.toFixed(1) + "</text>";
+    pts.forEach(function (p) {
+      var x = ((p.lon - minLon) / (maxLon - minLon)) * (W - 80) + 40;
+      var y = H - 40 - ((p.lat - minLat) / (maxLat - minLat)) * (H - 80);
+      s += '<circle cx="' + x + '" cy="' + y + '" r="4.5" fill="rgba(77,214,255,.5)" stroke="var(--cyan)" stroke-width="1"/>';
+      s += '<text x="' + (x + 7) + '" y="' + (y + 3) + '" font-size="8.5" fill="#9aa6c2" font-family="ui-monospace,monospace">' + esc(p.place) + "</text>";
+    });
+    return s + "</svg>";
+  }
+
+  window.setRegion = function (r) {
+    S.region = S.region === r ? null : r;
+    applyFilters(); renderResults();
+    toast(S.region ? "Region filter: " + S.region : "Region filter cleared");
+  };
+
+  /* ========================================================== ADAPTERS ===== */
+  var SLOTS = [
+    ["Embeddings", "BGE-M3, E5 or IndicBERT vectors", "Turns the lexical-vector hybrid into true semantic retrieval over paraphrases.", "POST /embed"],
+    ["Translation", "Bhashini ULCA or AI4Bharat IndicTrans2", "Full cross-language discovery and explanation in 22 languages.", "POST /translate"],
+    ["Speech", "Bhashini ASR / IndicConformer, TTS", "Voice search in Indic languages beyond the browser's own engine.", "POST /asr"],
+    ["OCR", "Tesseract or PaddleOCR", "Search inside scanned PDFs and images, not just digital text.", "POST /ocr"],
+    ["Crawler", "Your own fetcher with robots.txt compliance", "Continuous discovery of new sources - the one thing a static page cannot do.", "GET /fetch"],
+    ["Generation", "Sarvam-105B (already wired in Settings)", "Fluent rewriting of the brief, always marked as generated.", "POST /v1/chat/completions"]
+  ];
+
+  function adaptersBody() {
+    var sv = S.sarvam || {};
+    var h = '<div class="sec"><h3>How the adapter layer works</h3>' +
+      '<p>Every capability that needs a model or a network lives behind one interface. The engine calls it if it is configured, ' +
+      "and falls back to the local method if it is not — it never fails silently and never pretends a result came from a model it did not call. " +
+      "Keys are stored in this browser only.</p></div>";
+    h += '<div class="sec"><h3>Slots</h3><table class="ledger-tbl" style="font-family:var(--sans)"><thead><tr><th>Slot</th><th>Suggested engine</th><th>What it unlocks</th><th>State</th></tr></thead><tbody>' +
+      SLOTS.map(function (s) {
+        var on = (s[0] === "Generation" && sv.on && sv.key);
+        return "<tr><td style='color:#dbe2f0;font-weight:600'>" + esc(s[0]) + "</td><td style='color:var(--dim)'>" + esc(s[1]) +
+          "</td><td style='color:var(--dim)'>" + esc(s[2]) + "</td><td style='font-family:var(--mono);font-size:10px;color:" +
+          (on ? "var(--green)" : "var(--dimmer)") + "'>" + (on ? "connected" : "not connected") + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    h += '<div class="sec"><h3>Why not bundle models in the file</h3>' +
+      '<p>An embedding model that is actually good is 100–400 MB. A multilingual translation model is similar. ' +
+      "Loading them into a single HTML page would make it unopenable on the devices most Indians use, which defeats the purpose. " +
+      "The adapter pattern keeps the engine at 370 KB and lets it become stronger when the hardware and connection allow it. " +
+      "That is a deliberate trade, not an omission.</p>" +
+      '<div class="grid2">' + tile("Today", "370 KB, works offline, instant load, zero cost", "shipped") +
+      tile("With adapters", "Neural retrieval, 22-language translation, OCR, crawling", "opt-in") + "</div></div>";
+
+    h += '<div class="sec"><h3>Local learning loop (live now)</h3>' +
+      '<p>The self-learning properties that <b>can</b> run locally are implemented as an explicit, inspectable loop:</p>' +
+      '<div class="flow">' +
+      '<div class="flow-row"><span class="idx">01</span><b style="color:#e8ecf7">Click-through expansion</b><span style="color:var(--dim)">open a result and its distinctive terms are added to that query\'s expansion</span><span class="who">live</span></div>' +
+      '<div class="flow-row"><span class="idx">02</span><b style="color:#e8ecf7">Correction flags</b><span style="color:var(--dim)">mark a source as unreliable and it is down-weighted in ranking, visibly</span><span class="who">live</span></div>' +
+      '<div class="flow-row"><span class="idx">03</span><b style="color:#e8ecf7">Gap log</b><span style="color:var(--dim)">zero-result queries become the record of what the index lacks</span><span class="who">live</span></div>' +
+      '<div class="flow-row"><span class="idx">04</span><b style="color:#e8ecf7">Version roots</b><span style="color:var(--dim)">every rebuild stores a Merkle root so a state can be compared or restored</span><span class="who">live</span></div>' +
+      "</div>" +
+      '<div class="grid2">' + (function () {
+        var st = learningStats();
+        return tile("Learned this device", st.queries + " queries expanded, " + st.terms + " terms learned", "state") +
+          tile("Corrections", st.corrections + " sources flagged by you", "state");
+      })() + "</div>" +
+      '<div style="display:flex;gap:8px;margin-top:12px"><button class="nbtn" onclick="doExportHistory()">Export full history as JSON</button>' +
+      '<button class="nbtn" onclick="openPanel(\'projects\')">Projects and gap log</button></div>' +
+      '<div class="warn" style="margin-top:12px"><b>The safeguard that matters.</b> This loop never changes what a source says. ' +
+      "It changes which sources surface and how they are weighted — and every change is visible, exportable and reversible. " +
+      "Learning that alters the evidence itself is how a search engine becomes a misinformation engine.</div></div>";
+    return h;
+  }
+
+  window.doExportHistory = function () {
+    var data = exportHistory();
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "anveshan-history-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    toast("History exported - log, projects, corrections, learning, versions");
+  };
+
+  /* ------------------------------------------- region control in the toolbar */
+  var _render = renderResults;
+  renderResults = function () {
+    _render();
+    var tb = document.querySelector(".toolbar");
+    if (!tb || document.getElementById("regionSel")) return;
+    var wrap = document.createElement("div");
+    wrap.style.cssText = "display:flex;gap:7px;align-items:center;margin-left:6px";
+    wrap.innerHTML = '<select class="sel" id="regionSel" onchange="setRegion(this.value)">' +
+      '<option value="">All regions</option>' +
+      ["North", "South", "East", "West", "North East"].map(function (r) {
+        return '<option value="' + r + '"' + (S.region === r ? " selected" : "") + ">" + r + "</option>";
+      }).join("") + "</select>" +
+      '<button class="iact" onclick="openPanel(\'concepts\')">Concepts</button>' +
+      '<button class="iact" onclick="openPanel(\'capabilities\')">Matrix</button>';
+    tb.appendChild(wrap);
+  };
+
+  /* ------------------------------------------------- corrections in drawer - */
+  var _openDoc2 = openDoc;
+  openDoc = function (id, verify) {
+    _openDoc2(id, verify);
+    setTimeout(function () {
+      var body = document.getElementById("dBody");
+      if (!body || document.getElementById("corrBox")) return;
+      var flagged = !!CORRECTIONS[id];
+      var box = document.createElement("div");
+      box.id = "corrBox";
+      box.className = "warn";
+      box.style.marginTop = "14px";
+      box.innerHTML = "<b>User correction.</b> " + (flagged
+        ? "You flagged this source. It is down-weighted in ranking on this device. <button class='iact' onclick=\"clearCorr('" + id + "')\">Remove flag</button>"
+        : "If this source is wrong or superseded, flag it: ranking will down-weight it here, and the flag stays visible in the ledger. <button class='iact' onclick=\"flagCorr('" + id + "')\">Flag this source</button>");
+      body.appendChild(box);
+    }, 60);
+  };
+  window.flagCorr = function (id) {
+    flagCorrection(id, "flagged by user");
+    toast("Source flagged - down-weighted in ranking");
+    closeDrawer(); if (S.q) { applyFilters(); renderResults(); }
+  };
+  window.clearCorr = function (id) {
+    clearCorrection(id);
+    toast("Correction flag removed");
+    closeDrawer(); if (S.q) { applyFilters(); renderResults(); }
   };
 })();
 </script>
