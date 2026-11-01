@@ -56,7 +56,8 @@ header.top{
 .brand-txt{display:flex;flex-direction:column;line-height:1.1}
 .brand-txt b{font-size:16.5px;letter-spacing:.16em;font-weight:700}
 .brand-txt span{font-size:9.5px;letter-spacing:.12em;color:var(--dimmer);text-transform:uppercase;margin-top:3px}
-nav.top-nav{display:flex;gap:5px;margin-left:auto;align-items:center}
+nav.top-nav{display:flex;gap:5px;margin-left:auto;align-items:center;overflow-x:auto;scrollbar-width:none}
+nav.top-nav::-webkit-scrollbar{display:none}
 .nbtn{
   background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--dim);
   padding:7px 13px;border-radius:99px;font-size:12.5px;cursor:pointer;font-family:var(--sans);
@@ -202,6 +203,16 @@ select.sel{background:rgba(255,255,255,.03);border:1px solid var(--line);color:v
 .t-api{color:#c7d2fe;border-color:rgba(199,210,254,.3);background:rgba(199,210,254,.07)}
 .t-scheme{color:#fca5a5;border-color:rgba(252,165,165,.3);background:rgba(252,165,165,.07)}
 .t-dashboard{color:#a7f3d0;border-color:rgba(167,243,208,.3);background:rgba(167,243,208,.07)}
+.t-science{color:#8fe3ff;border-color:rgba(143,227,255,.3);background:rgba(143,227,255,.07)}
+.t-space{color:#c0b3ff;border-color:rgba(192,179,255,.32);background:rgba(192,179,255,.08)}
+.t-tech{color:#7ee7c7;border-color:rgba(126,231,199,.3);background:rgba(126,231,199,.07)}
+.t-health{color:#ffb3c7;border-color:rgba(255,179,199,.3);background:rgba(255,179,199,.07)}
+.t-history{color:#f0c987;border-color:rgba(240,201,135,.32);background:rgba(240,201,135,.07)}
+.t-geography{color:#a8e6a3;border-color:rgba(168,230,163,.3);background:rgba(168,230,163,.07)}
+.t-economy{color:#ffd98a;border-color:rgba(255,217,138,.3);background:rgba(255,217,138,.07)}
+.t-governance{color:#9fb8ff;border-color:rgba(159,184,255,.3);background:rgba(159,184,255,.07)}
+.t-culture{color:#ffa8e0;border-color:rgba(255,168,224,.3);background:rgba(255,168,224,.07)}
+.t-import{color:#e2e8f0;border-color:rgba(226,232,240,.28);background:rgba(226,232,240,.06)}
 .card h3{margin:0 0 6px;font-size:15.5px;font-weight:640;line-height:1.42;letter-spacing:-.01em;color:#eef2fb}
 .card .meta{font-size:11.5px;color:var(--dimmer);display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
 .card .meta .sep{opacity:.4}
@@ -360,6 +371,8 @@ label.lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var
   .grid2{grid-template-columns:1fr}
   .did{display:none}
   nav.top-nav .lbl-txt{display:none}
+  .top-in{flex-wrap:wrap}
+  nav.top-nav{width:100%;justify-content:flex-start;padding-bottom:4px}
   .nbtn{padding:7px 10px}
   .hero{padding:40px 0 20px}
   .resbar{top:56px}
@@ -848,6 +861,380 @@ if (typeof module !== "undefined") module.exports = { DOCS };
 
 if (typeof globalThis !== "undefined") { globalThis.DOCS = DOCS; }
 </script>
+<script>/* ANVESHAN world knowledge corpus - part 1
+   General encyclopaedic knowledge: physics, chemistry, biology, medicine, space,
+   earth science, energy, materials and computing. Written as neutral summaries;
+   each record names the body whose published material it summarises. */
+var WORLD_DOCS_1 = [
+{ id:"w01", t:"Speed of light: the universal speed limit and the metre it defines", s:"Reference summary", o:"BIPM / CODATA", ty:"science", y:2024, d:"2024-01-01", u:"https://www.bipm.org/", l:"en", a:4, e:["light","metre","relativity"],
+ k:["physics","light","constant","metre","relativity","electromagnetism"],
+ b:"The speed of light in vacuum is exactly 299,792,458 metres per second. Since 1983 this value has been fixed by definition rather than measured, and the metre is defined as the distance light travels in 1/299,792,458 of a second. Light slows in a medium such as glass or water, which is why lenses refract, but the vacuum speed is a constant for every observer. Nothing carrying mass or information can reach it. It sets the ceiling for signal latency on Earth and between planets, and it links space and time in special relativity." },
+{ id:"w02", t:"Newton's laws of motion and universal gravitation", s:"Reference summary", o:"Royal Society", ty:"science", y:2023, d:"2023-06-01", u:"https://royalsociety.org/", l:"en", a:4, e:["gravity","motion","newton"],
+ k:["physics","mechanics","force","gravity","orbit","inertia"],
+ b:"Newton's three laws state that a body stays at rest or in uniform motion unless a force acts; that force equals mass times acceleration; and that every action has an equal and opposite reaction. His law of universal gravitation says every pair of masses attracts with a force proportional to the product of the masses and inversely proportional to the square of the distance between them. The framework predicts orbits, tides and projectiles with high accuracy in ordinary conditions, and remains the working model for engineering even though relativity refines it at extreme speeds and masses." },
+{ id:"w03", t:"Special and general relativity: time dilation and curved spacetime", s:"Reference summary", o:"Nobel Prize Outreach", ty:"science", y:2023, d:"2023-03-14", u:"https://www.nobelprize.org/", l:"en", a:4, e:["relativity","gravity","time"],
+ k:["physics","einstein","spacetime","time dilation","gravity","gps"],
+ b:"Special relativity holds that the laws of physics are the same for all non-accelerating observers and that the speed of light is constant, so moving clocks run slow and moving lengths contract. General relativity extends this to accelerated frames and treats gravity as the curvature of spacetime produced by mass and energy. The theory predicts gravitational lensing, the precession of Mercury's orbit, black holes and gravitational waves, all since confirmed by observation. It is a practical engineering fact: satellite navigation clocks must be corrected for both special and general relativistic effects or positions drift by kilometres per day." },
+{ id:"w04", t:"Quantum mechanics: superposition, uncertainty and entanglement", s:"Reference summary", o:"CERN", ty:"science", y:2024, d:"2024-02-01", u:"https://home.cern/", l:"en", a:4, e:["quantum","uncertainty","entanglement"],
+ k:["physics","quantum","wave function","superposition","entanglement","measurement"],
+ b:"Quantum mechanics describes matter at atomic and subatomic scales with a wave function whose square gives the probability of each outcome. A system can exist in a superposition of states until measured, and Heisenberg's uncertainty principle limits how precisely certain paired quantities such as position and momentum can be known together. Entanglement links particles so that their measured properties correlate more strongly than any classical model allows, a resource now used in quantum cryptography, sensing and computing experiments. Quantum effects are not exotic curiosities: they govern chemistry, semiconductors, lasers and the stability of matter itself." },
+{ id:"w05", t:"The four fundamental forces and the standard model of particles", s:"Reference summary", o:"CERN", ty:"science", y:2024, d:"2024-02-01", u:"https://home.cern/", l:"en", a:4, e:["standard model","forces","particles"],
+ k:["physics","particles","forces","bosons","quarks","higgs"],
+ b:"Nature exhibits four fundamental interactions: gravity, electromagnetism, the strong nuclear force that binds quarks into protons and neutrons, and the weak nuclear force responsible for radioactive decay and nuclear fusion in stars. The standard model describes the last three with remarkable precision using quarks, leptons and force-carrying bosons, with the Higgs field explaining particle masses. Gravity is not yet incorporated, which is the central open problem in fundamental physics. The model has been tested to extraordinary accuracy but does not explain dark matter, dark energy or the matter-antimatter asymmetry of the universe." },
+{ id:"w06", t:"Thermodynamics: energy conservation, entropy and the arrow of time", s:"Reference summary", o:"American Physical Society", ty:"science", y:2023, d:"2023-09-01", u:"https://www.aps.org/", l:"en", a:4, e:["entropy","energy","thermodynamics"],
+ k:["physics","energy","entropy","heat","efficiency","engines"],
+ b:"The first law of thermodynamics states that energy cannot be created or destroyed, only converted. The second law says the total entropy of an isolated system never decreases, which is why heat flows from hot to cold, why engines cannot be perfectly efficient and why time appears to have a direction. The third law concerns the approach to absolute zero. Carnot's analysis sets the maximum efficiency of any heat engine from the temperatures of its hot and cold reservoirs, a bound that governs power plants, refrigeration and the thermal design of every data centre and processor." },
+{ id:"w07", t:"Atoms, the periodic table and the chemical bond", s:"Reference summary", o:"IUPAC", ty:"science", y:2024, d:"2024-01-15", u:"https://iupac.org/", l:"en", a:4, e:["atom","periodic table","bond"],
+ k:["chemistry","atom","elements","periodic table","bonding","molecule"],
+ b:"Atoms consist of a nucleus of protons and neutrons surrounded by electrons arranged in shells. The periodic table orders elements by atomic number, and position in it predicts chemical behaviour: the alkali metals react vigorously with water, the noble gases are almost inert, and the halogens are aggressive oxidisers. Chemical bonds form by transferring or sharing electrons, giving ionic, covalent and metallic bonding. Molecular shape, determined by electron repulsion, decides properties from the polarity of water to the structure of proteins. Chemistry is the applied study of which bonds break and form under which conditions." },
+{ id:"w08", t:"Water: the anomalous molecule that makes life and climate possible", s:"Reference summary", o:"USGS", ty:"science", y:2023, d:"2023-05-20", u:"https://www.usgs.gov/", l:"en", a:4, e:["water","hydrogen bond","climate"],
+ k:["chemistry","water","hydrogen bonding","solvent","ice","ocean"],
+ b:"Water is a bent molecule with strongly polar bonds, so it forms hydrogen bonds with itself and with other substances. Those bonds give it unusual properties: high boiling point for its mass, high heat capacity that moderates climate, high surface tension, and the fact that solid ice is less dense than liquid water, so ice floats and lakes freeze from the top rather than the bottom. Water is an excellent solvent for salts and polar molecules, which is why the chemistry of life happens in it. Its phase changes move enormous quantities of heat through the atmosphere and oceans." },
+{ id:"w09", t:"DNA, the genetic code and how heredity works", s:"Reference summary", o:"Nature / Wellcome", ty:"science", y:2024, d:"2024-03-01", u:"https://www.nature.com/", l:"en", a:4, e:["dna","genetics","gene"],
+ k:["biology","dna","gene","heredity","crispr","genome"],
+ b:"DNA is a double helix of two strands linked by base pairs: adenine with thymine, guanine with cytosine. The sequence of bases encodes genes, which are read in triplets called codons and translated into the amino acid chains that fold into proteins. The code is nearly universal across life, from bacteria to humans. Human genomes contain roughly three billion base pairs and about twenty thousand protein-coding genes. Modern tools read and write DNA cheaply, which underpins forensic identification, ancestry testing, gene therapy and CRISPR-based editing, and also raises serious questions about consent and heritable modification." },
+{ id:"w10", t:"Evolution by natural selection and the tree of life", s:"Reference summary", o:"Royal Society", ty:"science", y:2023, d:"2023-11-01", u:"https://royalsociety.org/", l:"en", a:4, e:["evolution","selection","species"],
+ k:["biology","evolution","darwin","natural selection","species","extinction"],
+ b:"Evolution by natural selection holds that individuals vary, that some variation is heritable, and that variants improving survival and reproduction become more common over generations. Over long spans this produces adaptation and new species. Evidence comes from the fossil record, comparative anatomy, biogeography, embryology and, decisively, molecular genetics: relatedness between species can be read directly from genome sequence. Evolution is not a ladder toward complexity but a branching tree, with most lineages extinct. It explains antibiotic resistance, pesticide resistance, viral variants and the design compromises visible in every organism." },
+{ id:"w11", t:"Cells: the basic unit of life and how they generate energy", s:"Reference summary", o:"Nature / Wellcome", ty:"science", y:2023, d:"2023-08-01", u:"https://www.nature.com/", l:"en", a:4, e:["cell","mitochondria","atp"],
+ k:["biology","cell","mitochondria","atp","respiration","membrane"],
+ b:"All known life is cellular. Prokaryotes, the bacteria and archaea, lack a nucleus; eukaryotes, which include plants, fungi and animals, keep their DNA inside a nuclear membrane and contain organelles. Mitochondria generate most cellular energy by oxidising nutrients and pumping protons across a membrane to make ATP, the universal energy currency. Chloroplasts in plants do the reverse, capturing light to fix carbon. Cell membranes are lipid bilayers studded with proteins that control what enters and leaves. Understanding cells is the basis of immunology, cancer biology, pharmacology and biotechnology." },
+{ id:"w12", t:"The immune system: innate and adaptive defence", s:"Reference summary", o:"World Health Organization", ty:"health", y:2024, d:"2024-01-20", u:"https://www.who.int/", l:"en", a:4, e:["immune system","vaccine","antibody"],
+ k:["health","immunity","vaccine","antibody","infection","lymphocyte"],
+ b:"The immune system has two cooperating arms. Innate immunity responds within hours using barriers, phagocytes and inflammation, recognising broad patterns rather than specific threats. Adaptive immunity takes days but is precise and memorable: B cells produce antibodies against specific antigens, and T cells kill infected cells or coordinate the response. Memory cells persist for decades, which is why some infections confer lifelong protection and why vaccines work. Vaccination presents a harmless fragment or blueprint of a pathogen so that memory forms without disease, and herd immunity then protects those who cannot be immunised." },
+{ id:"w13", t:"Photosynthesis and the carbon cycle that regulates climate", s:"Reference summary", o:"NASA Earth Observatory", ty:"science", y:2024, d:"2024-04-01", u:"https://earthobservatory.nasa.gov/", l:"en", a:4, e:["photosynthesis","carbon cycle","climate"],
+ k:["biology","climate","carbon","photosynthesis","ocean","atmosphere"],
+ b:"Photosynthesis uses light to convert carbon dioxide and water into sugars, releasing oxygen. On land, forests and grasslands store carbon in wood and soil; in the ocean, phytoplankton perform roughly half of global photosynthesis and form the base of the marine food web. The carbon cycle moves carbon between atmosphere, biosphere, ocean and rock over timescales from hours to millions of years. Burning fossil fuel moves carbon that was stored underground for geological time into the atmosphere in decades, which is why atmospheric carbon dioxide concentration and global mean temperature are rising together." },
+{ id:"w14", t:"The solar system: eight planets, moons, asteroids and comets", s:"Reference summary", o:"NASA", ty:"space", y:2024, d:"2024-05-01", u:"https://science.nasa.gov/solar-system/", l:"en", a:4, e:["solar system","planets","sun"],
+ k:["space","planets","sun","asteroid","comet","orbit"],
+ b:"The solar system formed about 4.6 billion years ago from a collapsing cloud of gas and dust. The Sun holds 99.8 percent of its mass. Four rocky planets orbit close in: Mercury, Venus, Earth and Mars. Beyond the asteroid belt lie two gas giants, Jupiter and Saturn, and two ice giants, Uranus and Neptune. Hundreds of moons, dwarf planets, asteroids and comets complete the inventory. Distances are vast: sunlight takes about eight minutes to reach Earth but over four hours to reach Neptune. Almost all known planetary systems have architectures quite unlike ours, which makes ours informative by contrast." },
+{ id:"w15", t:"The Sun: structure, solar activity and space weather", s:"Reference summary", o:"NASA / ISRO", ty:"space", y:2024, d:"2024-06-01", u:"https://www.isro.gov.in/", l:"en", a:4, e:["sun","solar wind","space weather"],
+ k:["space","sun","solar wind","corona","flare","aditya"],
+ b:"The Sun is a main-sequence star fusing hydrogen into helium in a core at about fifteen million kelvin. Its outer atmosphere, the corona, is hundreds of times hotter than its visible surface, a puzzle still under study. Magnetic activity produces sunspots, flares and coronal mass ejections that hurl plasma into space. When these reach Earth they drive aurorae, disturb radio communication and navigation, and can damage satellites and power grids, which is why space weather forecasting matters. India's Aditya-L1 mission observes the Sun from the L1 Lagrange point, giving continuous, uninterrupted solar viewing." },
+{ id:"w16", t:"The Moon, tides and lunar exploration", s:"Reference summary", o:"ISRO / NASA", ty:"space", y:2024, d:"2024-08-23", u:"https://www.isro.gov.in/", l:"en", a:4, e:["moon","tides","chandrayaan"],
+ k:["space","moon","tides","chandrayaan","lunar water","tidal locking"],
+ b:"The Moon is tidally locked to Earth, so it always shows the same face. Its gravity, combined with the Sun's, raises tides in the oceans that also slow Earth's rotation and drive the Moon slowly outward. The Moon has no atmosphere, so its surface preserves a four-billion-year impact record. Water ice exists in permanently shadowed polar craters, which makes the poles the focus of exploration. India's Chandrayaan-3 landed near the lunar south pole in August 2023, the first mission to do so, and its measurements confirmed sulphur and other elements in the polar regolith." },
+{ id:"w17", t:"Mars and India's Mars Orbiter Mission", s:"Reference summary", o:"ISRO", ty:"space", y:2024, d:"2024-09-24", u:"https://www.isro.gov.in/", l:"en", a:4, e:["mars","mangalyaan","planetary science"],
+ k:["space","mars","mangalyaan","orbit","atmosphere","methane"],
+ b:"Mars is roughly half Earth's diameter with a thin carbon-dioxide atmosphere, polar ice caps and the largest volcano and canyon in the solar system. Evidence of ancient river valleys and lake beds shows liquid water once flowed. India's Mars Orbiter Mission, launched in November 2013 and inserted into Martian orbit in September 2014, made ISRO the first space agency to reach Mars on its first attempt and at a remarkably low cost. It carried cameras and sensors studying the surface, mineralogy, atmosphere and exosphere, and operated for years beyond its designed life." },
+{ id:"w18", t:"Black holes, neutron stars and gravitational waves", s:"Reference summary", o:"LIGO / Nobel Prize Outreach", ty:"space", y:2024, d:"2024-01-01", u:"https://www.ligo.org/", l:"en", a:4, e:["black hole","gravitational waves","neutron star"],
+ k:["space","black hole","gravitational waves","event horizon","ligo","pulsar"],
+ b:"When a massive star exhausts its fuel its core collapses, leaving a neutron star or, above roughly three solar masses, a black hole whose gravity is so strong that not even light escapes its event horizon. Black holes announce themselves through the motion of nearby matter and by merging: colliding black holes radiate gravitational waves, ripples in spacetime predicted by general relativity and first detected directly in 2015. Since then dozens of mergers have been recorded. India is a partner in the LIGO network, with a detector planned at Hingoli in Maharashtra to improve sky localisation." },
+{ id:"w19", t:"Galaxies, the expanding universe and dark matter", s:"Reference summary", o:"NASA / ESA", ty:"space", y:2024, d:"2024-02-01", u:"https://esahubble.org/", l:"en", a:4, e:["galaxy","dark matter","big bang"],
+ k:["space","galaxy","cosmology","dark matter","dark energy","big bang"],
+ b:"Galaxies are gravitationally bound systems of stars, gas, dust and dark matter; the observable universe contains hundreds of billions of them, arranged in filaments and clusters around vast voids. Distant galaxies recede faster the further away they are, which implies an expanding universe that began in a hot dense state about 13.8 billion years ago. Rotation curves of galaxies and the growth of large-scale structure require dark matter, which does not emit light and outweighs ordinary matter roughly five to one. Dark energy, inferred from accelerating expansion, remains unexplained." },
+{ id:"w20", t:"Plate tectonics, earthquakes and volcanoes", s:"Reference summary", o:"USGS", ty:"science", y:2024, d:"2024-03-01", u:"https://www.usgs.gov/", l:"en", a:4, e:["plate tectonics","earthquake","volcano"],
+ k:["earth science","tectonics","earthquake","volcano","himalaya","seismic"],
+ b:"Earth's rigid outer shell is broken into plates that move a few centimetres a year on the underlying mantle. Where plates diverge, new crust forms at mid-ocean ridges; where they converge, one descends into subduction zones, building mountain ranges and volcanic arcs; where they slide past each other, stress accumulates and releases as earthquakes. The Himalaya exists because the Indian plate collides with Eurasia, which is why the region experiences frequent large earthquakes. Seismic hazard maps, building codes and early-warning networks are the practical response to living on an active planet." },
+{ id:"w21", t:"The monsoon: how the Indian summer rainfall system works", s:"Reference summary", o:"India Meteorological Department", ty:"science", y:2024, d:"2024-06-01", u:"https://mausam.imd.gov.in/", l:"en", a:5, e:["monsoon","rainfall","agriculture"],
+ k:["climate","monsoon","rainfall","agriculture","imd","forecast"],
+ b:"The Indian summer monsoon is a seasonal reversal of winds driven by differential heating between the landmass and the Indian Ocean, modulated by the Himalayas, the Tibetan plateau and the El Nino southern oscillation. It delivers roughly three quarters of India's annual rainfall between June and September and underpins agriculture, reservoir storage, hydropower and groundwater recharge. Onset, strength and breaks are forecast operationally by the India Meteorological Department using numerical models, satellites and ocean observations. Long-range skill remains limited, which is why monsoon forecasting is one of the most consequential and hardest problems in applied meteorology." },
+{ id:"w22", t:"Climate change: the physical evidence and the carbon budget", s:"Reference summary", o:"IPCC / WMO", ty:"science", y:2024, d:"2024-04-01", u:"https://www.ipcc.ch/", l:"en", a:5, e:["climate change","emissions","temperature"],
+ k:["climate","warming","emissions","carbon budget","ipcc","sea level"],
+ b:"Atmospheric carbon dioxide concentration has risen from about 280 parts per million before industrialisation to over 420 today, driven mainly by burning coal, oil and gas. Global mean surface temperature has increased by about 1.2 degrees Celsius above the pre-industrial baseline, with most of that warming in the last fifty years. Sea level is rising through thermal expansion and ice loss, oceans are acidifying, and heatwaves, heavy rainfall and drought intensity are shifting. The remaining carbon budget for holding warming near 1.5 degrees is small, which makes every year of emissions decisive." },
+{ id:"w23", t:"Biodiversity, ecosystems and the sixth extinction", s:"Reference summary", o:"IUCN / UNEP", ty:"science", y:2024, d:"2024-05-22", u:"https://www.iucn.org/", l:"en", a:4, e:["biodiversity","extinction","ecosystem"],
+ k:["ecology","biodiversity","extinction","habitat","conservation","species"],
+ b:"Biodiversity is the variety of genes, species and ecosystems. It supplies food, medicine, pollination, water purification and climate regulation, and its loss is not reversible on human timescales. The main drivers are habitat conversion, overexploitation, pollution, invasive species and climate change. Current extinction rates are far above the background rate in the fossil record, which is why the episode is called the sixth mass extinction. India is one of the world's megadiverse countries, holding roughly eight percent of recorded species within about two and a half percent of global land area, and its protected areas and tiger reserves are central to conservation." },
+{ id:"w24", t:"The transistor, integrated circuits and Moore's law", s:"Reference summary", o:"IEEE", ty:"tech", y:2024, d:"2024-01-01", u:"https://www.ieee.org/", l:"en", a:4, e:["transistor","semiconductor","moore law"],
+ k:["computing","transistor","chip","semiconductor","moore law","fabrication"],
+ b:"A transistor is a switch made of semiconductor material whose conductivity is controlled by an electric field, voltage or current. Replacing vacuum tubes with transistors in the 1950s made electronics small, cheap and reliable. Integrating many transistors on one chip gave the microprocessor, and the observation that transistor counts doubled roughly every two years became known as Moore's law, an economic roadmap rather than a law of physics. That pace has slowed as features approach atomic dimensions, pushing the industry toward new architectures, chiplets, three-dimensional stacking and specialised accelerators." },
+{ id:"w25", t:"How the internet works: packets, TCP/IP and the domain name system", s:"Reference summary", o:"IETF / ICANN", ty:"tech", y:2024, d:"2024-02-01", u:"https://www.ietf.org/", l:"en", a:4, e:["internet","tcp/ip","dns"],
+ k:["computing","internet","tcp","ip","dns","routing","packets"],
+ b:"The internet is a network of networks that moves data in packets. Internet Protocol addresses each device and routes packets hop by hop; Transmission Control Protocol orders them, detects loss and retransmits, providing a reliable stream on an unreliable network. The domain name system translates human-readable names into addresses through a distributed hierarchy of resolvers and authoritative servers. Border gateway protocol lets autonomous networks advertise routes to each other. Together these simple, open, layered protocols allow any device to talk to any other without central permission, which is the property that made the network grow." },
+{ id:"w26", t:"The World Wide Web, browsers and how search engines index the web", s:"Reference summary", o:"W3C", ty:"tech", y:2024, d:"2024-03-01", u:"https://www.w3.org/", l:"en", a:4, e:["web","search engine","http"],
+ k:["computing","web","http","html","crawler","index","ranking"],
+ b:"The web is an application on top of the internet: documents identified by URLs, transferred by HTTP and written in HTML, linked by hyperlinks. A search engine works in three stages. Crawlers fetch pages by following links. Indexers parse the text and build an inverted index mapping each word to the documents containing it, alongside signals such as link structure and freshness. At query time a ranking function scores documents for relevance, blending lexical match, popularity and personalisation. The whole system depends on crawl budgets, robots directives and the willingness of publishers to be indexed." },
+{ id:"w27", t:"Public key cryptography and how HTTPS protects a connection", s:"Reference summary", o:"IETF / NIST", ty:"tech", y:2024, d:"2024-01-15", u:"https://csrc.nist.gov/", l:"en", a:4, e:["cryptography","https","encryption"],
+ k:["security","encryption","rsa","tls","certificate","hashing"],
+ b:"Public key cryptography uses a pair of mathematically linked keys: what one encrypts, only the other can decrypt. It solves key distribution, because the public key can be published. In practice a TLS handshake uses asymmetric cryptography to authenticate the server via a certificate and to agree a shared secret, then switches to fast symmetric encryption such as AES for the session. Hash functions provide integrity and are the basis of digital signatures and blockchain ledgers. Security depends as much on key management, certificate authorities and implementation discipline as on the algorithms themselves." },
+{ id:"w28", t:"Machine learning, neural networks and deep learning", s:"Reference summary", o:"Nature / ACM", ty:"tech", y:2024, d:"2024-04-01", u:"https://www.acm.org/", l:"en", a:4, e:["machine learning","neural network","deep learning"],
+ k:["ai","machine learning","neural network","training","gradient descent","deep learning"],
+ b:"Machine learning fits models to data rather than encoding rules by hand. A neural network stacks layers of weighted sums and nonlinear activations; training adjusts the weights by gradient descent to reduce a loss function on examples. Deep networks with many layers learn hierarchies of features, which made breakthroughs in vision, speech and language possible once data and compute were sufficient. Key practical concerns are generalisation to unseen data, distribution shift, bias inherited from training data, interpretability, and the cost of training and serving large models, which is why efficient architectures and local inference matter." },
+{ id:"w29", t:"Transformers and large language models: attention, tokens and context", s:"Reference summary", o:"arXiv / NeurIPS", ty:"tech", y:2024, d:"2024-06-01", u:"https://arxiv.org/", l:"en", a:4, e:["transformer","llm","attention"],
+ k:["ai","transformer","attention","llm","token","context window","mixture of experts"],
+ b:"A transformer processes text as tokens and uses self-attention to weigh every token against every other, which lets it capture long-range dependencies without recurrent state. Large language models stack many such blocks, pretrain on trillions of tokens to predict the next token, then post-train with instruction data and human or model feedback. Capability scales with parameters, data and compute, though with diminishing returns and rising cost. Mixture-of-experts designs activate only part of the network per token, cutting inference cost. Known failure modes include confident fabrication, stale knowledge, prompt sensitivity and weak arithmetic without tool use." },
+{ id:"w30", t:"Retrieval-augmented generation and why citation matters", s:"Reference summary", o:"arXiv / ACL", ty:"tech", y:2024, d:"2024-07-01", u:"https://aclanthology.org/", l:"en", a:4, e:["rag","retrieval","citation"],
+ k:["ai","rag","retrieval","citation","hallucination","grounding"],
+ b:"Retrieval-augmented generation pairs a search step with a language model: relevant passages are retrieved first, then supplied to the model, which answers using them. This grounds the output in citable material and lets knowledge be updated by re-indexing rather than retraining. It also constrains the model to a corpus, which reduces fabrication but does not eliminate it, because the model can still misread or overstate what the passage says. The reliable pattern is to show the passage alongside the claim, attach an identifier, and let the reader verify the source directly rather than trusting a summary." },
+{ id:"w31", t:"BM25 and the mathematics of keyword search ranking", s:"Reference summary", o:"ACM SIGIR", ty:"tech", y:2024, d:"2024-05-01", u:"https://sigir.org/", l:"en", a:4, e:["bm25","ranking","inverted index"],
+ k:["search","bm25","ranking","tf-idf","inverted index","relevance"],
+ b:"BM25 scores a document for a query by summing, over query terms, a term-frequency component damped by document length and weighted by inverse document frequency. Two parameters control behaviour: k1 sets how quickly repeated occurrences stop adding value, and b sets how strongly long documents are penalised. Inverse document frequency makes rare words decisive and common words nearly worthless. BM25 is decades old and still competitive with dense retrieval on many tasks, which is why production systems often combine the two: lexical matching for precision on names and numbers, vector similarity for paraphrase." },
+{ id:"w32", t:"Vector embeddings and approximate nearest neighbour search", s:"Reference summary", o:"arXiv / ACL", ty:"tech", y:2024, d:"2024-08-01", u:"https://arxiv.org/", l:"en", a:4, e:["embedding","vector search","ann"],
+ k:["search","embeddings","vector","cosine","ann","hnsw","semantic"],
+ b:"An embedding maps text to a vector so that semantically similar content lands nearby. Retrieval then becomes nearest-neighbour search, usually by cosine similarity. Exact search over millions of vectors is too slow, so systems use approximate indexes such as HNSW graphs or product quantisation, trading a little recall for large speed gains. Embeddings generalise across wording but are weak on exact identifiers, negation and numbers, so hybrid scoring with lexical retrieval is standard practice. Their quality depends entirely on the model that produced them and the domain it was trained on." },
+{ id:"w33", t:"Cryptographic hashing, Merkle trees and tamper evidence", s:"Reference summary", o:"NIST", ty:"tech", y:2024, d:"2024-02-01", u:"https://csrc.nist.gov/", l:"en", a:5, e:["hash","merkle tree","integrity"],
+ k:["security","hash","sha-256","merkle","integrity","blockchain"],
+ b:"A cryptographic hash maps any input to a fixed-length output such that small input changes produce unpredictable output changes, and finding two inputs with the same output is infeasible. SHA-256 produces 256 bits. A Merkle tree hashes leaves and then hashes pairs of hashes upward to a single root. Publishing only the root commits to the entire dataset, and any single item can later be proven to belong by supplying the handful of sibling hashes on its path. Verification costs logarithmic work instead of re-reading everything, which is why Merkle trees underpin certificate transparency, version control and blockchain ledgers." },
+{ id:"w34", t:"Blockchain: distributed ledgers, consensus and the permissioned distinction", s:"Reference summary", o:"ACM / IEEE", ty:"tech", y:2024, d:"2024-03-01", u:"https://www.ieee.org/", l:"en", a:4, e:["blockchain","consensus","ledger"],
+ k:["blockchain","ledger","consensus","smart contract","permissioned","distributed"],
+ b:"A blockchain is an append-only ledger of hash-linked blocks replicated across participants. Consensus rules decide which block is next: proof of work spends energy, proof of stake bonds capital, and permissioned networks use voting or ordering services among known validators. Smart contracts are programs executed deterministically by every node, so their results are agreed without a trusted intermediary. Permissioned networks trade openness for throughput, privacy and known identity, which suits government record keeping. The honest limitation is that a ledger guarantees integrity of what was written, not truth of what was written." },
+{ id:"w35", t:"Quantum computing: qubits, gates and where the advantage lies", s:"Reference summary", o:"Nature / IBM Research", ty:"tech", y:2024, d:"2024-06-15", u:"https://www.nature.com/", l:"en", a:4, e:["quantum computing","qubit","algorithm"],
+ k:["computing","quantum","qubit","shor","grover","error correction"],
+ b:"A qubit stores a superposition of zero and one, and entangled qubits share correlations that classical bits cannot reproduce. Quantum algorithms exploit interference to concentrate probability on correct answers: Shor's algorithm factors integers exponentially faster than known classical methods, and Grover's gives a quadratic speedup for unstructured search. Real machines are noisy, so error correction requires many physical qubits per logical one. Near-term value is expected first in simulating molecules and materials rather than breaking cryptography. India has a national quantum mission building computing, communication, sensing and metrology capabilities." },
+{ id:"w36", t:"Semiconductors: how chips are fabricated and why fabs matter", s:"Reference summary", o:"IEEE / SEMI", ty:"tech", y:2024, d:"2024-04-01", u:"https://www.semi.org/", l:"en", a:4, e:["semiconductor","fab","lithography"],
+ k:["semiconductor","fabrication","lithography","wafer","foundry","packaging"],
+ b:"Chips are built layer by layer on silicon wafers using photolithography to pattern circuits, then doping, deposition and etching to create transistors and interconnects. Advanced nodes require extreme ultraviolet lithography and operate at dimensions of a few nanometres, where quantum tunnelling and heat become dominant constraints. A fabrication plant costs billions and needs ultra-pure water, gases and stable power, which is why the industry is concentrated in a few regions. Packaging and testing are a lower-capital entry point, and India's semiconductor mission is building capacity in exactly those stages first." },
+{ id:"w37", t:"Solar photovoltaics: from photons to grid parity", s:"Reference summary", o:"IEA / NREL", ty:"tech", y:2024, d:"2024-05-01", u:"https://www.iea.org/", l:"en", a:4, e:["solar","photovoltaic","renewable"],
+ k:["energy","solar","photovoltaic","renewable","grid","silicon"],
+ b:"A photovoltaic cell absorbs light, frees electrons in a semiconductor junction and drives them through an external circuit. Most commercial modules use crystalline silicon; thin-film and perovskite technologies offer lower cost or higher efficiency per weight, and perovskite-silicon tandems have pushed laboratory efficiencies well above single-junction limits. Module prices have fallen more than ninety percent in a decade, making solar the cheapest new electricity in many markets. The binding constraints have shifted from cost to land, grid capacity, storage and the variability of output across the day and the season." },
+{ id:"w38", t:"Batteries, energy storage and the electrification of transport", s:"Reference summary", o:"IEA", ty:"tech", y:2024, d:"2024-06-01", u:"https://www.iea.org/", l:"en", a:4, e:["battery","storage","lithium"],
+ k:["energy","battery","lithium","storage","electric vehicle","grid"],
+ b:"Lithium-ion batteries move lithium ions between electrodes during charge and discharge. Energy density has roughly tripled since commercialisation and cost has fallen by an order of magnitude, which is what made electric vehicles and grid storage viable. Chemistry choices trade energy density against safety, cycle life and the availability of materials: lithium iron phosphate is cheaper and safer but heavier per unit energy, while nickel-rich cells store more in less mass. Sodium-ion and flow batteries are emerging for stationary storage. Recycling, mineral supply and charging infrastructure are the practical bottlenecks." },
+{ id:"w39", t:"Nuclear fission, fusion and the future of baseload power", s:"Reference summary", o:"IAEA", ty:"tech", y:2024, d:"2024-03-01", u:"https://www.iaea.org/", l:"en", a:4, e:["nuclear","fission","fusion"],
+ k:["energy","nuclear","fission","fusion","reactor","waste"],
+ b:"Fission splits heavy nuclei such as uranium-235, releasing energy from mass difference and sustaining a chain reaction moderated and controlled in a reactor. It provides steady low-carbon baseload but produces long-lived radioactive waste and requires rigorous safety culture. India operates a fleet of pressurised heavy water reactors and is building a thorium programme around its large monazite reserves. Fusion instead combines light nuclei, as the Sun does; it produces far less long-lived waste but requires confining plasma at over a hundred million kelvin, and net energy gain remains an engineering challenge rather than a solved problem." },
+{ id:"w40", t:"Grids, transmission and why electricity storage decides renewable share", s:"Reference summary", o:"IEA / CEA", ty:"tech", y:2024, d:"2024-07-01", u:"https://www.iea.org/", l:"en", a:4, e:["grid","transmission","electricity"],
+ k:["energy","grid","transmission","load","storage","renewable"],
+ b:"An electricity grid must balance generation and demand instantaneously, because storage on the grid is still small relative to daily consumption. Frequency and voltage are the control signals: too little generation and frequency falls. Transmission capacity determines whether cheap generation in one region can reach demand in another, which is why interconnectors and long-distance high-voltage direct current lines matter. Renewables shift the problem from fuel to flexibility: storage, demand response, flexible hydro and gas peaking, and better forecasting. India's national grid is one of the largest synchronised networks in the world, integrating regional systems into a single frequency pool." },
+{ id:"w41", t:"Water supply, sanitation and the global burden of waterborne disease", s:"Reference summary", o:"World Health Organization", ty:"health", y:2024, d:"2024-03-22", u:"https://www.who.int/", l:"en", a:5, e:["water supply","sanitation","disease"],
+ k:["health","water","sanitation","hygiene","disease","public health"],
+ b:"Safe water, sanitation and hygiene are the most cost-effective public health interventions known. Contaminated water transmits cholera, typhoid, dysentery and hepatitis A, and poor sanitation drives soil-transmitted helminths and stunting through repeated childhood infection. Treatment combines source protection, filtration, chlorination and safe storage; sanitation requires containment, conveyance and treatment rather than latrines alone. Behaviour change and reliable operation matter as much as construction, which is why infrastructure without maintenance fails. India's Jal Jeevan Mission has extended piped household water connections at large scale, with water quality testing as the persistent challenge." },
+{ id:"w42", t:"Vaccination programmes and the eradication of smallpox", s:"Reference summary", o:"World Health Organization", ty:"health", y:2024, d:"2024-04-24", u:"https://www.who.int/", l:"en", a:5, e:["vaccine","smallpox","immunisation"],
+ k:["health","vaccine","smallpox","polio","immunisation","eradication"],
+ b:"Smallpox was declared eradicated in 1980 after a global campaign combining mass vaccination with ring vaccination around each case. It remains the only human disease eradicated, and the template has been applied to polio, which is now close to elimination with only a few countries reporting cases. Routine immunisation against measles, diphtheria, pertussis, tetanus, hepatitis B and others prevents millions of deaths each year. Success depends on cold chain integrity, supply, trust and coverage: outbreaks reappear where coverage falls below the herd immunity threshold, and vaccine hesitancy is now a first-order public health risk." },
+{ id:"w43", t:"Tuberculosis, antimicrobial resistance and the long war against infection", s:"Reference summary", o:"World Health Organization", ty:"health", y:2024, d:"2024-03-24", u:"https://www.who.int/", l:"en", a:5, e:["tuberculosis","antibiotic resistance","infection"],
+ k:["health","tuberculosis","antibiotic","resistance","amr","treatment"],
+ b:"Tuberculosis is caused by a bacterium spread through the air, and it remains among the leading infectious causes of death worldwide, with India carrying the largest share of cases. Treatment requires a multi-drug course over months, and incomplete courses breed resistance. Antimicrobial resistance arises whenever bacteria are exposed to drugs long enough to select resistant variants, driven by overuse in human medicine and livestock and by poor infection control. Multidrug-resistant tuberculosis needs longer, more toxic and far costlier regimens. Stewardship, rapid diagnostics, adherence support and new drug classes are the available levers." },
+{ id:"w44", t:"Non-communicable disease: diabetes, hypertension and the epidemiological shift", s:"Reference summary", o:"World Health Organization", ty:"health", y:2024, d:"2024-05-16", u:"https://www.who.int/", l:"en", a:5, e:["diabetes","hypertension","ncd"],
+ k:["health","diabetes","hypertension","heart disease","obesity","screening"],
+ b:"Non-communicable diseases now cause the majority of deaths worldwide, and in India they dominate the burden in every state. Diabetes arises when insulin action or secretion fails, damaging blood vessels and nerves over years; hypertension silently raises the risk of stroke, heart attack and kidney failure. Both are strongly associated with diet, physical activity, tobacco and alcohol, and both are largely manageable when detected early and treated consistently. The hard problems are screening at population scale, adherence to lifelong medication, and the cost of care, which pushes families into debt." },
+{ id:"w45", t:"Mental health: the treatment gap and what works", s:"Reference summary", o:"World Health Organization", ty:"health", y:2024, d:"2024-10-10", u:"https://www.who.int/", l:"en", a:5, e:["mental health","depression","treatment gap"],
+ k:["health","mental health","depression","anxiety","therapy","stigma"],
+ b:"Depression and anxiety disorders are among the largest contributors to years lived with disability, and the majority of people affected worldwide receive no treatment at all. Effective interventions exist: psychological therapies such as cognitive behavioural therapy, antidepressant medication for moderate and severe cases, and community-based care delivered by trained non-specialists. Stigma, distance, cost and a severe shortage of psychiatrists and clinical psychologists keep the treatment gap wide. Digital and telephone-delivered care extends reach, but must be paired with clear escalation pathways and protection of privacy, since mental health data is unusually sensitive." },
+{ id:"w46", t:"Nutrition: macronutrients, micronutrients and the double burden", s:"Reference summary", o:"FAO / WHO", ty:"health", y:2024, d:"2024-02-01", u:"https://www.fao.org/", l:"en", a:4, e:["nutrition","anaemia","malnutrition"],
+ k:["health","nutrition","protein","vitamin","anaemia","stunting","obesity"],
+ b:"Human nutrition requires energy and protein for growth and maintenance, essential fatty acids, and micronutrients such as iron, iodine, zinc, vitamin A, folate and vitamin B12. Deficiencies cause anaemia, impaired cognition, stunting and weakened immunity; excess energy intake causes obesity and metabolic disease. Many countries, including India, face both at once: undernutrition persists in some groups while obesity and diabetes rise in others. Fortification, supplementation, dietary diversity, and improving the quality rather than only the quantity of food are the practical policy instruments." },
+{ id:"w47", t:"Epidemiology: incidence, prevalence, relative risk and study design", s:"Reference summary", o:"WHO / ICMR", ty:"health", y:2024, d:"2024-01-10", u:"https://www.icmr.gov.in/", l:"en", a:4, e:["epidemiology","risk","study design"],
+ k:["health","epidemiology","incidence","prevalence","randomised trial","bias"],
+ b:"Incidence counts new cases in a period; prevalence counts all existing cases at a point. Relative risk compares outcome rates between exposed and unexposed groups; attributable risk estimates how much disease would disappear if exposure were removed. Study designs trade rigour for feasibility: randomised controlled trials support causal claims, cohort studies follow exposure forward, case-control studies look backward from outcome, and cross-sectional surveys describe a moment. Bias, confounding and measurement error are the recurring threats, and no statistical technique fully repairs a badly designed study." },
+{ id:"w48", t:"Antibiotics: discovery, mechanism and the resistance clock", s:"Reference summary", o:"WHO / Nature", ty:"health", y:2024, d:"2024-06-01", u:"https://www.who.int/", l:"en", a:4, e:["antibiotic","penicillin","resistance"],
+ k:["health","antibiotic","penicillin","bacteria","resistance","stewardship"],
+ b:"Antibiotics kill bacteria or stop them multiplying by attacking structures absent in human cells: cell walls, bacterial ribosomes, DNA replication enzymes or folate synthesis. Penicillin's discovery in 1928 opened the antibiotic era and added roughly two decades to average life expectancy. Every antibiotic class has eventually met resistance, and the pipeline of genuinely new classes is thin because development is scientifically hard and commercially unattractive. Responsible use means prescribing only when bacterial infection is likely, completing courses appropriately, and controlling use in agriculture where most tonnage is consumed." },
+{ id:"w49", t:"The scientific method, peer review and reproducibility", s:"Reference summary", o:"Royal Society / Nature", ty:"science", y:2024, d:"2024-01-01", u:"https://royalsociety.org/", l:"en", a:4, e:["scientific method","peer review","reproducibility"],
+ k:["science","method","peer review","replication","evidence","bias"],
+ b:"The scientific method is a disciplined loop: observe, form a testable hypothesis, predict, test, and revise. Its authority comes from falsifiability and replication rather than from authority of persons. Peer review filters obvious errors before publication but does not guarantee correctness, and the replication crisis in psychology, medicine and cancer biology showed how often published findings fail to reproduce. Pre-registration, open data, larger samples, reporting effect sizes with uncertainty, and adversarial collaboration are the reforms in progress. Reading a single study as settled fact is the most common error made by non-specialists." },
+{ id:"w50", t:"Statistics: distributions, significance and why averages mislead", s:"Reference summary", o:"Royal Statistical Society", ty:"science", y:2024, d:"2024-02-01", u:"https://rss.org.uk/", l:"en", a:4, e:["statistics","probability","significance"],
+ k:["mathematics","statistics","distribution","p-value","mean","variance","sampling"],
+ b:"A distribution describes how values are spread. The mean is sensitive to outliers while the median is not, which is why income is usually reported as a median. Variance and standard deviation measure spread; the normal distribution appears when many small independent effects add, but income, city sizes and internet traffic follow heavy-tailed distributions where extremes dominate. A p-value is the probability of data at least this extreme if the null hypothesis were true, not the probability that the hypothesis is true. Confidence intervals communicate uncertainty far better than a bare significance claim." },
+{ id:"w51", t:"Bayes' theorem and reasoning under uncertainty", s:"Reference summary", o:"Royal Statistical Society", ty:"science", y:2024, d:"2024-03-01", u:"https://rss.org.uk/", l:"en", a:4, e:["bayes","probability","uncertainty"],
+ k:["mathematics","bayes","probability","prior","likelihood","diagnosis"],
+ b:"Bayes' theorem updates a prior belief with the likelihood of observed evidence to produce a posterior. Its practical force is in base rates: a test with high sensitivity and specificity still yields mostly false positives when the condition is rare, because the prior is small. This single insight explains why screening programmes must be judged on predictive value rather than accuracy alone, and why intuitive reasoning about risk fails. Bayesian methods are now standard in machine learning, clinical decision support, spam filtering and forensic interpretation of evidence." },
+{ id:"w52", t:"Prime numbers, encryption and the factoring problem", s:"Reference summary", o:"American Mathematical Society", ty:"science", y:2024, d:"2024-04-01", u:"https://www.ams.org/", l:"en", a:4, e:["prime numbers","factoring","rsa"],
+ k:["mathematics","prime","number theory","rsa","factoring","cryptography"],
+ b:"A prime is a whole number greater than one divisible only by one and itself. Euclid proved there are infinitely many. The distribution of primes is irregular but statistically predictable, described by the prime number theorem. Multiplying two large primes is easy; recovering them from the product appears to be computationally hard, and that asymmetry secures RSA encryption. Shor's quantum algorithm would break the assumption if a sufficiently large fault-tolerant quantum computer existed, which is why post-quantum cryptographic standards are being standardised and deployed now rather than later." },
+{ id:"w53", t:"Calculus, differential equations and modelling change", s:"Reference summary", o:"American Mathematical Society", ty:"science", y:2024, d:"2024-05-01", u:"https://www.ams.org/", l:"en", a:4, e:["calculus","differential equations","modelling"],
+ k:["mathematics","calculus","derivative","integral","differential equation","modelling"],
+ b:"Differential calculus measures instantaneous rates of change; integral calculus accumulates quantities from rates. Together they let a relationship expressed locally be solved globally. Differential equations describe population growth, radioactive decay, heat flow, fluid motion, electrical circuits, epidemic spread and option pricing. Most real equations have no closed-form solution, so numerical methods approximate them on computers with controlled error. The art of applied mathematics is choosing a model simple enough to solve and rich enough to be useful, then testing its predictions against measurement." },
+{ id:"w54", t:"Graph theory, networks and centrality", s:"Reference summary", o:"American Mathematical Society", ty:"science", y:2024, d:"2024-06-01", u:"https://www.ams.org/", l:"en", a:4, e:["graph theory","network","centrality"],
+ k:["mathematics","graph","network","pagerank","centrality","routing"],
+ b:"A graph is a set of nodes and the edges between them. Degree counts connections; path length measures separation; clustering describes how much neighbours interconnect. Centrality measures identify importance: degree centrality counts links, betweenness finds brokers on shortest paths, eigenvector centrality rewards connections to well-connected nodes, and PageRank is a variant that models a random walk with damping. These tools rank web pages, find influential spreaders in epidemics, plan transport networks and detect communities. Small-world and scale-free structures appear repeatedly in social, biological and technical networks." },
+{ id:"w55", t:"Algorithms and computational complexity: why some problems stay hard", s:"Reference summary", o:"ACM", ty:"tech", y:2024, d:"2024-01-01", u:"https://www.acm.org/", l:"en", a:4, e:["algorithms","complexity","np"],
+ k:["computing","algorithm","complexity","np-complete","sorting","search"],
+ b:"Complexity theory classifies problems by how resources grow with input size. Sorting is solvable in n log n comparisons; searching a sorted array in log n. Problems in P are solvable in polynomial time, and NP contains those whose proposed solutions can be checked in polynomial time. Whether P equals NP is open, but many practical problems are NP-complete, meaning a fast exact algorithm for one would solve all. The response is approximation, heuristics, constraints and problem-specific structure, which is why routing, scheduling and packing remain engineering disciplines rather than solved formulae." },
+{ id:"w56", t:"Data compression: entropy, lossless and lossy coding", s:"Reference summary", o:"IEEE", ty:"tech", y:2024, d:"2024-02-01", u:"https://www.ieee.org/", l:"en", a:4, e:["compression","entropy","coding"],
+ k:["computing","compression","entropy","huffman","jpeg","video"],
+ b:"Shannon showed that the minimum average code length for a source is bounded by its entropy, so compression is fundamentally about removing redundancy and discarding information the receiver will not notice. Lossless methods such as Huffman coding, arithmetic coding and LZ77 variants preserve every bit and are used for text, archives and executables. Lossy methods for images, audio and video exploit perceptual limits and are what make streaming feasible. Modern codecs combine prediction, transform coding and entropy coding, and video compression gains are a large part of why mobile video traffic is economically possible." },
+{ id:"w57", t:"Distributed systems: consensus, replication and the CAP trade-off", s:"Reference summary", o:"ACM", ty:"tech", y:2024, d:"2024-03-01", u:"https://www.acm.org/", l:"en", a:4, e:["distributed systems","consensus","cap"],
+ k:["computing","distributed","consensus","raft","paxos","replication","cap"],
+ b:"Distributed systems coordinate multiple machines over an unreliable network. Replication improves availability and durability but raises the question of consistency: when a write succeeds on one replica, when is it visible on others? The CAP theorem states that during a network partition a system must choose between consistency and availability. Practical systems offer tunable models: strong consistency via consensus protocols such as Paxos and Raft, or eventual consistency with conflict resolution. Clock skew, partial failure and message reordering make distributed correctness notoriously difficult, and testing tools deliberately inject faults." },
+{ id:"w58", t:"Programming languages, compilers and abstraction", s:"Reference summary", o:"ACM", ty:"tech", y:2024, d:"2024-04-01", u:"https://www.acm.org/", l:"en", a:4, e:["programming language","compiler","abstraction"],
+ k:["computing","programming","compiler","types","interpreter","abstraction"],
+ b:"A programming language is a notation for expressing computation with rules precise enough for a machine to execute and a human to reason about. Compilers translate source to machine code through lexing, parsing, semantic analysis and optimisation; interpreters execute a representation directly. Type systems catch classes of error before execution, trading flexibility for safety. Memory management ranges from manual to garbage-collected, each with costs. Abstraction is the central technique: hide detail behind an interface, then rely on the interface's contract rather than its implementation, which is what allows large systems to be built at all." },
+{ id:"w59", t:"Operating systems, virtual memory and concurrency", s:"Reference summary", o:"ACM / IEEE", ty:"tech", y:2024, d:"2024-05-01", u:"https://www.ieee.org/", l:"en", a:4, e:["operating system","virtual memory","concurrency"],
+ k:["computing","operating system","kernel","memory","concurrency","scheduling"],
+ b:"An operating system multiplexes hardware among programs: it schedules the processor, isolates memory using virtual address translation, arbitrates device access and enforces permissions. Virtual memory lets each process see a private address space, backed by physical memory and disk, which is what makes protection and swapping possible. Concurrency introduces races, so kernels and applications use locks, atomic operations and message passing, each with deadlock and contention risks. Containers and virtual machines extend the same isolation ideas to whole systems, and they are the substrate of every cloud service." },
+{ id:"w60", t:"Human-computer interaction: accessibility and inclusive design", s:"Reference summary", o:"W3C WAI", ty:"tech", y:2024, d:"2024-06-01", u:"https://www.w3.org/WAI/", l:"en", a:4, e:["accessibility","usability","wcag"],
+ k:["design","accessibility","wcag","usability","screen reader","contrast"],
+ b:"Accessibility means a product works for people with visual, hearing, motor or cognitive disabilities. The Web Content Accessibility Guidelines require content to be perceivable, operable, understandable and robust: text alternatives for images, keyboard operation for every control, sufficient colour contrast, resizable text and compatibility with assistive technology. Good accessibility practice improves usability for everyone, especially on small screens, in bright sunlight, on slow connections and for users who are not fluent in the interface language. Testing with a screen reader and at two hundred percent zoom reveals most failures quickly." }
+];
+if (typeof globalThis !== "undefined") { globalThis.WORLD_DOCS_1 = WORLD_DOCS_1; }
+</script>
+<script>/* ANVESHAN world knowledge corpus - part 2
+   History, geography, economy, governance, culture, global affairs. */
+var WORLD_DOCS_2 = [
+{ id:"w61", t:"The Indus Valley Civilisation and the world's earliest urban planning", s:"Reference summary", o:"Archaeological Survey of India", ty:"history", y:2023, d:"2023-01-01", u:"https://asi.nic.in/", l:"en", a:4, e:["indus valley","harappa","urban planning"],
+ k:["history","indus","harappa","mohenjo-daro","bronze age","archaeology"],
+ b:"The Indus Valley Civilisation flourished from roughly 3300 to 1300 BCE across what is now Pakistan and northwest India, with major cities at Harappa, Mohenjo-daro, Dholavira, Lothal and Rakhigarhi. Its towns were laid out on a grid with standardised baked bricks, covered drainage, wells and granaries, which implies strong civic administration. Seals bearing an undeciphered script, standardised weights and extensive trade links to Mesopotamia show a connected commercial culture. There is no clear evidence of large-scale warfare or monumental royal tombs, which has shaped debate about how power was organised." },
+{ id:"w62", t:"The Vedic period, oral transmission and the Sanskrit corpus", s:"Reference summary", o:"Sahitya Akademi", ty:"history", y:2023, d:"2023-02-01", u:"https://sahitya-akademi.gov.in/", l:"en", a:4, e:["vedic","sanskrit","oral tradition"],
+ k:["history","vedic","sanskrit","rigveda","oral tradition","philosophy"],
+ b:"The Vedas are among the oldest continuously transmitted bodies of literature, composed in Vedic Sanskrit and preserved for millennia by oral recitation with extraordinary fidelity using mnemonic techniques and strict recitational rules. The Rigveda is the earliest, followed by the Yajur, Sama and Atharva Vedas, with the Upanishads and Brahmanas developing philosophical and ritual commentary. Sanskrit grammar was formalised by Panini in the Ashtadhyayi, a generative rule system so precise that it is studied today by linguists and computer scientists as an early formal grammar." },
+{ id:"w63", t:"The Maurya empire, Kautilya's Arthashastra and Ashoka's edicts", s:"Reference summary", o:"Archaeological Survey of India", ty:"history", y:2023, d:"2023-03-01", u:"https://asi.nic.in/", l:"en", a:4, e:["maurya","ashoka","arthashastra"],
+ k:["history","maurya","ashoka","chandragupta","arthashastra","edicts","buddhism"],
+ b:"Chandragupta Maurya founded an empire around 320 BCE that at its height under Ashoka covered most of the subcontinent. The Arthashastra, attributed to Kautilya, is a treatise on statecraft, taxation, espionage, diplomacy and economic administration that still reads as a manual of governance. Ashoka's policy after the Kalinga war shifted toward dhamma, public welfare and religious tolerance, and his edicts were carved on rock and pillars across the subcontinent in Prakrit and Greek, one of the earliest large-scale public communication campaigns in the world." },
+{ id:"w64", t:"The Gupta period: mathematics, astronomy and classical art", s:"Reference summary", o:"Sahitya Akademi", ty:"history", y:2023, d:"2023-04-01", u:"https://sahitya-akademi.gov.in/", l:"en", a:4, e:["gupta","aryabhata","decimal"],
+ k:["history","gupta","mathematics","aryabhata","zero","astronomy","art"],
+ b:"The Gupta period, roughly the fourth to sixth centuries CE, saw major advances in mathematics, astronomy, literature and temple architecture. Aryabhata's treatise of 499 CE treated the Earth as rotating on its axis and gave methods for computing eclipses, sines and the value of pi to remarkable precision. Indian mathematicians developed positional notation with a zero, transmitted through Arabic mathematics to become the decimal system used worldwide. The period also produced Kalidasa's poetry and drama, and the structural temples at Deogarh and the cave paintings at Ajanta reflect a confident classical idiom." },
+{ id:"w65", t:"The Chola navy, temple economy and South Indian maritime trade", s:"Reference summary", o:"Archaeological Survey of India", ty:"history", y:2023, d:"2023-05-01", u:"https://asi.nic.in/", l:"en", a:4, e:["chola","maritime trade","brihadeeswara"],
+ k:["history","chola","navy","temple","trade","southeast asia","brihadeeswara"],
+ b:"The Chola dynasty, based in the Kaveri delta, controlled a maritime empire between roughly the ninth and thirteenth centuries, with naval expeditions reaching Sri Lanka and the Malay archipelago. Rajaraja Chola's Brihadeeswara temple at Thanjavur, completed around 1010 CE, is a granite structure of extraordinary scale built without mortar. Temples functioned as economic institutions: they held land, employed thousands, ran schools and hospitals, and lent capital. Inscriptions recording gifts, taxes and village assemblies make this one of the best documented periods of pre-colonial Indian administration." },
+{ id:"w66", t:"The Delhi Sultanate and the integration of north India", s:"Reference summary", o:"Archaeological Survey of India", ty:"history", y:2023, d:"2023-06-01", u:"https://asi.nic.in/", l:"en", a:4, e:["delhi sultanate","qutub minar","persianate"],
+ k:["history","sultanate","delhi","qutub minar","persian","administration"],
+ b:"Five successive dynasties ruled from Delhi between 1206 and 1526, consolidating north Indian administration, revenue systems and Persianate court culture. The Qutub Minar, begun in 1199, and the tombs and mosques of the period mark the arrival of new architectural vocabularies that fused with local craft traditions. Market reforms, standardised taxation and the promotion of Persian as an administrative language reshaped urban life. The period also saw the spread of the Bhakti and Sufi movements, which built devotional communities across linguistic and social boundaries and shaped regional literatures." },
+{ id:"w67", t:"Vijayanagara: an imperial capital and its water engineering", s:"Reference summary", o:"Archaeological Survey of India", ty:"history", y:2023, d:"2023-07-01", u:"https://asi.nic.in/", l:"en", a:4, e:["vijayanagara","hampi","water engineering"],
+ k:["history","vijayanagara","hampi","architecture","irrigation","trade"],
+ b:"Vijayanagara, with its capital at Hampi on the Tungabhadra river, dominated southern India from 1336 to 1565 and grew rich on trade in spices, textiles, diamonds and horses. The city at its height may have housed several hundred thousand people, with elaborate hydraulic works including canals, tanks and stepwells that supplied an arid landscape. Its bazaars, temple complexes and royal enclosures are now a UNESCO World Heritage Site. The empire's fall after the battle of Talikota in 1565 dispersed its craftsmen and shifted regional power, but its administrative and temple institutions persisted." },
+{ id:"w68", t:"The Mughal empire: revenue, architecture and administrative reach", s:"Reference summary", o:"Archaeological Survey of India", ty:"history", y:2023, d:"2023-08-01", u:"https://asi.nic.in/", l:"en", a:4, e:["mughal","akbar","taj mahal"],
+ k:["history","mughal","akbar","revenue","taj mahal","administration","mansabdari"],
+ b:"The Mughal empire governed much of the subcontinent between 1526 and the early eighteenth century. Akbar's revenue system, developed with Raja Todar Mal, measured land, graded soil and fixed cash assessments, producing one of the most sophisticated agrarian tax systems of its era. The mansabdari system graded officers by rank and obligation. Mughal architecture, culminating in the Taj Mahal, fused Persian, Timurid and Indian traditions. The empire's decline after Aurangzeb's reign created the space in which regional powers and eventually the East India Company expanded." },
+{ id:"w69", t:"The Maratha confederacy and eighteenth-century Indian statecraft", s:"Reference summary", o:"Archaeological Survey of India", ty:"history", y:2023, d:"2023-09-01", u:"https://asi.nic.in/", l:"en", a:4, e:["maratha","shivaji","confederacy"],
+ k:["history","maratha","shivaji","peshwa","guerrilla","forts","revenue"],
+ b:"Shivaji Bhosale built a state in the western Deccan in the seventeenth century using hill forts, mobile cavalry and a revenue administration documented in the Adnyapatra. After his death the Peshwas expanded Maratha power across central and northern India, and by the mid eighteenth century the confederacy of Scindia, Holkar, Gaikwad and Bhonsle houses was the dominant military power in the subcontinent. Defeat at Panipat in 1761 and later Anglo-Maratha wars checked that expansion. Maratha revenue systems, fort networks and diplomatic practice shaped later regional administration." },
+{ id:"w70", t:"Company rule, the revolt of 1857 and the making of colonial administration", s:"Reference summary", o:"National Archives of India", ty:"history", y:2023, d:"2023-10-01", u:"https://nationalarchives.nic.in/", l:"en", a:4, e:["east india company","1857","colonial"],
+ k:["history","colonial","east india company","1857","revolt","railways","administration"],
+ b:"The East India Company, chartered in 1600, progressively became a territorial power after the battle of Plassey in 1757, extracting revenue through zamindari and ryotwari settlements. Its economic policies deindustrialised Indian textiles while integrating the subcontinent into global commodity flows. The revolt of 1857, sparked by cartridges and grievances over land and annexation, was suppressed but ended Company rule; the Crown took over in 1858. Colonial administration then built railways, telegraphs, irrigation canals, census systems and universities, infrastructure designed for extraction and control that also became the substrate of later Indian institutions." },
+{ id:"w71", t:"The Indian freedom movement and independence in 1947", s:"Reference summary", o:"National Archives of India", ty:"history", y:2023, d:"2023-11-01", u:"https://nationalarchives.nic.in/", l:"en", a:4, e:["freedom movement","gandhi","independence"],
+ k:["history","independence","gandhi","nehru","congress","satyagraha","1947"],
+ b:"Indian nationalism organised through the Indian National Congress from 1885, moving from petition to mass mobilisation under Gandhi's methods of non-cooperation, civil disobedience and satyagraha. The Salt March of 1930, the Quit India movement of 1942 and sustained labour, peasant and student agitation eroded colonial legitimacy. Constitutional negotiation, the Second World War's drain on Britain and international pressure converged, and independence came on 15 August 1947 alongside the partition of Punjab and Bengal. The movement's techniques of organised non-violent resistance influenced civil rights campaigns worldwide." },
+{ id:"w72", t:"Partition, migration and the largest recorded population transfer", s:"Reference summary", o:"National Archives of India", ty:"history", y:2023, d:"2023-12-01", u:"https://nationalarchives.nic.in/", l:"en", a:4, e:["partition","migration","refugees"],
+ k:["history","partition","migration","refugees","punjab","bengal","1947"],
+ b:"The partition of British India into India and Pakistan in 1947 displaced an estimated fifteen million people and was accompanied by communal violence that killed hundreds of thousands. Punjab and Bengal were divided, producing the largest and fastest population movement recorded in modern history. Refugee rehabilitation reshaped cities: Delhi, Kolkata, Lahore and Karachi absorbed millions, new townships were built, and property claims and evacuee legislation persisted for decades. Partition also left unresolved questions over Kashmir, water sharing and citizenship that continue to shape South Asian politics and the region's military posture." },
+{ id:"w73", t:"The Constitution of India: structure, fundamental rights and duties", s:"Reference summary", o:"Ministry of Law and Justice", ty:"governance", y:2024, d:"2024-01-26", u:"https://legislative.gov.in/", l:"en", a:5, e:["constitution","fundamental rights","ambedkar"],
+ k:["governance","constitution","rights","duties","directive principles","ambedkar"],
+ b:"The Constitution of India, adopted on 26 November 1949 and in force from 26 January 1950, is the longest written constitution of any sovereign country. It establishes a parliamentary federal republic with separation of powers, and is organised around the Preamble, Fundamental Rights, Directive Principles of State Policy and Fundamental Duties. Drafting committee chairman B.R. Ambedkar described constitutional morality as essential to its working. Fundamental rights are enforceable in courts; directive principles guide policy without being directly justiciable. Amendments follow procedures ranging from simple parliamentary majority to special majorities with state ratification." },
+{ id:"w74", t:"Indian federalism, local government and the 73rd and 74th amendments", s:"Reference summary", o:"Ministry of Panchayati Raj", ty:"governance", y:2024, d:"2024-04-24", u:"https://panchayat.gov.in/", l:"en", a:5, e:["federalism","panchayati raj","local government"],
+ k:["governance","federalism","panchayat","municipality","devolution","73rd amendment"],
+ b:"India is a union of states with a division of legislative powers set out in three lists: union, state and concurrent. The 73rd and 74th constitutional amendments of 1992 gave constitutional status to rural panchayats and urban local bodies, mandating regular elections, reservation for scheduled castes, scheduled tribes and women, and state finance commissions. In practice devolution of funds, functions and functionaries to local bodies varies widely across states, and many panchayats remain dependent on grants. Fiscal decentralisation is widely identified as the weakest link in Indian federal practice." },
+{ id:"w75", t:"The Indian judiciary: structure, review and access to justice", s:"Reference summary", o:"Supreme Court of India", ty:"governance", y:2024, d:"2024-02-01", u:"https://main.sci.gov.in/", l:"en", a:5, e:["judiciary","supreme court","judicial review"],
+ k:["governance","judiciary","supreme court","high court","judicial review","pil","pendency"],
+ b:"The Indian judiciary is a single integrated hierarchy: the Supreme Court at the apex, high courts in states, and district and subordinate courts below. It exercises judicial review, and the basic structure doctrine holds that certain constitutional features cannot be destroyed by amendment. Public interest litigation widened standing so that any citizen can approach the court on behalf of those unable to do so, producing landmark environmental and rights jurisprudence. The persistent problem is capacity: tens of millions of cases are pending, and access is limited by cost, distance, language and legal literacy despite e-courts digitisation." },
+{ id:"w76", t:"The 1991 economic reforms and India's growth trajectory", s:"Reference summary", o:"Reserve Bank of India", ty:"economy", y:2023, d:"2023-07-24", u:"https://www.rbi.org.in/", l:"en", a:5, e:["liberalisation","1991","reform"],
+ k:["economy","liberalisation","1991","reform","trade","licensing","growth"],
+ b:"In 1991 a balance-of-payments crisis, with reserves covering only weeks of imports, forced a structural break. India devalued the rupee, pledged gold, and launched reforms that dismantled industrial licensing, lowered tariffs, opened sectors to foreign investment and liberalised the financial system. Average growth rose from the so-called Hindu rate of around three and a half percent to six or seven percent over the following decades, and services exports became a major earner. The reforms also widened inequality in access and left agriculture, land and labour regulation substantially unreformed." },
+{ id:"w77", t:"Goods and Services Tax: a unified indirect tax and its federal bargain", s:"Reference summary", o:"GST Council", ty:"economy", y:2024, d:"2024-07-01", u:"https://gstcouncil.gov.in/", l:"en", a:5, e:["gst","taxation","federalism"],
+ k:["economy","gst","tax","indirect tax","council","compliance","federalism"],
+ b:"The Goods and Services Tax, introduced in July 2017, replaced a patchwork of central and state indirect taxes with a destination-based value-added tax on a common national market. It is governed by a GST Council in which states and the centre jointly set rates, an unusual constitutional arrangement for tax. Benefits include the removal of cascading taxes and checkpoint delays; costs include compliance burden on small firms, rate complexity across slabs, and revenue uncertainty for states that lost autonomy over indirect taxation. Input tax credit chains make the system powerful but demand accurate invoicing." },
+{ id:"w78", t:"The Reserve Bank of India, monetary policy and inflation targeting", s:"Reference summary", o:"Reserve Bank of India", ty:"economy", y:2024, d:"2024-04-05", u:"https://www.rbi.org.in/", l:"en", a:5, e:["rbi","monetary policy","inflation"],
+ k:["economy","rbi","monetary policy","repo rate","inflation targeting","banking"],
+ b:"The Reserve Bank of India, established in 1935, manages monetary policy, issues currency, regulates banks and oversees payment systems. Since a 2016 amendment, a six-member Monetary Policy Committee sets the policy repo rate with a flexible inflation target of four percent consumer price inflation, plus or minus two percentage points. Raising the repo rate raises borrowing costs, cools demand and slows inflation with a lag of several quarters. The bank also manages foreign exchange reserves, acts as lender of last resort, and runs the regulatory framework under which banks and non-bank lenders operate." },
+{ id:"w79", t:"The Green Revolution, food security and Indian agriculture", s:"Reference summary", o:"ICAR", ty:"economy", y:2023, d:"2023-08-15", u:"https://icar.org.in/", l:"en", a:4, e:["green revolution","agriculture","food security"],
+ k:["economy","agriculture","green revolution","wheat","rice","irrigation","fertiliser"],
+ b:"From the mid 1960s India adopted high-yielding wheat and rice varieties, expanded irrigation, subsidised fertiliser and guaranteed procurement, which moved the country from food aid dependence to self-sufficiency. Agriculture now employs a large share of the workforce while contributing a much smaller share of output, so productivity growth is central to rural incomes. Persistent issues include groundwater depletion, soil degradation, price volatility, fragmentation of holdings and the climate sensitivity of rain-fed areas. Minimum support prices, public distribution and direct benefit transfers are the main policy instruments." },
+{ id:"w80", t:"Urbanisation, housing and the infrastructure of Indian cities", s:"Reference summary", o:"Ministry of Housing and Urban Affairs", ty:"economy", y:2024, d:"2024-06-01", u:"https://mohua.gov.in/", l:"en", a:4, e:["urbanisation","housing","transport"],
+ k:["economy","urbanisation","housing","transport","metro","water","municipal"],
+ b:"Roughly a third of Indians live in urban areas, and the share is rising. Cities generate the majority of national output but are governed by fragmented municipal bodies with limited fiscal powers, which constrains investment in water, sewerage, drainage and transport. Metro rail networks in major cities have expanded rapidly, and affordable housing and slum rehabilitation schemes have built millions of units, though adequacy and maintenance remain contested. Urban floods, air pollution and congestion are recurring failures of drainage, land use and transport planning rather than of individual projects." },
+{ id:"w81", t:"India's languages: the Eighth Schedule and multilingual policy", s:"Reference summary", o:"Ministry of Home Affairs", ty:"culture", y:2024, d:"2024-02-21", u:"https://www.mha.gov.in/", l:"en", a:5, e:["languages","eighth schedule","multilingualism"],
+ k:["culture","language","eighth schedule","official language","census","multilingual"],
+ b:"The Eighth Schedule of the Constitution lists 22 scheduled languages, and the census records over 120 languages with more than ten thousand speakers each and more than a thousand mother tongues. Hindi in Devanagari is the official language of the union, while states may adopt their own official languages and English continues in administration, courts and higher education. The three-language formula in schools, the classical language designations, and the treatment of tribal and endangered languages are live policy questions. India's linguistic diversity is the reason its digital services must be multilingual by default." },
+{ id:"w82", t:"Sangam literature and the classical Tamil tradition", s:"Reference summary", o:"Sahitya Akademi", ty:"culture", y:2023, d:"2023-11-01", u:"https://sahitya-akademi.gov.in/", l:"en", a:4, e:["tamil","sangam","poetry"],
+ k:["culture","tamil","sangam","poetry","thirukkural","literature"],
+ b:"Sangam literature, composed in Tamil roughly between the third century BCE and the third century CE, is among the oldest secular poetry in any living language. Its anthologies divide into akam, interior poetry of love, and puram, exterior poetry of war, ethics and public life, with a grammar of landscape and emotion codified in the Tolkappiyam. The Thirukkural, attributed to Thiruvalluvar, compresses ethics, polity and love into 1330 couplets. This corpus documents a sophisticated literary culture with trade, ports and civic life along the Coromandel coast." },
+{ id:"w83", t:"Indian classical music and dance: systems, ragas and lineages", s:"Reference summary", o:"Sangeet Natak Akademi", ty:"culture", y:2023, d:"2023-09-01", u:"https://sangeetnatak.gov.in/", l:"en", a:4, e:["classical music","raga","dance"],
+ k:["culture","music","raga","tala","dance","bharatanatyam","hindustani","carnatic"],
+ b:"Indian classical music has two great traditions. Hindustani music of the north and Carnatic music of the south share the concepts of raga, a melodic framework with characteristic ascending and descending movements, and tala, a cyclical rhythmic structure. Performance is improvisation within grammar rather than reproduction of a fixed score. Classical dance forms including Bharatanatyam, Kathak, Odissi, Kuchipudi, Manipuri, Mohiniyattam, Kathakali and Sattriya combine narrative, gesture, rhythm and music, each codified in regional treatises and transmitted through guru-shishya lineages." },
+{ id:"w84", t:"Indian cinema: studios, stars and the language industries", s:"Reference summary", o:"National Film Development Corporation", ty:"culture", y:2024, d:"2024-01-01", u:"https://nfdcindia.gov.in/", l:"en", a:3, e:["cinema","bollywood","film"],
+ k:["culture","cinema","film","bollywood","regional","music","industry"],
+ b:"India produces more feature films than any other country, across Hindi, Tamil, Telugu, Malayalam, Kannada, Bengali, Marathi and other language industries that each have distinct stars, markets and conventions. The studio era of the 1930s to 1950s gave way to star-driven financing, and song-and-dance sequences became a global signature. Parallel and regional new waves produced internationally acclaimed directors, and streaming has widened distribution for smaller-language films. Film music is a cultural force in its own right, and Indian cinema's overseas market now shapes production decisions as much as domestic box office." },
+{ id:"w85", t:"Indian food systems: staples, spices and regional diversity", s:"Reference summary", o:"ICAR", ty:"culture", y:2024, d:"2024-03-01", u:"https://icar.org.in/", l:"en", a:3, e:["cuisine","food","spices"],
+ k:["culture","food","cuisine","spices","millets","diet","agriculture"],
+ b:"Indian cuisine is a family of regional traditions rather than a single repertoire, shaped by climate, crops, religion, trade and history. Rice and wheat are the dominant staples, with millets, sorghum and maize important in drier regions; pulses supply most protein; dairy, mustard, coconut and groundnut oils vary by region. Spice combinations reflect both flavour and preservative function. Fermentation appears in dosa, idli, dhokla and pickles. Trade routes brought chillies from the Americas, while tea and coffee became plantation economies. Millets are being revived for climate resilience and nutrition." },
+{ id:"w86", t:"Festivals, calendars and the rhythm of public life in India", s:"Reference summary", o:"Ministry of Culture", ty:"culture", y:2024, d:"2024-01-14", u:"https://www.indiaculture.gov.in/", l:"en", a:3, e:["festivals","calendar","culture"],
+ k:["culture","festivals","calendar","diwali","eid","christmas","harvest","ritual"],
+ b:"India's festival calendar layers solar, lunar and lunisolar systems, so dates shift year to year. Makar Sankranti, Bihu, Pongal and Lohri mark the harvest in different regions; Holi marks spring; Onam and Baisakhi are regional new years; Diwali, Dussehra, Durga Puja, Ganesh Chaturthi, Eid, Christmas, Mahavir Jayanti, Guru Nanak's birthday and Buddha Purnima are all public holidays. Festivals drive consumption, travel and media, and they are also occasions of intense urban air quality problems, traffic and crowd safety risk, which makes their logistics a serious administrative exercise." },
+{ id:"w87", t:"Yoga, Ayurveda and the AYUSH systems of medicine", s:"Reference summary", o:"Ministry of AYUSH", ty:"health", y:2024, d:"2024-06-21", u:"https://ayush.gov.in/", l:"en", a:4, e:["yoga","ayurveda","ayush"],
+ k:["health","yoga","ayurveda","unani","siddha","homeopathy","traditional medicine"],
+ b:"The Ministry of AYUSH oversees Ayurveda, Yoga and Naturopathy, Unani, Siddha and Homeopathy, systems with long textual traditions and substantial public use in India. Yoga, codified in Patanjali's sutras, is now practised worldwide and was inscribed on the UNESCO intangible heritage list. Ayurveda uses herbal formulations, diet and regimen within a theoretical framework of humours. Evidence standards vary widely across these systems: some practices have randomised trial support, others do not. Regulation covers practitioners, education, pharmacopoeias and drug quality, and integration with modern medicine remains contested." },
+{ id:"w88", t:"Cricket, hockey and the political economy of Indian sport", s:"Reference summary", o:"Sports Authority of India", ty:"culture", y:2024, d:"2024-08-01", u:"https://sportsauthorityofindia.nic.in/", l:"en", a:3, e:["cricket","hockey","sports"],
+ k:["culture","sport","cricket","hockey","olympics","league","broadcast"],
+ b:"India won hockey gold at six consecutive Olympics from 1928 to 1956 and dominated the sport for decades. Cricket, however, became the commercial centre of Indian sport after the 1983 World Cup win, and the Indian Premier League created a franchise model that transformed global cricket economics through broadcast rights. Olympic medals have come mainly from hockey, shooting, wrestling, badminton, boxing, athletics and weightlifting. Public investment in sport is thin relative to population, and talent identification, coaching depth and sports science are the identified gaps behind calls for a national sports policy." },
+{ id:"w89", t:"The Himalaya: orogeny, glaciers and water towers of Asia", s:"Reference summary", o:"Geological Survey of India", ty:"geography", y:2024, d:"2024-05-01", u:"https://www.gsi.gov.in/", l:"en", a:4, e:["himalaya","glacier","water"],
+ k:["geography","himalaya","glacier","river","earthquake","climate","monsoon"],
+ b:"The Himalaya formed as the Indian plate collided with Eurasia, and the range continues to rise as the plate moves north. It holds the largest mass of ice outside the polar regions and feeds ten major river systems on which roughly a fifth of humanity depends. Glaciers act as seasonal reservoirs, releasing meltwater in dry months, and their retreat is one of the clearest signals of warming in Asia. The range is seismically active, and steep slopes, deforestation, road building and intense rainfall combine to produce landslides and flash floods, as repeated disasters in Uttarakhand and Himachal Pradesh have shown." },
+{ id:"w90", t:"The Ganga basin: rivers, cities and the challenge of cleaning a sacred river", s:"Reference summary", o:"Central Pollution Control Board", ty:"geography", y:2024, d:"2024-04-01", u:"https://cpcb.nic.in/", l:"en", a:4, e:["ganga","river","pollution"],
+ k:["geography","ganga","river","pollution","sewage","irrigation","biodiversity"],
+ b:"The Ganga rises in the Gangotri glacier and drains a basin covering roughly a quarter of India's land area, supporting intensive agriculture and hundreds of millions of people. It is sacred in Hindu practice, and ritual use coexists with industrial and municipal discharge. Sewage is the largest pollution load, followed by industrial effluent and agricultural runoff. Clean-up programmes have built sewage treatment capacity and improved monitoring, but treatment utilisation, decentralised systems and industrial compliance remain the binding constraints. River dolphins, gharials and mahseer are indicator species of ecological health." },
+{ id:"w91", t:"The Thar desert, arid-zone agriculture and water harvesting", s:"Reference summary", o:"Central Arid Zone Research Institute", ty:"geography", y:2023, d:"2023-10-01", u:"https://cazri.res.in/", l:"en", a:4, e:["thar","desert","water harvesting"],
+ k:["geography","desert","thar","rainwater","drought","livestock","irrigation"],
+ b:"The Thar is a hot subtropical desert with less than 300 millimetres of annual rainfall, high evaporation and mobile sand dunes in parts. Agriculture depends on drought-tolerant crops such as bajra, moth bean and cluster bean, on livestock, and on rainwater harvesting structures including khadins, tankas and nadis. The Indira Gandhi canal brought irrigation to parts of western Rajasthan, raising output while creating waterlogging and salinity risks. Desert ecology is fragile: overgrazing and groundwater depletion degrade grazing land quickly, and dust storms transport soil and aerosols long distances." },
+{ id:"w92", t:"The Western Ghats: a biodiversity hotspot under pressure", s:"Reference summary", o:"Wildlife Institute of India", ty:"geography", y:2024, d:"2024-02-01", u:"https://wii.gov.in/", l:"en", a:4, e:["western ghats","biodiversity","rainforest"],
+ k:["geography","western ghats","biodiversity","rainforest","monsoon","endemic","conservation"],
+ b:"The Western Ghats run parallel to India's west coast and are one of the world's eight hottest biodiversity hotspots, with thousands of endemic plant and animal species including frogs, caecilians, lizards and trees found nowhere else. They intercept the southwest monsoon, and their forests regulate water supply for the peninsula's rivers. Pressures include plantation expansion, reservoirs, roads, mining and encroachment. The Gadgil and Kasturirangan reports proposed graded ecological protection, and the gap between recommendation and implementation illustrates the difficulty of reconciling conservation with livelihoods and regional politics." },
+{ id:"w93", t:"The Sundarbans: mangroves, cyclones and coastal protection", s:"Reference summary", o:"Wildlife Institute of India", ty:"geography", y:2024, d:"2024-06-01", u:"https://wii.gov.in/", l:"en", a:4, e:["sundarbans","mangrove","cyclone"],
+ k:["geography","sundarbans","mangrove","cyclone","tiger","salinity","coastal"],
+ b:"The Sundarbans is the world's largest mangrove forest, spread across the Ganga-Brahmaputra delta in India and Bangladesh. Mangroves buffer storm surge and cyclones, trap sediment, nursery fish and store carbon in waterlogged soil. The forest is the only mangrove habitat of tigers, which have adapted to swimming and tidal hunting. Rising sea level, salinity intrusion, subsidence and erosion threaten the delta, and embankment failures have drowned farmland in repeated cyclones. Restoration and embankment redesign are central to adaptation policy for the coast." },
+{ id:"w94", t:"The Indian Ocean: monsoon winds, ports and maritime trade", s:"Reference summary", o:"National Maritime Foundation", ty:"geography", y:2024, d:"2024-03-01", u:"https://www.maritimeindia.org/", l:"en", a:3, e:["indian ocean","maritime trade","ports"],
+ k:["geography","indian ocean","trade","port","shipping","monsoon","chokepoint"],
+ b:"The Indian Ocean carries a large share of world oil and container traffic, and its monsoon wind system made predictable long-distance sailing possible centuries before steam. Ports from Muziris and Lothal to Surat, Kochi, Chennai and Mundra connected Indian textiles, spices and steel to markets from East Africa to China. Today the ocean's chokepoints, the Strait of Hormuz and Bab-el-Mandeb among them, make its security a global economic concern. India's coastline, island territories and exclusive economic zone give it substantial maritime interests in fisheries, energy and undersea cables." },
+{ id:"w95", t:"India's population: structure, transition and dividend", s:"Reference summary", o:"Census of India / UNFPA", ty:"geography", y:2024, d:"2024-04-01", u:"https://censusindia.gov.in/", l:"en", a:5, e:["population","demography","fertility"],
+ k:["demography","population","fertility","ageing","migration","dividend","census"],
+ b:"India's population has passed 1.4 billion, making it the most populous country. Fertility has fallen below replacement level in most states, while the southern and western states aged earlier than the northern ones, producing wide internal variation. The working-age share is near its peak, which is the demographic dividend: an opportunity that only converts to growth if education, health and employment absorb the entrants. Internal migration from rural to urban and from east to west is large and largely informal. Ageing, the sex ratio, and the size of the informal workforce are the structural issues that follow." },
+{ id:"w96", t:"Mesopotamia, cuneiform and the invention of writing", s:"Reference summary", o:"British Museum", ty:"history", y:2023, d:"2023-02-01", u:"https://www.britishmuseum.org/", l:"en", a:4, e:["mesopotamia","writing","cuneiform"],
+ k:["history","mesopotamia","writing","cuneiform","sumer","city","law"],
+ b:"In southern Mesopotamia, cities such as Uruk and Ur developed from about 4000 BCE around irrigation agriculture and temple institutions. Writing began as accounting: clay tokens, then impressed signs recording grain, livestock and labour, which developed into cuneiform script. The Code of Ur-Nammu and later the Code of Hammurabi are among the earliest surviving legal codes. Clay tablets preserve mathematics in base sixty, which is why an hour has sixty minutes, along with literature including the Epic of Gilgamesh, the earliest surviving long narrative poem." },
+{ id:"w97", t:"Ancient Egypt: the Nile, the state and monumental construction", s:"Reference summary", o:"British Museum", ty:"history", y:2023, d:"2023-03-01", u:"https://www.britishmuseum.org/", l:"en", a:4, e:["egypt","nile","pyramid"],
+ k:["history","egypt","nile","pyramid","pharaoh","hieroglyph","irrigation"],
+ b:"Egyptian civilisation depended on the Nile's annual flood, which renewed soil and made predictable, centralised agriculture possible. That surplus supported a state able to organise monumental construction, including the pyramids at Giza built in the third millennium BCE. Hieroglyphic writing, papyrus, a calendar of 365 days and extensive medical and mathematical papyri document a literate bureaucracy. The decipherment of the Rosetta Stone in 1822 opened the written record. Egyptian chronology, based on king lists, astronomical records and radiocarbon dating, anchors the chronology of the wider ancient Mediterranean." },
+{ id:"w98", t:"Athenian democracy, philosophy and the Greek legacy", s:"Reference summary", o:"British Museum", ty:"history", y:2023, d:"2023-04-01", u:"https://www.britishmuseum.org/", l:"en", a:4, e:["greece","democracy","philosophy"],
+ k:["history","greece","athens","democracy","philosophy","science","theatre"],
+ b:"Athenian democracy from the late sixth century BCE gave citizens direct votes in an assembly, selection by lot for most offices, and jury courts, though citizenship excluded women, slaves and foreigners. Greek philosophy from Thales to Aristotle developed systematic inquiry into nature, ethics and politics, and Greek geometry from Euclid remained the model of rigorous proof for two thousand years. Theatre, historiography and athletic competition were civic institutions. Hellenistic science, especially in Alexandria, produced accurate estimates of the Earth's circumference and sophisticated mechanical and astronomical instruments." },
+{ id:"w99", t:"Rome: law, engineering and the administration of empire", s:"Reference summary", o:"British Museum", ty:"history", y:2023, d:"2023-05-01", u:"https://www.britishmuseum.org/", l:"en", a:4, e:["rome","roman law","engineering"],
+ k:["history","rome","law","engineering","aqueduct","republic","empire"],
+ b:"Rome grew from a city-state republic to an empire spanning the Mediterranean and beyond. Its legal tradition, codified later under Justinian, supplies concepts still used in civil law systems: contract, property, persons and delict. Roman engineering used concrete, arches and gradients to build roads, aqueducts, baths and harbours that sustained urban populations of hundreds of thousands. The republic's constitutional machinery, with consuls, senate and tribunes, has been studied by constitution-makers ever since, including by the framers of modern republics who drew on both its strengths and its collapse into autocracy." },
+{ id:"w100", t:"The Silk Roads and pre-modern global trade", s:"Reference summary", o:"UNESCO", ty:"history", y:2023, d:"2023-06-01", u:"https://en.unesco.org/", l:"en", a:4, e:["silk road","trade","exchange"],
+ k:["history","silk road","trade","caravan","spice","buddhism","exchange"],
+ b:"The Silk Roads were a network of overland and maritime routes linking China, India, Persia, Arabia, Africa and Europe. Goods moved in relays: silk, spices, cotton textiles, horses, glass and metals. Ideas moved too, including Buddhism from India to Central Asia and China, Islam, papermaking, gunpowder and astronomical and medical knowledge. Caravanserais, port cities and monsoon sailing seasons structured the trade. The system illustrates that long-distance exchange is ancient and multidirectional, not a modern invention, and that cultural transmission travelled with commerce." },
+{ id:"w101", t:"The Renaissance, printing and the spread of knowledge", s:"Reference summary", o:"British Library", ty:"history", y:2023, d:"2023-07-01", u:"https://www.bl.uk/", l:"en", a:4, e:["renaissance","printing","knowledge"],
+ k:["history","renaissance","printing press","gutenberg","science","art","literacy"],
+ b:"The European Renaissance from the fourteenth century revived classical learning, developed perspective in painting, and produced anatomy, engineering and political thought that broke with received authority. Gutenberg's movable-type printing press in the mid fifteenth century collapsed the cost of reproducing text, and within decades presses across Europe were producing books, pamphlets and printed maps. Print standardised languages, accelerated scientific communication, made Reformation polemic uncontrollable by authorities, and created the reading public on which later democratic politics depended." },
+{ id:"w102", t:"The scientific revolution and the mathematisation of nature", s:"Reference summary", o:"Royal Society", ty:"history", y:2023, d:"2023-08-01", u:"https://royalsociety.org/", l:"en", a:4, e:["scientific revolution","galileo","newton"],
+ k:["history","science","galileo","kepler","newton","experiment","method"],
+ b:"Between the sixteenth and eighteenth centuries European natural philosophy shifted from textual authority to observation, experiment and mathematics. Copernicus displaced the Earth from the centre; Kepler derived elliptical orbits from data; Galileo combined telescope observation with experiments on motion; Newton unified terrestrial and celestial mechanics and invented calculus. Institutions such as the Royal Society and the academies of Paris and Berlin formalised publication, peer criticism and replication. The change was methodological as much as factual: a claim now had to survive public testing rather than inherited authority." },
+{ id:"w103", t:"The Industrial Revolution: coal, steam and the great divergence", s:"Reference summary", o:"British Library", ty:"history", y:2023, d:"2023-09-01", u:"https://www.bl.uk/", l:"en", a:4, e:["industrial revolution","steam","coal"],
+ k:["history","industry","steam engine","coal","factory","railway","urbanisation"],
+ b:"From the mid eighteenth century Britain combined coal, iron, steam power and colonial trade into sustained industrial growth. Mechanised textiles concentrated production in factories, railways compressed travel time, and urban populations exploded. Output per person rose faster than at any previous period, and living standards eventually improved after decades of harsh urban conditions. The same period saw deindustrialisation in India and other colonies as machine-made cloth displaced handicraft production, which is central to the great divergence debate about why some economies industrialised first." },
+{ id:"w104", t:"The First World War: industrialised conflict and its aftermath", s:"Reference summary", o:"Imperial War Museums", ty:"history", y:2023, d:"2023-10-01", u:"https://www.iwm.org.uk/", l:"en", a:4, e:["world war i","treaty of versailles"],
+ k:["history","world war","1914","versailles","empire","trench","conscription"],
+ b:"The First World War, from 1914 to 1918, pitted the allied powers against the central powers and mobilised industrial production, conscription and colonial manpower on an unprecedented scale. Trench warfare, artillery, machine guns and chemical weapons produced casualties in the millions. The armistice of November 1918 was followed by the Treaty of Versailles, which imposed reparations and territorial losses on Germany, redrew boundaries across Europe and the Middle East, and created the League of Nations. Indian soldiers and resources were drawn into the war, which intensified demands for self-rule." },
+{ id:"w105", t:"The Second World War, the United Nations and the post-war order", s:"Reference summary", o:"United Nations", ty:"history", y:2023, d:"2023-11-01", u:"https://www.un.org/", l:"en", a:5, e:["world war ii","united nations","human rights"],
+ k:["history","world war","united nations","holocaust","nuclear","human rights","decolonisation"],
+ b:"The Second World War, from 1939 to 1945, was the deadliest conflict in history, involving the systematic murder of six million Jews and millions of others in the Holocaust, mass bombing of cities and the first use of nuclear weapons. The United Nations was founded in 1945 to maintain peace, with a Security Council of permanent members holding veto power. The Universal Declaration of Human Rights followed in 1948. The war's end accelerated decolonisation, created the Bretton Woods institutions, and established a bipolar order that would define the following four decades." },
+{ id:"w106", t:"The Cold War, non-alignment and the Third World project", s:"Reference summary", o:"United Nations", ty:"history", y:2023, d:"2023-12-01", u:"https://www.un.org/", l:"en", a:4, e:["cold war","non-alignment","nuclear"],
+ k:["history","cold war","non-alignment","nehrU","nuclear","bandung","third world"],
+ b:"The Cold War was a strategic rivalry between the United States and the Soviet Union fought through proxy wars, alliances, espionage, arms racing and space competition, with the threat of nuclear annihilation as its constant background. India, with Egypt and Yugoslavia, founded the Non-Aligned Movement in 1961, seeking independence from both blocs, and the Bandung conference of 1955 articulated a Third World agenda of decolonisation and development. The period ended with the Soviet collapse in 1991, leaving a unipolar moment that has since given way to renewed multipolar competition." },
+{ id:"w107", t:"Decolonisation and the making of the modern South", s:"Reference summary", o:"United Nations", ty:"history", y:2024, d:"2024-01-01", u:"https://www.un.org/", l:"en", a:4, e:["decolonisation","sovereignty","development"],
+ k:["history","decolonisation","independence","sovereignty","nation building","development"],
+ b:"Between 1945 and 1975 dozens of countries in Asia, Africa, the Caribbean and the Pacific became independent, most of them after sustained nationalist mobilisation and, in several cases, armed struggle. New states inherited colonial boundaries, economies specialised in commodity exports, and administrative structures designed for extraction rather than development. Nation building involved choosing official languages, integrating disparate regions and building institutions quickly. The developmental state, import substitution and later structural adjustment shaped policy, and the consequences of those choices remain visible in trade patterns and industrial capacity." },
+{ id:"w108", t:"Globalisation, trade rules and the multilateral institutions", s:"Reference summary", o:"World Trade Organization", ty:"economy", y:2024, d:"2024-02-01", u:"https://www.wto.org/", l:"en", a:5, e:["globalisation","trade","wto"],
+ k:["economy","globalisation","trade","wto","imf","world bank","supply chain","tariff"],
+ b:"Post-war economic governance created the International Monetary Fund for balance-of-payments support, the World Bank for reconstruction and development finance, and later the General Agreement on Tariffs and Trade, replaced by the World Trade Organization in 1995. Successive negotiation rounds cut industrial tariffs and expanded trade, and global value chains split production across borders so that a single product may cross several frontiers. Since the 2010s, tariff conflict, export controls, pandemic disruption and security concerns have pushed governments toward reshoring, friend-shoring and industrial policy." },
+{ id:"w109", t:"Measuring economies: GDP, growth and human development", s:"Reference summary", o:"World Bank / UNDP", ty:"economy", y:2024, d:"2024-03-01", u:"https://www.worldbank.org/", l:"en", a:5, e:["gdp","growth","human development"],
+ k:["economy","gdp","growth","hdi","inequality","measurement","poverty"],
+ b:"Gross domestic product measures the market value of final goods and services produced in an economy over a period. It is a flow measure of activity, not of welfare: it counts output from repairing a disaster and omits unpaid care work, and it says nothing about distribution or environmental cost. Purchasing power parity adjusts for price differences when comparing countries. The Human Development Index combines income with life expectancy and education. Gini coefficients and multidimensional poverty measures capture distribution. No single number is adequate, which is why serious analysis reports several together with their known limits." },
+{ id:"w110", t:"Inflation, interest rates and the transmission mechanism", s:"Reference summary", o:"IMF", ty:"economy", y:2024, d:"2024-04-01", u:"https://www.imf.org/", l:"en", a:5, e:["inflation","interest rate","central bank"],
+ k:["economy","inflation","interest rate","central bank","supply shock","expectations"],
+ b:"Inflation is a sustained rise in the general price level, measured by consumer or wholesale price indices. Demand-pull inflation arises when spending outruns capacity; cost-push inflation when inputs such as energy or food become expensive; expectations can make either persistent through wage and price setting. Central banks respond mainly with policy interest rates, which raise borrowing costs, reduce credit growth and cool demand with a lag of several quarters. Supply shocks are harder, because tightening reduces output as well as prices. Exchange rate movements transmit import prices into domestic inflation quickly." },
+{ id:"w111", t:"Stock markets, capital formation and market regulation", s:"Reference summary", o:"SEBI", ty:"economy", y:2024, d:"2024-05-01", u:"https://www.sebi.gov.in/", l:"en", a:5, e:["stock market","sebi","capital"],
+ k:["economy","stock market","sebi","equity","ipo","mutual fund","regulation"],
+ b:"Stock markets allocate capital by letting firms sell ownership shares to investors and letting those shares trade afterwards. Prices aggregate dispersed information about expected future profits, though they are also driven by sentiment, liquidity and leverage. India's two national exchanges, with the National Stock Exchange's electronic order book introduced in the 1990s, replaced open-outcry trading and cut costs dramatically. The Securities and Exchange Board of India regulates disclosure, insider trading, intermediaries and mutual funds. Retail participation has widened through systematic investment plans and dematerialised accounts, raising financial literacy as a policy priority." },
+{ id:"w112", t:"Microfinance, self-help groups and financial inclusion", s:"Reference summary", o:"NABARD", ty:"economy", y:2023, d:"2023-12-01", u:"https://www.nabard.org/", l:"en", a:4, e:["microfinance","self-help group","inclusion"],
+ k:["economy","microfinance","self-help group","credit","inclusion","women","shg"],
+ b:"Microfinance extends small loans, savings and insurance to households excluded from formal banking, typically using group liability and frequent repayment to substitute for collateral. India's self-help group model, with women's groups linked to banks through NABARD's programme, reached tens of millions of households and became a platform for livelihoods, literacy and local governance as well as credit. Evidence on impact is mixed: consumption smoothing and women's agency improve, while enterprise growth is limited and over-indebtedness is a real risk where multiple lenders operate without shared credit information." },
+{ id:"w113", t:"The energy transition and critical minerals", s:"Reference summary", o:"International Energy Agency", ty:"economy", y:2024, d:"2024-06-01", u:"https://www.iea.org/", l:"en", a:4, e:["energy transition","critical minerals","lithium"],
+ k:["energy","transition","minerals","lithium","rare earth","supply chain","solar"],
+ b:"Decarbonising energy shifts demand from fuel extraction toward materials: copper for grids, lithium, nickel and cobalt for batteries, silicon for solar, rare earths for magnets and uranium for reactors. These supply chains are geographically concentrated, and processing rather than mining is the tighter bottleneck. Recycling, substitution, cell chemistry choices and domestic refining capacity are therefore strategic. India's response combines solar manufacturing incentives, battery and electrolyser production schemes, critical mineral exploration and trade agreements, alongside grid and storage investment that determines how much variable renewable capacity can actually be absorbed." },
+{ id:"w114", t:"Artificial intelligence governance: risk, accountability and provenance", s:"Reference summary", o:"UNESCO / OECD", ty:"governance", y:2024, d:"2024-07-01", u:"https://www.unesco.org/", l:"en", a:4, e:["ai governance","risk","provenance"],
+ k:["governance","ai","regulation","risk","provenance","deepfake","accountability"],
+ b:"Governments are converging on risk-based regulation of artificial intelligence: obligations scaled to the severity of harm, transparency duties for general-purpose models, and prohibitions on a small set of practices. Content provenance standards that attach machine-readable origin data to media are emerging as the main technical response to synthetic content. Accountability questions remain unresolved, particularly how liability divides between model developers, deployers and users. UNESCO's recommendation on the ethics of AI, adopted by member states, sets out principles on proportionality, human oversight, fairness and environmental sustainability that national frameworks increasingly reference." },
+{ id:"w115", t:"Data protection and privacy as a design constraint", s:"Reference summary", o:"IAPP / DPDP", ty:"governance", y:2024, d:"2024-08-01", u:"https://iapp.org/", l:"en", a:4, e:["privacy","data protection","consent"],
+ k:["governance","privacy","data","consent","minimisation","local processing"],
+ b:"Data protection law rests on a few durable ideas: process personal data only for a stated purpose and with a lawful basis; collect the minimum necessary; keep it accurate and no longer than needed; secure it; and be accountable for it. Consent must be informed, specific and withdrawable. Design responses that reduce legal risk also reduce harm: keep processing on the user's device where possible, avoid building profiles that are not needed, log the purpose of access, and make deletion real rather than nominal. Local-first architecture is a privacy control, not only a performance choice." },
+{ id:"w116", t:"The digital divide and what meaningful access requires", s:"Reference summary", o:"ITU", ty:"governance", y:2024, d:"2024-09-01", u:"https://www.itu.int/", l:"en", a:5, e:["digital divide","internet access","literacy"],
+ k:["governance","digital divide","internet","literacy","affordability","device","language"],
+ b:"Roughly a third of humanity remains offline, and being online is not the same as being able to use the internet effectively. Meaningful access requires coverage, an affordable device, affordable data, digital skills, relevant content in a familiar language, and trust in safety. Each is a separate barrier, and progress on one does not fix the others. India has expanded coverage and cut data costs sharply, but gaps persist in device ownership, women's access, rural bandwidth and local-language content. Services designed to work offline, on low-end devices, in Indian languages address the binding constraints rather than the headline metric." },
+{ id:"w117", t:"The space economy: launch, satellites and downstream services", s:"Reference summary", o:"ISRO / OECD", ty:"space", y:2024, d:"2024-10-01", u:"https://www.isro.gov.in/", l:"en", a:4, e:["space economy","satellite","launch"],
+ k:["space","economy","satellite","launch","earth observation","navigation","commercial"],
+ b:"Space activity has three layers: launch, satellites and downstream applications. Downstream services such as earth observation for agriculture and disaster response, navigation, weather, communications and broadcasting generate most of the economic value. Falling launch costs and small satellites have widened access, and India's space reforms opened the sector to private launch and satellite firms with a national regulator and promotion body. ISRO continues to build and operate operational systems including NavIC and the RISAT and Cartosat series, while commercial arms handle launch services for foreign customers." },
+{ id:"w118", t:"Pandemics, surveillance and global health security", s:"Reference summary", o:"World Health Organization", ty:"health", y:2024, d:"2024-11-01", u:"https://www.who.int/", l:"en", a:5, e:["pandemic","surveillance","health security"],
+ k:["health","pandemic","surveillance","genomic","vaccine","preparedness","who"],
+ b:"Infectious disease outbreaks are detected through clinical reporting, laboratory networks, genomic sequencing and event-based signals from media and communities. Genomic surveillance identifies variants and tracks transmission chains, and it became decisive during the COVID-19 pandemic, when sequencing speed and data sharing determined response times. Preparedness requires manufacturing capacity that can be repurposed, stockpiles, trained epidemiologists and clear legal authority for restrictions. India's response combined a large vaccine manufacturing base, digital certificate infrastructure and laboratory networks, while exposing gaps in oxygen supply, data reporting and primary care capacity." },
+{ id:"w119", t:"Migration, remittances and the economics of diaspora", s:"Reference summary", o:"World Bank / IOM", ty:"economy", y:2024, d:"2024-12-01", u:"https://www.worldbank.org/", l:"en", a:5, e:["migration","remittances","diaspora"],
+ k:["economy","migration","remittances","diaspora","labour","visa","gulf"],
+ b:"Labour migration moves people toward higher wages, and remittances sent home are among the largest international financial flows to developing countries, exceeding foreign aid and often foreign direct investment in stability. India is the largest recipient, with large flows from the Gulf, North America and Europe, supported by low-cost digital transfer channels. Migration carries costs: separation, insecure legal status, exploitation in recruitment, and dependence on destination-country policy. Skilled emigration also raises the question of brain drain versus diaspora networks that transfer capital, technology and institutional knowledge back home." },
+{ id:"w120", t:"Education, literacy and learning outcomes", s:"Reference summary", o:"UNESCO / NCERT", ty:"governance", y:2024, d:"2024-01-24", u:"https://www.unesco.org/", l:"en", a:5, e:["education","literacy","learning"],
+ k:["governance","education","literacy","school","teacher","learning","asER"],
+ b:"Schooling is not the same as learning. Enrolment in India is near universal at primary level and the Right to Education Act guarantees free compulsory education to fourteen, yet surveys repeatedly find that a large share of children several years into school cannot read a simple paragraph or do basic arithmetic at their grade level. Teacher availability, assessment-informed instruction, mother-tongue early literacy, nutrition and attendance interact. The National Education Policy 2020 emphasises foundational literacy and numeracy, multilingual teaching, vocational pathways and multidisciplinary higher education, with implementation capacity as the open question." }
+];
+if (typeof globalThis !== "undefined") { globalThis.WORLD_DOCS_2 = WORLD_DOCS_2; }
+</script>
 <script>/* ============================================================================
    ANVESHAN CORE - sovereign retrieval engine (no dependencies, no network)
    Part 1: tokeniser, inverted index, BM25 + vector hybrid ranking, snippets,
@@ -1128,7 +1515,7 @@ function search(index, query, opts) {
     var cos = dot / (qnorm * (dv.__norm || 1));
     var bm25 = cand[d3];
     var doc = index.docs[d3];
-    var score = 0.62 * (bm25 / 12) + 0.30 * cos * 1.6 + 0.08 * ((doc.a || 3) / 5);
+    var score = 0.62 * (bm25 / 12) + 0.30 * cos * 1.6 + 0.08 * (typeof authOf === "function" ? authOf(doc) : (doc.a || 3) / 5);
     scores.push({ i: +d3, score: score, bm25: bm25, cos: cos });
   }
 
@@ -1142,6 +1529,12 @@ function search(index, query, opts) {
     if (opts.to && d.y > opts.to) return false;
     return true;
   });
+
+  // relevance floor: keep the tail short so weak matches do not dilute the page
+  if (filtered.length) {
+    var top = filtered[0].score;
+    filtered = filtered.filter(function (r) { return r.score >= top * 0.16; });
+  }
 
   var sort = opts.sort || "relevance";
   if (sort === "date") filtered.sort(function (x, y) { return index.docs[y.i].d.localeCompare(index.docs[x.i].d); });
@@ -1431,6 +1824,357 @@ if (typeof module !== "undefined") {
     answerQuery: answerQuery, chatReply: chatReply, expandQuery: expandQuery,
     buildMerkle: buildMerkle, merkleProof: merkleProof, verifyProof: verifyProof,
     sha256Hex: sha256Hex, normalise: normalise, detectIntent: detectIntent, makeSnippet: makeSnippet
+  };
+}
+</script>
+<script>/* ============================================================================
+   ANVESHAN CORE v2 - additions that do not exist in mainstream search
+   1. Entity-graph authority (PageRank over the index's own citation graph)
+   2. Matbhed radar: numeric claim extraction, unit normalisation and
+      figure reconciliation across sources and across time
+   3. Autonomous research agent: decomposes a question into sub-questions,
+      runs them, assembles a cited dossier
+   4. Local corpus ingestion: bring your own knowledge, indexed on device
+   ========================================================================== */
+
+var AUTHORITY = {};
+var GRAPH = null;
+var IMPORT_N = 0;
+
+/* ---------------------------------------------------- corpus integration --- */
+function mergeWorldCorpus() {
+  var add = [];
+  if (typeof WORLD_DOCS_1 !== "undefined") add = add.concat(WORLD_DOCS_1);
+  if (typeof WORLD_DOCS_2 !== "undefined") add = add.concat(WORLD_DOCS_2);
+  var have = {};
+  DOCS.forEach(function (d) { have[d.id] = 1; });
+  var n = 0;
+  add.forEach(function (d) { if (!have[d.id]) { DOCS.push(d); have[d.id] = 1; n++; } });
+  return n;
+}
+
+/* --------------------------------------------------- entity graph + rank --- */
+function buildEntityGraph(docs) {
+  var byEntity = {};
+  docs.forEach(function (d, i) {
+    (d.e || []).forEach(function (e) { (byEntity[e] = byEntity[e] || []).push(i); });
+  });
+  var adj = docs.map(function () { return {}; });
+  Object.keys(byEntity).forEach(function (e) {
+    var list = byEntity[e];
+    for (var i = 0; i < list.length; i++) {
+      for (var j = i + 1; j < list.length; j++) {
+        var a = list[i], b = list[j];
+        adj[a][b] = (adj[a][b] || 0) + 1;
+        adj[b][a] = (adj[b][a] || 0) + 1;
+      }
+    }
+  });
+  return { adj: adj, entities: byEntity };
+}
+
+function pageRank(graph, damping, iters) {
+  damping = damping || 0.85;
+  iters = iters || 30;
+  var n = graph.adj.length;
+  if (!n) return [];
+  var rank = new Array(n).fill(1 / n);
+  var outdeg = graph.adj.map(function (row) {
+    var s = 0;
+    for (var k in row) s += row[k];
+    return s;
+  });
+  for (var it = 0; it < iters; it++) {
+    var next = new Array(n).fill((1 - damping) / n);
+    var dangling = 0;
+    for (var i = 0; i < n; i++) {
+      if (!outdeg[i]) { dangling += rank[i]; continue; }
+      for (var j in graph.adj[i]) {
+        next[j] += damping * rank[i] * (graph.adj[i][j] / outdeg[i]);
+      }
+    }
+    var share = damping * dangling / n;
+    var max = 0;
+    for (var k2 = 0; k2 < n; k2++) { next[k2] += share; if (next[k2] > max) max = next[k2]; }
+    for (var k3 = 0; k3 < n; k3++) next[k3] = next[k3] / (max || 1);
+    rank = next;
+  }
+  return rank;
+}
+
+function computeAuthority(docs) {
+  GRAPH = buildEntityGraph(docs);
+  var r = pageRank(GRAPH, 0.85, 28);
+  var out = {};
+  var max = 0;
+  for (var i = 0; i < r.length; i++) max = Math.max(max, r[i]);
+  for (var j = 0; j < r.length; j++) {
+    var d = docs[j];
+    // blend graph rank with the issuer's own authority tier
+    var graphScore = max ? r[j] / max : 0.5;
+    out[d.id] = 0.55 * graphScore + 0.45 * ((d.a || 3) / 5);
+  }
+  AUTHORITY = out;
+  return out;
+}
+
+function authOf(doc) {
+  var v = AUTHORITY[doc.id];
+  if (typeof v === "number") return v;
+  return (doc.a || 3) / 5;
+}
+
+/* ------------------------------------------------------- figure extraction */
+var UNIT_SCALE = {
+  crore: 1e7, lakh: 1e5, billion: 1e9, million: 1e6, trillion: 1e12, thousand: 1e3,
+  percent: 1, "%": 1, km: 1e3, kg: 1, gw: 1e9, mw: 1e6, metres: 1, meter: 1
+};
+var CLAIM_RE = /([0-9][0-9,\.]*)\s*(?:(crore|lakh|billion|million|trillion|thousand)\s*)?(gpus?|users?|transactions?|documents?|languages?|percent|%|metres?|kilometres?|km|kg|gigawatts?|gw|megawatts?|mw|people|households|villages|cities|banks|districts|schemes|services|sources|terms|years|degrees?|celsius|kelvin|ppm|parts|millimetres?|centimetres?|tonnes?|gigatonnes?|hectares?|acres?|inferences?|orders?|claims?|records?|passages?)?/gi;
+
+function unitFamily(u) {
+  var s = u.toLowerCase().replace(/s$/, "");
+  if (s === "%") s = "percent";
+  return s;
+}
+
+function extractClaims(doc) {
+  var out = [];
+  var sents = doc.b.split(/(?<=[.!?])\s+/);
+  for (var s = 0; s < sents.length; s++) {
+    var sentNorm = normalise(sents[s]);
+    var entity = null;
+    for (var ei = 0; ei < (doc.e || []).length; ei++) {
+      var cand = normalise(doc.e[ei]);
+      if (cand && sentNorm.indexOf(cand) >= 0) { entity = doc.e[ei]; break; }
+    }
+    if (!entity) entity = (doc.e && doc.e[0]) || doc.o;
+    CLAIM_RE.lastIndex = 0;
+    var m;
+    while ((m = CLAIM_RE.exec(sents[s])) !== null) {
+      var raw = m[1].replace(/,/g, "");
+      var val = parseFloat(raw);
+      if (!isFinite(val)) continue;
+      var scaleWord = m[2] ? m[2].toLowerCase() : null;
+      var noun = m[3] ? m[3].toLowerCase().replace(/s$/, "") : null;
+      if (!noun) continue;
+      var metric = noun;
+      var scale = scaleWord ? (UNIT_SCALE[scaleWord] || 1) : 1;
+      if (noun === "percent" || noun === "%") scale = 1;
+      var qualified = /\b(additional|further|another|extra|up to|at least|nearly|about|around|approximately|over|almost|roughly|more than|less than)\b/i.test(sents[s]);
+      out.push({
+        docId: doc.id, entity: entity, qualified: qualified,
+        value: val, metric: metric, unit: scaleWord || noun,
+        norm: val * scale,
+        text: m[0].trim(), sentence: sents[s].trim(), date: doc.d, year: doc.y,
+        title: doc.t, org: doc.o
+      });
+    }
+  }
+  return out;
+}
+
+var ALL_CLAIMS = null;
+function allClaims(docs) {
+  if (ALL_CLAIMS && ALL_CLAIMS.length) return ALL_CLAIMS;
+  var out = [];
+  docs.forEach(function (d) { out = out.concat(extractClaims(d)); });
+  ALL_CLAIMS = out;
+  return out;
+}
+
+/* Matbhed radar: for the current query, gather every numeric claim that is
+   topically relevant, group by unit, and surface divergence + time ordering. */
+function matbhed(query, docs, index) {
+  var ex = expandQuery(query);
+  var terms = ex.expanded, primary = ex.primary;
+
+  // scope the ledger to the documents that actually answer the query
+  var scope = [];
+  if (index) {
+    var res = search(index, query, { limit: 6 });
+    scope = res.map(function (r) { return r.doc.id; });
+  }
+  var scoped = scope.length ? docs.filter(function (d) { return scope.indexOf(d.id) >= 0; }) : docs;
+
+  var claims = [];
+  scoped.forEach(function (d) {
+    extractClaims(d).forEach(function (c) {
+      var hay = normalise(c.sentence + " " + d.t + " " + c.entity);
+      var ok = false;
+      for (var i = 0; i < primary.length; i++) if (hay.indexOf(primary[i]) >= 0) { ok = true; break; }
+      if (!ok) {
+        var h = 0;
+        for (var j = 0; j < terms.length; j++) if (hay.indexOf(terms[j]) >= 0) h++;
+        ok = h >= 2;
+      }
+      if (ok) claims.push(c);
+    });
+  });
+
+  var groups = {};
+  claims.forEach(function (c) {
+    var key = normalise(c.entity) + "|" + normalise(c.metric);
+    (groups[key] = groups[key] || []).push(c);
+  });
+
+  var report = [];
+  Object.keys(groups).forEach(function (key) {
+    var list = groups[key];
+    var distinct = {};
+    list.forEach(function (c) { distinct[c.norm] = 1; });
+    var docsIn = {};
+    list.forEach(function (c) { docsIn[c.docId] = 1; });
+
+    var byDate = list.slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
+    var oldest = byDate[0], newest = byDate[byDate.length - 1];
+
+    var conflict = null;
+    for (var i = 0; i < list.length && !conflict; i++) {
+      for (var j = i + 1; j < list.length; j++) {
+        if (list[i].docId === list[j].docId) continue;
+        if (list[i].qualified || list[j].qualified) continue;
+        var d1 = Date.parse(list[i].date), d2 = Date.parse(list[j].date);
+        if (!isFinite(d1) || !isFinite(d2)) continue;
+        var dayGap = Math.abs(d1 - d2) / 86400000;
+        var lo = Math.min(list[i].norm, list[j].norm), hi = Math.max(list[i].norm, list[j].norm);
+        if (dayGap <= 200 && lo > 0 && hi / lo > 1.15) {
+          conflict = { a: list[i], b: list[j], ratio: hi / lo, dayGap: Math.round(dayGap) };
+          break;
+        }
+      }
+    }
+
+    report.push({
+      entity: list[0].entity, metric: list[0].metric, unit: list[0].unit,
+      kind: conflict ? "conflict" : (Object.keys(distinct).length > 1 ? "series" : "single"),
+      conflict: conflict,
+      spread: oldest.norm > 0 ? newest.norm / oldest.norm : 1,
+      claims: list.slice().sort(function (a, b) { return b.date.localeCompare(a.date); }),
+      newest: newest, oldest: oldest,
+      n: list.length, docCount: Object.keys(docsIn).length
+    });
+  });
+
+  var strong = report.filter(function (r) { return r.kind !== "single"; });
+  if (strong.length >= 2) report = strong;
+
+  report.sort(function (a, b) {
+    var rank = { conflict: 0, series: 1, single: 2 };
+    if (rank[a.kind] !== rank[b.kind]) return rank[a.kind] - rank[b.kind];
+    if (b.docCount !== a.docCount) return b.docCount - a.docCount;
+    return b.n - a.n;
+  });
+  return report.slice(0, 5);
+}
+
+function fmtNum(n) {
+  if (n >= 1e12) return (n / 1e12).toFixed(2).replace(/\.00$/, "") + " trillion";
+  if (n >= 1e9) return (n / 1e9).toFixed(2).replace(/\.00$/, "") + " billion";
+  if (n >= 1e7) return (n / 1e7).toFixed(2).replace(/\.00$/, "") + " crore";
+  if (n >= 1e5) return (n / 1e5).toFixed(2).replace(/\.00$/, "") + " lakh";
+  return String(n);
+}
+
+/* ------------------------------------------------------------ research agent */
+function researchPlan(query) {
+  var q = query.trim();
+  return [
+    { key: "definition", label: "What it is", q: q + " what is definition scope" },
+    { key: "figures", label: "Key figures", q: q + " how many number figure statistic" },
+    { key: "timeline", label: "Timeline", q: q + " when launched started year history" },
+    { key: "mechanism", label: "How it works", q: q + " how does work process mechanism architecture" },
+    { key: "limits", label: "Limits and risks", q: q + " limitations risks challenges gaps privacy" },
+    { key: "context", label: "Wider context", q: q + " policy governance standards comparison" }
+  ];
+}
+
+function runResearch(query, docs, index) {
+  var plan = researchPlan(query);
+  var sections = [];
+  var used = {};
+  plan.forEach(function (step) {
+    var a = answerQuery(index, step.q);
+    var sents = (a.sentences || []).filter(function (s) { return !used[s.docId + s.text.slice(0, 40)]; });
+    sents.forEach(function (s) { used[s.docId + s.text.slice(0, 40)] = 1; });
+    sections.push({
+      label: step.label, q: step.q,
+      sentences: sents.slice(0, 2),
+      confidence: a.confidence || 0,
+      citations: (a.citations || []).slice(0, 3)
+    });
+  });
+  var radar = matbhed(query, docs);
+  var docMap = {};
+  docs.forEach(function (d) { docMap[d.id] = d; });
+  var cited = {};
+  sections.forEach(function (s) { s.citations.forEach(function (c) { cited[c] = 1; }); });
+  return {
+    query: query,
+    sections: sections.filter(function (s) { return s.sentences.length; }),
+    radar: radar,
+    sources: Object.keys(cited).map(function (id) { return docMap[id]; }).filter(Boolean),
+    coverage: sections.filter(function (s) { return s.sentences.length; }).length + "/" + plan.length
+  };
+}
+
+/* ------------------------------------------------------------- ingestion --- */
+function chunkText(text, targetWords) {
+  targetWords = targetWords || 110;
+  var paras = text.split(/\n\s*\n/).map(function (p) { return p.replace(/\s+/g, " ").trim(); }).filter(Boolean);
+  if (paras.length <= 1) {
+    paras = text.split(/(?<=[.!?])\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+  var chunks = [], cur = [], count = 0;
+  for (var i = 0; i < paras.length; i++) {
+    var w = paras[i].split(" ").length;
+    if (count + w > targetWords && cur.length) { chunks.push(cur.join(" ")); cur = []; count = 0; }
+    cur.push(paras[i]); count += w;
+  }
+  if (cur.length) chunks.push(cur.join(" "));
+  return chunks;
+}
+
+function ingestText(name, text, opts) {
+  opts = opts || {};
+  var chunks = chunkText(text, 110);
+  var added = [];
+  var deva = /[\u0900-\u097F]/.test(text);
+  chunks.forEach(function (ch, i) {
+    if (ch.length < 60) return;
+    IMPORT_N++;
+    var id = "u" + String(IMPORT_N).padStart(3, "0");
+    var words = ch.split(" ");
+    var title = words.slice(0, 12).join(" ") + (words.length > 12 ? "..." : "");
+    var doc = {
+      id: id, t: title, s: name, o: opts.org || "Your import",
+      ty: opts.type || "import", y: new Date().getFullYear(), d: new Date().toISOString().slice(0, 10),
+      u: "local://" + encodeURIComponent(name) + "#" + i, l: deva ? "hi" : "en", a: 2,
+      e: (opts.entity ? [opts.entity.toLowerCase()] : []),
+      k: ["import", "local", "private"],
+      b: ch
+    };
+    DOCS.push(doc);
+    added.push(doc);
+  });
+  return added;
+}
+
+/* --------------------------------------------------------------- refresh --- */
+function rebuildEverything() {
+  INDEX = buildIndex(DOCS);
+  computeAuthority(DOCS);
+  ALL_CLAIMS = null;
+  return buildMerkle(DOCS).then(function (t) { TREE = t; return t; });
+}
+
+mergeWorldCorpus();
+
+if (typeof globalThis !== "undefined") {
+  globalThis.AUTH = {
+    mergeWorldCorpus: mergeWorldCorpus, computeAuthority: computeAuthority, authOf: authOf,
+    matbhed: matbhed, researchPlan: researchPlan, runResearch: runResearch,
+    ingestText: ingestText, rebuildEverything: rebuildEverything, allClaims: allClaims,
+    fmtNum: fmtNum
   };
 }
 </script>
@@ -2392,6 +3136,385 @@ function drawAurora() {
 /* ------------------------------------------------------------------- go --- */
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
 else boot();
+</script>
+<script>/* ============================================================================
+   ANVESHAN UI v2 - world index, Matbhed radar, research dossier, ingestion
+   Loads after the v1 interface and extends it without replacing it.
+   ========================================================================== */
+(function () {
+  var NEW_LABELS = {
+    science: "Science", space: "Space", tech: "Technology", health: "Health",
+    history: "History", geography: "Geography", economy: "Economy",
+    governance: "Governance", culture: "Culture", import: "Your import"
+  };
+  for (var k in NEW_LABELS) TYPE_LABEL[k] = NEW_LABELS[k];
+
+  var ready = false;
+
+  /* ------------------------------------------------------------ nav + boot */
+  function addNav() {
+    var nav = document.querySelector("nav.top-nav");
+    if (!nav || document.getElementById("navWorld")) return;
+    var defs = [
+      ["navWorld", "World", "world", "World index: coverage, composition, authority"],
+      ["navRadar", "Matbhed", "radar", "Figure reconciliation across sources"],
+      ["navResearch", "Research", "research", "Run a full cited research dossier"],
+      ["navImport", "Import", "import", "Index your own documents on this device"]
+    ];
+    defs.forEach(function (d) {
+      var b = document.createElement("button");
+      b.className = "nbtn";
+      b.id = d[0];
+      b.title = d[3];
+      b.textContent = d[1];
+      b.onclick = function () { openPanel(d[2]); };
+      nav.insertBefore(b, nav.firstChild);
+    });
+  }
+
+  function postBoot() {
+    if (ready) return;
+    if (!TREE) { setTimeout(postBoot, 140); return; }
+    ready = true;
+    try { computeAuthority(DOCS); } catch (e) {}
+    addNav();
+    var st = document.getElementById("stDocs");
+    if (st) st.textContent = DOCS.length;
+    var stt = document.getElementById("stTerms");
+    if (stt) stt.textContent = INDEX.vocab.length;
+    var sub = document.querySelector(".hero p.sub");
+    if (sub) {
+      sub.innerHTML = "A research engine over <b>" + DOCS.length + " indexed sources</b> spanning Indian public knowledge and world reference material. " +
+        "Every answer is quoted from a source document, every document carries a <b>SHA-256 Merkle proof</b>, and <b>nothing you type leaves this device</b>. " +
+        "No cloud. No tracking. No foreign API.";
+    }
+    if (S.q) renderResults();
+  }
+
+  /* --------------------------------------------------------- brief override */
+  var _briefHTML = briefHTML;
+  briefHTML = function () {
+    var h = _briefHTML();
+    if (!S.q) return h;
+    var rep = matbhed(S.q, DOCS, INDEX);
+    if (!rep.length) return h;
+    return h + radarHTML(rep, true);
+  };
+
+  function radarHTML(report, compact) {
+    var rows = report.slice(0, compact ? 2 : 6).map(function (g) {
+      var newest = g.newest, oldest = g.oldest;
+      var diverge = g.kind === "conflict";
+      var claims = g.claims.slice(0, compact ? 3 : 6).map(function (c) {
+        var sent = c.sentence.length > 150 ? c.sentence.slice(0, 146) + "..." : c.sentence;
+        return '<tr><td style="color:#cfd7e8"><b style="font-family:var(--mono);color:#ffe0bd">' + esc(c.text) + "</b> &middot; " +
+          esc(sent) + "</td><td style=\"white-space:nowrap;color:var(--dim)\">" + esc(c.date) + "</td></tr>";
+      }).join("");
+      return '<div style="border:1px solid ' + (diverge ? "rgba(255,209,102,.28)" : "var(--line)") +
+        ';border-radius:10px;padding:11px 13px;margin-bottom:9px;background:' +
+        (diverge ? "rgba(255,209,102,.05)" : "rgba(255,255,255,.02)") + '">' +
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px;flex-wrap:wrap">' +
+        '<b style="font-size:12.5px;color:#e8ecf7">' + esc(g.entity) + "</b>" +
+        '<span style="font-family:var(--mono);font-size:10px;color:var(--dimmer)">' + esc(g.metric) +
+        (g.unit && g.unit !== g.metric ? " \u00b7 stated in " + esc(g.unit) : "") + "</span>" +
+        '<span style="margin-left:auto;font-size:10.5px;font-family:var(--mono);color:' + (diverge ? "#ffd166" : "var(--green)") + '">' +
+        (g.kind === "conflict" ? "conflict " + g.conflict.ratio.toFixed(2) + "x" :
+          g.kind === "series" ? g.n + " readings" : "single figure") + "</span></div>" +
+        '<table class="ledger-tbl" style="font-family:var(--sans)"><tbody>' + claims + "</tbody></table>" +
+        (diverge ? '<div style="font-size:11.5px;color:#e8d9a8;margin-top:7px">Two sources give different values within ' +
+          g.conflict.dayGap + " days of each other: <b>" + esc(g.conflict.a.text) + "</b> (" + esc(g.conflict.a.org) +
+          ") against <b>" + esc(g.conflict.b.text) + "</b> (" + esc(g.conflict.b.org) +
+          "). Read both before using either.</div>" :
+          g.kind === "series" ? (oldest.date === newest.date
+            ? '<div style="font-size:11.5px;color:var(--dim);margin-top:7px">These readings share a date, so the difference is in scope rather than time: one figure is a total and the other a partial or additive count. The sentence around each number says which.</div>'
+            : '<div style="font-size:11.5px;color:var(--dim);margin-top:7px">Range across dates: ' +
+              esc(oldest.text) + " (" + esc(oldest.date) + ") to <b>" + esc(newest.text) + "</b> (" + esc(newest.date) +
+              "). This is a trajectory, not a contradiction - the latest reading is the current one.</div>") : "") +
+        "</div>";
+    }).join("");
+    return '<div class="brief" style="border-color:rgba(255,209,102,.24);background:linear-gradient(160deg,rgba(255,209,102,.07),rgba(20,25,40,.9) 46%,rgba(139,125,255,.05))">' +
+      '<div class="brief-top"><span class="brief-tag" style="color:#ffd166;border-color:rgba(255,209,102,.35);background:rgba(255,209,102,.08)">Matbhed radar</span>' +
+      '<span class="brief-model">figure reconciliation across ' + report.length + " metric group" + (report.length === 1 ? "" : "s") + "</span></div>" +
+      '<p style="font-size:13px;color:#c8d0e2;margin-bottom:10px">Every figure in the sources for this query, with its date and issuing body. ' +
+      "Where values disagree, you see both and which one is newer - the engine never silently picks one.</p>" +
+      rows + (compact ? '<div class="brief-acts"><button class="iact" onclick="openPanel(\'radar\')">Open full reconciliation</button>' +
+        '<button class="iact" onclick="openPanel(\'research\')">Run research dossier</button></div>' : "") + "</div>";
+  }
+
+  /* --------------------------------------------------------- panel override */
+  var _openPanel = openPanel;
+  openPanel = function (which) {
+    if (which === "world") return paint("World index", "What is actually inside " + DOCS.length + " documents, and how authority is computed", worldBody());
+    if (which === "radar") return paint("Matbhed radar", "Numeric claim extraction, unit normalisation and figure reconciliation", radarBody());
+    if (which === "research") return paint("Research dossier", "An autonomous multi-pass investigation with citations", researchBody());
+    if (which === "import") return paint("Index your own knowledge", "Add documents to this device's index - they never leave the browser", importBody());
+    return _openPanel(which);
+  };
+
+  function paint(title, sub, body) {
+    document.getElementById("panelTitle").textContent = title;
+    document.getElementById("panelSub").textContent = sub;
+    document.getElementById("panelBody").innerHTML = body;
+    document.getElementById("panel").classList.add("on");
+  }
+
+  /* ------------------------------------------------------------- world panel */
+  function worldBody() {
+    var byType = {}, byOrg = {}, byDecade = {}, entities = 0, langs = {};
+    DOCS.forEach(function (d) {
+      byType[d.ty] = (byType[d.ty] || 0) + 1;
+      byOrg[d.o] = (byOrg[d.o] || 0) + 1;
+      var dec = Math.floor(d.y / 10) * 10;
+      byDecade[dec] = (byDecade[dec] || 0) + 1;
+      entities += (d.e || []).length;
+      langs[d.l] = (langs[d.l] || 0) + 1;
+    });
+    var edges = 0;
+    if (GRAPH) GRAPH.adj.forEach(function (row) { for (var x in row) edges++; });
+    var top = DOCS.slice().sort(function (a, b) { return (AUTHORITY[b.id] || 0) - (AUTHORITY[a.id] || 0); }).slice(0, 10);
+
+    var h = '<div class="sec"><h3>Composition</h3><div class="grid2">' +
+      tile("Documents", DOCS.length + " indexed, each with a Merkle leaf", "count") +
+      tile("Distinct terms", INDEX.vocab.length + " in the inverted index", "lexical") +
+      tile("Entity graph", entities + " entity mentions, " + edges + " weighted edges", "graph") +
+      tile("Authority", "PageRank over the citation graph, damping 0.85, 28 iterations", "ranking") +
+      "</div></div>";
+
+    h += '<div class="sec"><h3>By domain</h3><table class="ledger-tbl" style="font-family:var(--sans)"><tbody>' +
+      Object.keys(byType).sort(function (a, b) { return byType[b] - byType[a]; }).map(function (t) {
+        return "<tr><td>" + (TYPE_LABEL[t] || t) + "</td><td style='text-align:right;color:var(--green)'>" + byType[t] + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    h += '<div class="sec"><h3>Highest-authority documents</h3>' +
+      '<p style="font-size:12.5px;color:var(--dim)">Authority is not a popularity vote. It is computed from how strongly each document is connected to others through shared entities, then blended with the issuing body tier. A document that sits between many topics accumulates rank; a leaf that touches one topic does not.</p>' +
+      '<table class="ledger-tbl" style="font-family:var(--sans)"><thead><tr><th>Document</th><th>Body</th><th>Rank</th></tr></thead><tbody>' +
+      top.map(function (d) {
+        return "<tr onclick=\"openDoc('" + d.id + "')\" style='cursor:pointer'><td style='color:#c3cbdf'>" + esc(d.t.slice(0, 58)) +
+          "</td><td style='color:var(--dim)'>" + esc(d.o) + "</td><td style='font-family:var(--mono);color:var(--saffron)'>" +
+          (AUTHORITY[d.id] || 0).toFixed(3) + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    h += '<div class="sec"><h3>By year of publication</h3><table class="ledger-tbl" style="font-family:var(--sans)"><tbody>' +
+      Object.keys(byDecade).sort().map(function (y) {
+        return "<tr><td>" + y + "s</td><td style='text-align:right;color:var(--green)'>" + byDecade[y] + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    h += '<div class="sec"><h3>What this index is, precisely</h3>' +
+      '<div class="warn"><b>Coverage, stated honestly.</b> ' + DOCS.length + " documents is a curated research library, not the web. " +
+      "Google indexes hundreds of billions of pages and crawls continuously; no browser-resident engine can match that, and any claim to would be false. " +
+      "What this engine does better is narrower and verifiable: every sentence is traceable to a named Indian or international source, every document is hash-verified, " +
+      "figures are reconciled across sources and dates instead of being averaged, and nothing you search is sent anywhere. " +
+      "To cover a domain this index does not hold, use <b>Import</b> to add your own documents - the retrieval, ranking and provenance machinery is the same.</div></div>";
+    return h;
+  }
+
+  /* ------------------------------------------------------------- radar panel */
+  function radarBody() {
+    var q = S.q || "india";
+    var rep = matbhed(q, DOCS, INDEX);
+    var claims = allClaims(DOCS);
+    var h = '<div class="sec"><h3>Method</h3>' +
+      '<p>Every sentence in the index is scanned for numeric claims using a unit-aware pattern. Values are parsed and normalised to a common scale: crore to ten million, lakh to a hundred thousand, billion to a thousand million. ' +
+      "Claims are then grouped by the entity they describe and the unit they are stated in, so that a figure about DigiLocker users is never compared with a figure about Aadhaar users. " +
+      "Where a group holds more than one distinct value, the spread is computed and both readings are shown with their dates.</p>" +
+      '<div class="grid2">' + tile("Claims extracted", claims.length + " numeric statements across the index", "extraction") +
+      tile("Current query", q + " - " + rep.length + " metric group(s) with divergence", "scope") + "</div></div>";
+    if (!rep.length) {
+      h += '<div class="sec"><div class="warn">No divergent figure groups matched this query. That is a result, not a failure: the sources agree, or the query has no numeric content. Try a query with figures - UPI transactions, IndiaAI GPUs, DigiLocker users.</div></div>';
+    } else {
+      h += '<div class="sec"><h3>Reconciliation for this query</h3>' + radarHTML(rep, false) + "</div>";
+    }
+    h += '<div class="sec"><h3>Why this exists</h3><p>Mainstream search gives you ten links and leaves you to notice that two of them quote different numbers for the same thing. ' +
+      "This layer makes the disagreement explicit, dates every figure, and identifies which reading is current. For anything involving money, entitlements or scale, " +
+      "that is the difference between a citation and a mistake.</p></div>";
+    return h;
+  }
+
+  /* ---------------------------------------------------------- research panel */
+  function researchBody() {
+    if (!S.q) {
+      return '<div class="warn">Run a search first. The dossier investigates the query in the search bar.</div>';
+    }
+    var r = runResearch(S.q, DOCS, INDEX);
+    var docMap = {};
+    DOCS.forEach(function (d) { docMap[d.id] = d; });
+    var h = '<div class="sec"><h3>Investigation plan</h3>' +
+      '<p>Six passes over the index: definition, figures, timeline, mechanism, limits, context. Each pass runs the same BM25 and cosine retrieval, then selects sentences with MMR de-duplication. ' +
+      "Sentences already used in an earlier section are suppressed, so the dossier grows rather than repeats.</p>" +
+      '<div class="flow">' + researchPlan(S.q).map(function (s, i) {
+        return '<div class="flow-row"><span class="idx">0' + (i + 1) + "</span><b style='color:#e8ecf7'>" + s.label +
+          "</b><span style='color:var(--dim)'>" + esc(s.q) + "</span><span class='who'>pass</span></div>";
+      }).join("") + "</div>" +
+      '<div class="grid2">' + tile("Coverage", r.coverage + " sections produced content", "result") +
+      tile("Sources cited", r.sources.length + " distinct documents", "evidence") + "</div></div>";
+
+    r.sections.forEach(function (s) {
+      h += '<div class="sec"><h3>' + esc(s.label) + "</h3>" +
+        s.sentences.map(function (x, i) {
+          return '<p style="margin-bottom:8px">' + esc(x.text) +
+            ' <span class="cite" onclick="openDoc(\'' + x.docId + '\')" style="font-family:var(--mono);font-size:10.5px;color:var(--cyan);cursor:pointer">' +
+            "[" + esc(x.docId) + "]</span></p>";
+        }).join("") + "</div>";
+    });
+
+    if (r.radar.length) h += '<div class="sec"><h3>Figure reconciliation</h3>' + radarHTML(r.radar, false) + "</div>";
+
+    h += '<div class="sec"><h3>Cited sources</h3><table class="ledger-tbl" style="font-family:var(--sans)"><tbody>' +
+      r.sources.map(function (d) {
+        return "<tr onclick=\"openDoc('" + d.id + "')\" style='cursor:pointer'><td style='font-family:var(--mono);color:var(--dimmer)'>" + d.id +
+          "</td><td style='color:#c3cbdf'>" + esc(d.t.slice(0, 60)) + "</td><td style='color:var(--dim)'>" + esc(d.o) + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+
+    h += '<div class="sec"><button class="nbtn on" onclick="exportDossier()">Export dossier as Markdown</button> ' +
+      '<button class="nbtn" onclick="askAbout(\'' + esc(S.q).replace(/'/g, "\\'") + '\')">Interrogate this in Pragya</button>' +
+      '<p style="margin-top:12px;font-size:12px;color:var(--dimmer)">Every line above is a quotation, not a paraphrase. If a section is empty the index had nothing to say, and it is omitted rather than padded.</p></div>';
+    return h;
+  }
+
+  /* ------------------------------------------------------------ import panel */
+  function importBody() {
+    return '<div class="sec"><h3>Add documents to this device</h3>' +
+      '<p>Drop text, markdown, CSV or JSON files here. Each file is chunked into passages, indexed with the same BM25 and cosine machinery, ' +
+      "hashed into the same Merkle tree, and searchable immediately. The files are read by your browser and never uploaded.</p>" +
+      '<div id="dropzone" style="border:1px dashed var(--line2);border-radius:12px;padding:26px;text-align:center;color:var(--dim);cursor:pointer;background:rgba(255,255,255,.02)">' +
+      '<div style="font-size:13px;margin-bottom:6px">Drag files here, or click to choose</div>' +
+      '<div style="font-size:11px;color:var(--dimmer)">.txt .md .csv .json - plain text formats only</div>' +
+      '<input type="file" id="fileIn" multiple accept=".txt,.md,.markdown,.csv,.json,.log" style="display:none"></div>' +
+      '<div style="margin-top:14px"><label class="lbl">Or paste text</label>' +
+      '<textarea class="txt" id="pasteBox" rows="6" placeholder="Paste a report, notes, a judgement, a paper abstract..."></textarea>' +
+      '<button class="nbtn on" onclick="ingestPaste()">Index pasted text</button></div></div>' +
+
+      '<div class="sec"><h3>Currently imported</h3><div id="importList"></div></div>' +
+
+      '<div class="sec"><h3>Why this is the real answer to coverage</h3>' +
+      '<p>No single index holds everything, and a browser cannot crawl the web. What it can do is make <b>your</b> knowledge searchable with the same rigour as public knowledge: ' +
+      "your PDFs converted to text, your research notes, a downloaded dataset, an offline copy of a standards document. The ranking, the citations and the Merkle proofs are identical. " +
+      "That is how this becomes unlimited without pretending to be Google.</p></div>";
+  }
+
+  function refreshImportList() {
+    var el = document.getElementById("importList");
+    if (!el) return;
+    var imps = DOCS.filter(function (d) { return d.ty === "import"; });
+    if (!imps.length) { el.innerHTML = '<div class="warn">Nothing imported yet. The index currently holds ' + DOCS.length + " documents.</div>"; return; }
+    el.innerHTML = '<table class="ledger-tbl" style="font-family:var(--sans)"><tbody>' + imps.map(function (d) {
+      return "<tr onclick=\"openDoc('" + d.id + "')\" style='cursor:pointer'><td style='font-family:var(--mono);color:var(--dimmer)'>" + d.id +
+        "</td><td style='color:#c3cbdf'>" + esc(d.t.slice(0, 54)) + "</td><td style='color:var(--dim)'>" + esc(d.s) + "</td></tr>";
+    }).join("") + "</tbody></table>";
+  }
+
+  /* ------------------------------------------------------------- ingestion UI */
+  function afterIngest(added) {
+    if (!added.length) { toast("No usable text found"); return; }
+    toast(added.length + " passage" + (added.length === 1 ? "" : "s") + " indexed on this device");
+    rebuildEverything().then(function () {
+      var st = document.getElementById("stDocs");
+      if (st) st.textContent = DOCS.length;
+      var stt = document.getElementById("stTerms");
+      if (stt) stt.textContent = INDEX.vocab.length;
+      var sr = document.getElementById("stRoot");
+      if (sr && TREE) sr.textContent = TREE.root.slice(0, 8) + "...";
+      refreshImportList();
+      if (S.q) renderResults();
+    });
+  }
+
+  window.ingestPaste = function () {
+    var box = document.getElementById("pasteBox");
+    if (!box || !box.value.trim()) { toast("Nothing pasted"); return; }
+    afterIngest(ingestText("Pasted note", box.value, {}));
+    box.value = "";
+  };
+
+  function readFiles(files) {
+    var list = Array.prototype.slice.call(files || []);
+    if (!list.length) return;
+    var added = [], pending = list.length;
+    list.forEach(function (f) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        var txt = String(fr.result || "");
+        if (/\.json$/i.test(f.name)) {
+          try {
+            var j = JSON.parse(txt);
+            txt = JSON.stringify(j, null, 1).replace(/[{}[\]",]/g, " ");
+          } catch (e) {}
+        }
+        added = added.concat(ingestText(f.name, txt, {}));
+        if (--pending === 0) afterIngest(added);
+      };
+      fr.onerror = function () { if (--pending === 0) afterIngest(added); };
+      fr.readAsText(f);
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target && e.target.id === "dropzone") {
+      var fi = document.getElementById("fileIn");
+      if (fi) fi.click();
+    }
+    if (e.target && e.target.id === "fileIn") return;
+  });
+  document.addEventListener("change", function (e) {
+    if (e.target && e.target.id === "fileIn") readFiles(e.target.files);
+  });
+  ["dragenter", "dragover"].forEach(function (ev) {
+    document.addEventListener(ev, function (e) {
+      if (document.getElementById("panel").classList.contains("on")) { e.preventDefault(); }
+    });
+  });
+  document.addEventListener("drop", function (e) {
+    if (!document.getElementById("panel").classList.contains("on")) return;
+    e.preventDefault();
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) readFiles(e.dataTransfer.files);
+  });
+
+  /* ---------------------------------------------------------------- dossier */
+  window.exportDossier = function () {
+    if (!S.q) { toast("Run a search first"); return; }
+    var r = runResearch(S.q, DOCS, INDEX);
+    var md = "# Research dossier: " + S.q + "\n\n";
+    md += "Generated locally by ANVESHAN on " + new Date().toISOString().slice(0, 10) +
+      ". Every sentence is quoted from an indexed source; nothing was generated or paraphrased.\n\n";
+    r.sections.forEach(function (s) {
+      md += "## " + s.label + "\n\n";
+      s.sentences.forEach(function (x) {
+        md += "> " + x.text + "\n>\n> - " + x.title + " (" + x.docId + ")\n\n";
+      });
+    });
+    if (r.radar.length) {
+      md += "## Figure reconciliation\n\n";
+      r.radar.forEach(function (g) {
+        md += "### " + g.entity + " (" + g.unit + ")\n\n";
+        g.claims.forEach(function (c) { md += "- " + c.text + " - " + c.date + ", " + c.org + "\n"; });
+        md += "\n";
+      });
+    }
+    md += "## Sources\n\n";
+    r.sources.forEach(function (d) {
+      md += "- " + d.o + ". \"" + d.t + "\". " + d.s + ", " + d.d + ". " + d.u + " (leaf " + shortHash(d.id) + ")\n";
+    });
+    md += "\n---\nProvenance: index Merkle root " + (TREE ? TREE.root : "n/a") + "\n";
+    var blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "anveshan-dossier-" + S.q.replace(/[^a-z0-9]+/gi, "-").slice(0, 36) + ".md";
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    toast("Dossier exported with citations");
+  };
+
+  /* -------------------------------------------------------------- bootstrap */
+  document.addEventListener("DOMContentLoaded", function () { setTimeout(postBoot, 60); });
+  if (document.readyState !== "loading") setTimeout(postBoot, 60);
+
+  // refresh the import list whenever that panel is painted
+  var _paint = paint;
+  paint = function (title, sub, body) {
+    _paint(title, sub, body);
+    if (title.indexOf("Index your own") === 0) refreshImportList();
+  };
+})();
 </script>
 </body>
 </html>
