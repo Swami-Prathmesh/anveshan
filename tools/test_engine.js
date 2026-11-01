@@ -19,13 +19,9 @@ function run(file) {
   const code = fs.readFileSync(path.join(ROOT, file), "utf8");
   vm.runInContext(code, ctx, { filename: file });
 }
-
-// 1. corpus + the v3 lexical engine (reused, so the hybrid has a real BM25F)
-const html = fs.readFileSync(path.join(ROOT, "src/base/index-v3.html"), "utf8");
-const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
-vm.runInContext(blocks[0] + "\n" + blocks[1] + "\n" + blocks[2], ctx, { filename: "corpus" });
-vm.runInContext("DOCS.push.apply(DOCS, WORLD_DOCS_1); DOCS.push.apply(DOCS, WORLD_DOCS_2);", ctx);
-vm.runInContext(blocks[3], ctx, { filename: "core-v3" });
+// the engine library holds the corpus and the lexical core; no DOM involved
+vm.runInContext(fs.readFileSync(path.join(ROOT, "src/base/engine-v3.js"), "utf8"), ctx, { filename: "engine-v3" });
+vm.runInContext("DOCS.push.apply(DOCS,WORLD_DOCS_1);DOCS.push.apply(DOCS,WORLD_DOCS_2);", ctx);
 vm.runInContext("var INDEX = buildIndex(DOCS); var TREE = {}; var S = {saved:[], q:'', filters:{}};", ctx);
 
 // 2. v4 layers

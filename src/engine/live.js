@@ -400,7 +400,7 @@
         if (!place) return [];
         var geo = await getJSON("nominatim", "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(place),
           { minGap: 1200, headers: { Accept: "application/json" } });
-        if (!geo || !geo.length) return [];
+        if (!Array.isArray(geo) || !geo.length) return [];
         var lat = geo[0].lat, lon = geo[0].lon;
         var w = await getJSON("openmeteo", "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon +
           "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&timezone=auto", { timeout: 7000 });
@@ -441,7 +441,8 @@
       async search(q, ctx) {
         var data = await getJSON("nominatim", "https://nominatim.openstreetmap.org/search?format=json&limit=" +
           (ctx.perSource || 3) + "&addressdetails=1&q=" + encodeURIComponent(q), { minGap: 1200, headers: { Accept: "application/json" } });
-        return (data || []).map(function (p, i) {
+        if (!Array.isArray(data)) return [];      // an error body is not a result list
+        return data.map(function (p, i) {
           var addr = p.address || {};
           var name = p.display_name || p.name || "place";
           return {

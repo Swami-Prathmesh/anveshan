@@ -9,12 +9,9 @@ ctx.atob = (b) => Buffer.from(b, "base64").toString("binary");
 ctx.Buffer = Buffer; ctx.TextDecoder = TextDecoder; ctx.Response = Response;
 vm.createContext(ctx);
 const run = (f) => vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), ctx, { filename: f });
-
-const html = fs.readFileSync(path.join(ROOT, "src/base/index-v3.html"), "utf8");
-const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
-vm.runInContext(blocks[0] + "\n" + blocks[1] + "\n" + blocks[2], ctx);
+// the engine library holds the corpus and the lexical core; no DOM involved
+vm.runInContext(fs.readFileSync(path.join(ROOT, "src/base/engine-v3.js"), "utf8"), ctx, { filename: "engine-v3" });
 vm.runInContext("DOCS.push.apply(DOCS,WORLD_DOCS_1);DOCS.push.apply(DOCS,WORLD_DOCS_2);", ctx);
-vm.runInContext(blocks[3] + "\n" + blocks[4], ctx);
 vm.runInContext("var INDEX=buildIndex(DOCS);var TREE={root:'testroot'};var S={saved:[],q:'',filters:{}};", ctx);
 run("src/data/model.js");
 ["lang", "semantic", "understand", "evidence", "discovery", "agent", "learn", "ingest"].forEach((m) => run(`src/engine/${m}.js`));
