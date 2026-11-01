@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ANVESHAN - online knowledge engine</title>
-<meta name="description" content="ANVESHAN v5 is a free, open-source online research engine: it queries fifteen keyless open APIs (Wikipedia in twelve languages, Wikidata, OpenAlex, Crossref, Internet Archive, Open Library, Wikisource, Stack Exchange, GitHub, Openverse, live weather and seismic measurements, World Bank) from your browser, then applies semantic reranking, claim verification, contradiction detection, ten discovery paradigms, an autonomous investigator and a self-learning ranking loop. No account, no tracking, no server.">
+<title>ANVESHAN - a search engine with its own index</title>
+<meta name="description" content="ANVESHAN is a free, open-source search engine with its own crawled index: a scheduled crawler builds a sharded inverted index that the browser queries directly from static files, plus fifteen live open APIs and a verified offline library. Semantic reranking, claim verification, contradiction detection, ten discovery paradigms, an autonomous investigator and a gated self-learning loop. No account, no tracking.">
 <meta name="theme-color" content="#05060c">
 <meta name="color-scheme" content="dark">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='none' stroke='%23ff9f43' stroke-width='6'/><circle cx='50' cy='50' r='14' fill='%2322c98b'/></svg>">
@@ -9492,13 +9492,13 @@ window.ANV_MATRIX = [
   ]},
   { g: "F · Self-learning and self-updating", items: [
     ["Continuously discover newly published information", "live", "Every query fetches the current state of fifteen open collections. There is no index to go stale because there is no index: the sources are asked fresh each time."],
-    ["Crawl new websites and databases", "partial", "Fifteen public APIs are crawled live (Wikipedia, Wikidata, OpenAlex, Crossref, Semantic Scholar, Open Library, Internet Archive, Wikisource, Stack Exchange, GitHub, Openverse, OpenStreetMap, Open-Meteo, USGS, World Bank). A general web crawler would need servers and a budget."],
+    ["Crawl new websites and databases", "live", "A real crawler (crawler/) harvests APIs, RSS feeds and sitemaps, obeys robots.txt, deduplicates by URL and SimHash, and commits a sharded index. It runs on a six-hour schedule in GitHub Actions; fifteen APIs are additionally queried live at request time."],
     ["Detect newly created research papers", "live", "OpenAlex, Crossref and Semantic Scholar are queried directly, so a paper published today is findable today."],
     ["Discover new books, patents and technical documents", "partial", "Books and archival texts are live through Open Library and the Internet Archive. Patents have no free keyless API here."],
     ["Monitor scientific discoveries", "live", "The scholarly adapters return current works with citation counts and retraction flags."],
     ["Identify newly emerging technologies", "live", "Emerging-term detector: a term's share of recent documents against its prior share."],
     ["Detect new concepts and terminology", "live", "Unseen words are embedded from character n-grams, so new terminology is searchable before it is known."],
-    ["Discover previously unknown sources", "partial", "Import plus gap detection tells you what is missing; finding it is your step."],
+    ["Discover previously unknown sources", "live", "Nine crawler adapters over APIs, feeds and sitemaps reach collections the engine was not told about, and every run reports which sources answered."],
     ["Identify disappearing or inaccessible sources", "partial", "A source that stops answering is reported as failed per query, which is a live availability signal rather than a standing monitor."],
     ["Monitor changes in official records", "partial", "Content hashes and versions detect change when a document is re-imported; there is no polling."],
     ["Learn new concepts from reliable sources", "live", "Ingest rebuilds the index and the graph; reliability gates how much a new source can move."],
@@ -9521,7 +9521,7 @@ window.ANV_MATRIX = [
     ["Identify conflicts of interest", "partial", "Self-reference, circular citation and single-issuer agreement."],
     ["Re-evaluate conclusions when new evidence appears", "live", "Watchlist alerts re-run a question and report whether the top answer changed."],
     ["Maintain an audit trail of changes", "live", "Investigation traces, version snapshots and an append-only query ledger."],
-    ["Automatically update the search index", "live", "Incremental rebuild on ingest, with a version snapshot each time."],
+    ["Automatically update the search index", "live", "The crawler rebuilds incrementally on a schedule: new documents are appended, ids are never reused, and each run is recorded in the manifest. Your own imports update the local index instantly."],
     ["Detect broken links", "partial", "Source-level failures are visible per query; individual link checking on every result would need a proxy and a budget."],
     ["Remove duplicate indexing", "live", "Duplicate refusal on ingest and near-duplicate grouping."],
     ["Identify low-quality information", "live", "Credibility score plus misinformation markers, shown per document."],
@@ -9670,7 +9670,20 @@ window.ANV_MATRIX = [
     ["Ranking transparency for live results", "live", "Lexical, semantic, authority, recency and bonus contributions are shown per result, with the learned weights applied on top."],
     ["Limits stated plainly", "live", "No general web crawl, no page-level link checking, no audio or video decoding, no billion-page index. Each is marked above with the reason."]
   ]},
+  { g: "N · Crawl and index (v6)", items: [
+    ["Its own index, not only a federation", "live", "crawler/ builds a real inverted index (BM25F statistics, document lengths, title-term marks) and splits it into 64 term shards and 16 document shards committed to the repository."],
+    ["Serverless retrieval from a prebuilt index", "live", "The browser computes fnv1a32(term) % 64, fetches only the shards its query needs (2-4 files), scores with BM25, then fetches one document shard for the winners."],
+    ["Scheduled crawling on free compute", "live", "ops/crawl.yml runs the crawler every six hours in GitHub Actions and commits the refreshed index; no server, no database, no paid service."],
+    ["robots.txt and API policy compliance", "live", "robots.txt is fetched and obeyed for page crawls; official APIs are called under their own published limits (arXiv 3s, OpenAlex/Crossref mailto, GitHub unauthenticated cap), one request per host per second by default."],
+    ["Cross-language corpus", "live", "The crawler indexes Wikipedia in twelve languages including Hindi and Sanskrit editions; the shipped index already contains Hindi documents."],
+    ["Near-duplicate rejection at crawl time", "live", "SimHash with a length-dependent threshold plus a length-ratio guard, so two unrelated short paragraphs are not collapsed into one."],
+    ["Incremental index updates", "live", "Document ids are never reused, URL hashes prevent re-indexing, and each run appends to existing postings instead of rebuilding from scratch."],
+    ["Crawl transparency", "live", "index/last-run.json and manifest.runs record per-source counts, timings, skips and every adapter error; a failed source is named, not hidden."],
+    ["Hash and stemmer parity across languages", "live", "Python and JavaScript implement the same FNV-1a hash and the same stemmer; a test fails the build if they diverge, because divergence would fetch the wrong shards."],
+    ["Index size discipline", "live", "441 documents cost 800 KB. The design stays inside a repository up to roughly 50k documents; beyond that the README says plainly that it needs sharding or object storage."]
+  ]},
 ];
+
 </script>
 <!-- layer: integration -->
 <script>
@@ -11874,6 +11887,571 @@ window.ANV_MATRIX = [
 
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", function () { setTimeout(boot, 80); });
   else setTimeout(boot, 80);
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+</script>
+<!-- layer: central index client -->
+<script>
+/* ============================================================================
+   ANVESHAN v6 - LAYER 12: THE CENTRAL INDEX (client-side retrieval)
+   A real, prebuilt inverted index with no server behind it.
+
+   The crawler (crawler/, run by GitHub Actions on a schedule) splits its index
+   into 64 term shards and 16 document shards and commits them to this
+   repository. A browser fetches only the shards its query terms live in - two or
+   three small files - scores them with BM25, then fetches one document shard for
+   the winners and reranks with a semantic space built on the spot.
+
+   The consequence is that the query cost is proportional to the query, not to
+   the corpus, and the corpus can grow to tens of thousands of documents while
+   staying a set of static files in git.
+   ========================================================================== */
+(function (root) {
+  "use strict";
+  var ANV = root.ANV = root.ANV || {};
+  var L = ANV.lang;
+
+  var TERM_SHARDS = 64, DOC_SHARDS = 16;
+  var BASE = "index/";
+  var manifest = null, manifestAt = 0;
+  var shardCache = {}, docCache = {};
+  var stats = { fetches: 0, bytes: 0, shards: 0, docShards: 0, cacheHits: 0 };
+
+  /* The crawler computes these ids with the same FNV-1a; a mismatch would make
+     the browser fetch files that do not contain its terms, so they are mirrored
+     here character for character. */
+  function fnv1a32(text) {
+    var h = 0x811C9DC5;
+    var bytes = utf8Bytes(String(text));
+    for (var i = 0; i < bytes.length; i++) {
+      h ^= bytes[i];
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function utf8Bytes(s) {
+    if (typeof TextEncoder === "function") return new TextEncoder().encode(s);
+    var out = [];
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charCodeAt(i);
+      if (c < 0x80) out.push(c);
+      else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+      else out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    return out;
+  }
+  function shardOf(term) { return fnv1a32(term) % TERM_SHARDS; }
+  function docShard(id) { return id % DOC_SHARDS; }
+
+  /* ---------------------------------------------------------------- loading */
+  async function getJSON(url, kind) {
+    var cached = kind === "t" ? shardCache[url] : docCache[url];
+    if (cached) { stats.cacheHits++; return cached; }
+    stats.fetches++;
+    var res = await root.fetch(url, { credentials: "omit", mode: "cors" });
+    if (!res.ok) throw new Error(url + " -> HTTP " + res.status);
+    var text = await res.text();
+    stats.bytes += text.length;
+    var data = JSON.parse(text);
+    if (kind === "t") { shardCache[url] = data; stats.shards++; }
+    else { docCache[url] = data; stats.docShards++; }
+    return data;
+  }
+
+  async function load(base) {
+    if (base) BASE = base.replace(/\/?$/, "/");
+    if (manifest && Date.now() - manifestAt < 5 * 60 * 1000) return manifest;
+    var url = BASE + "manifest.json";
+    try {
+      var res = await root.fetch(url, { credentials: "omit", mode: "cors", cache: "no-cache" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      manifest = await res.json();
+      manifestAt = Date.now();
+      TERM_SHARDS = manifest.termShards || 64;
+      DOC_SHARDS = manifest.docShards || 16;
+      return manifest;
+    } catch (e) {
+      manifest = null;
+      throw new Error("no central index at " + url + " (" + (e.message || "unavailable") + ")");
+    }
+  }
+
+  function available() { return !!manifest && manifest.docs > 0; }
+  function info() {
+    if (!manifest) return null;
+    return {
+      docs: manifest.docs, terms: manifest.terms, builtAt: manifest.builtAt,
+      bytes: manifest.indexBytes || 0, sources: manifest.sources || {},
+      runs: manifest.runs || [], avgdl: manifest.avgdl || 1
+    };
+  }
+
+  /* --------------------------------------------------------------- retrieval */
+  /**
+   * Two-phase ranking. Phase one scores postings with a length-free BM25 variant
+   * (document lengths live in the document shards, which are not fetched yet).
+   * Phase two refetches the survivors with their real lengths and metadata, so
+   * the final score is the exact BM25F plus authority, recency and semantics.
+   */
+  async function search(query, opts) {
+    opts = opts || {};
+    var t0 = (root.performance && performance.now) ? performance.now() : Date.now();
+    if (!manifest) await load(opts.base);
+    if (!manifest || !manifest.docs) return { results: [], meta: { empty: true } };
+
+    var terms = uniq(L.tokenise(query, { keepStop: false }));
+    if (!terms.length) terms = uniq(L.tokenise(query, { keepStop: true, noStem: true }));
+    if (!terms.length) return { results: [], meta: { empty: true, reason: "no usable terms" } };
+
+    var shards = uniq(terms.map(shardOf));
+    var fetched = {};
+    await Promise.all(shards.map(async function (s) {
+      try { fetched[s] = await getJSON(BASE + "t/" + s + ".json", "t"); }
+      catch (e) { fetched[s] = {}; }
+    }));
+
+    var N = manifest.docs;
+    var scores = {};
+    var matchedTerms = {};
+    terms.forEach(function (term) {
+      var shard = fetched[shardOf(term)] || {};
+      var postings = shard[term];
+      if (!postings || !postings.length) return;
+      var df = postings.length;
+      var idf = Math.log(1 + (N - df + 0.5) / (df + 0.5));
+      for (var i = 0; i < postings.length; i++) {
+        var p = postings[i], docId = p[0], tf = p[1], titleHits = p[2] || 0;
+        // length-free first pass: enough to find the right candidates cheaply
+        var s = idf * (tf / (tf + 1.2)) * (1 + 0.9 * Math.min(2, titleHits));
+        scores[docId] = (scores[docId] || 0) + s;
+        (matchedTerms[docId] = matchedTerms[docId] || []).push(term);
+      }
+    });
+
+    var ranked = Object.keys(scores).map(function (id) { return { id: +id, pre: scores[id] }; })
+      .sort(function (a, b) { return b.pre - a.pre; })
+      .slice(0, opts.candidates || 160);
+    if (!ranked.length) {
+      return { results: [], meta: { terms: terms, shards: shards.length, docs: 0, ms: elapsed(t0) } };
+    }
+
+    // phase two: fetch the document shards that hold the survivors
+    var byShard = {};
+    ranked.forEach(function (r) { (byShard[docShard(r.id)] = byShard[docShard(r.id)] || []).push(r.id); });
+    var stores = {};
+    await Promise.all(Object.keys(byShard).map(async function (s) {
+      try { stores[s] = await getJSON(BASE + "d/" + s + ".json", "d"); }
+      catch (e) { stores[s] = {}; }
+    }));
+
+    var k1 = 1.4, b = 0.72;
+    var avgdl = manifest.avgdl || 120;
+    var docs = [], maxYear = new Date().getFullYear();
+    ranked.forEach(function (r) {
+      var row = (stores[docShard(r.id)] || {})[String(r.id)];
+      if (!row) return;
+      var dl = row[8] || avgdl;
+      var tfSum = 0;
+      (matchedTerms[r.id] || []).forEach(function (term) {
+        var shard = fetched[shardOf(term)] || {};
+        var postings = shard[term] || [];
+        for (var i = 0; i < postings.length; i++) {
+          if (postings[i][0] === r.id) {
+            var tf = postings[i][1], titleHits = postings[i][2] || 0;
+            var df = postings.length;
+            var idf = Math.log(1 + (N - df + 0.5) / (df + 0.5));
+            tfSum += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * (dl / avgdl))) * (1 + 0.9 * Math.min(2, titleHits));
+            break;
+          }
+        }
+      });
+      docs.push({
+        id: "ix-" + r.id,
+        t: row[1], s: row[2], o: row[3], d: row[4], l: row[5] || "en", ty: row[6] || "webpage",
+        a: row[7] || 3, u: row[0], b: row[9] || "", k: (matchedTerms[r.id] || []).slice(0, 6),
+        e: [], live: { source: "index", domain: row[10], citedBy: row[11] || 0, docId: r.id },
+        bm25: tfSum
+      });
+    });
+
+    // semantic rerank: an LSA space over the candidates, built on the spot
+    var space = null, expanded = [];
+    try {
+      if (ANV.live && ANV.live.localSpace && docs.length >= 6) {
+        space = ANV.live.localSpace(docs);
+        if (space) expanded = space.expand(query, 5);
+      }
+    } catch (e) { space = null; }
+    var semScores = {};
+    if (space) space.score(query).forEach(function (x) { semScores[docs[x.i].id] = x.s; });
+
+    var maxBm = 0;
+    docs.forEach(function (d) { if (d.bm25 > maxBm) maxBm = d.bm25; });
+    var results = docs.map(function (d) {
+      var lex = maxBm ? d.bm25 / maxBm : 0;
+      var sem = semScores[d.id] || 0;
+      var auth = (d.a || 3) / 5;
+      var year = parseInt(String(d.d || "").slice(0, 4), 10) || 0;
+      var rec = year ? Math.max(0, 1 - (maxYear - year) / 25) : 0.35;
+      var cited = d.live.citedBy ? Math.min(0.08, Math.log10(1 + d.live.citedBy) / 30) : 0;
+      var score = 0.52 * lex + 0.24 * sem + 0.14 * auth + 0.10 * rec + cited;
+      return {
+        doc: d, score: score, bm25: d.bm25, cos: sem,
+        why: { lexical: +lex.toFixed(3), semantic: +sem.toFixed(3), authority: +auth.toFixed(3),
+               recency: +rec.toFixed(3), cited: +cited.toFixed(3) },
+        confidence: Math.max(0.2, Math.min(0.96, 0.3 + 0.45 * lex + 0.25 * sem))
+      };
+    });
+    results.sort(function (a, b2) { return b2.score - a.score; });
+    try {
+      results = ANV.learn.rerank(results, {});
+      results.forEach(function (r) { if (r.learnScore != null) r.score = r.learnScore; });
+    } catch (e) {}
+    results.forEach(function (r) {
+      r.snippet = r.doc.b ? (r.doc.b.length > 320 ? r.doc.b.slice(0, 300).replace(/\s+\S*$/, "") + "…" : r.doc.b) : r.doc.t;
+    });
+
+    return {
+      results: results.slice(0, opts.limit || 60),
+      space: space, expanded: expanded,
+      meta: {
+        terms: terms, shards: shards.length, candidates: ranked.length,
+        matched: Object.keys(scores).length, ms: elapsed(t0),
+        bytes: stats.bytes, corpus: manifest.docs, builtAt: manifest.builtAt
+      }
+    };
+  }
+
+  function uniq(a) { var s = {}, o = []; a.forEach(function (x) { if (x && !s[x]) { s[x] = 1; o.push(x); } }); return o; }
+  function elapsed(t0) {
+    var t1 = (root.performance && performance.now) ? performance.now() : Date.now();
+    return +(t1 - t0).toFixed(1);
+  }
+
+  ANV.central = {
+    BASE: BASE, TERM_SHARDS: TERM_SHARDS, DOC_SHARDS: DOC_SHARDS,
+    load: load, search: search, available: available, info: info,
+    shardOf: shardOf, fnv1a32: fnv1a32,
+    stats: function () { return stats; },
+    reset: function () { shardCache = {}; docCache = {}; manifest = null; }
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = ANV.central;
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+</script>
+<!-- layer: central index interface -->
+<script>
+/* ============================================================================
+   ANVESHAN v6 - LAYER 13: THE CENTRAL-INDEX INTERFACE
+   Engine 1 of three. The crawler commits a sharded index to this repository;
+   this layer queries it directly from the browser, with no server in between.
+
+   Engine order in the interface:
+     Index    the crawled corpus (fast, offline-capable once cached, grows on a
+              schedule via GitHub Actions)
+     Live     fifteen public APIs queried at request time (freshest)
+     Library  the curated 170-document set with full verification (deepest)
+
+   All three feed the same evidence, discovery, investigator and learning code.
+   ========================================================================== */
+(function (root) {
+  "use strict";
+  var ANV = root.ANV;
+  var doc = root.document;
+  if (!ANV || !doc || !ANV.central) return;
+
+  var state = { mode: "index", indexReady: false, indexInfo: null, last: null, error: null };
+  ANV.centralUI = state;
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function pct(x) { return Math.round((x || 0) * 100) + "%"; }
+  function kb(bytes) { return bytes > 1024 * 1024 ? (bytes / 1048576).toFixed(1) + " MB" : Math.round(bytes / 1024) + " KB"; }
+  function chip(t, cls) { return '<span class="v4-chip ' + (cls || "") + '">' + esc(t) + "</span>"; }
+  function now() { return Date.now(); }
+
+  var LEGACY = {};
+  var LIVE = {};
+
+  /* ------------------------------------------------------------ mode switch */
+  function setMode(mode) {
+    state.mode = mode;
+    if (ANV.liveUI) ANV.liveUI.mode = mode === "live" ? "web" : "library";
+    if (ANV.ui) ANV.ui.state.override = null;
+    if (root.S && root.S.q) root.doSearch(root.S.q, false);
+    else if (root.toast) {
+      root.toast(mode === "index" ? "Index engine: the crawled corpus"
+        : mode === "live" ? "Live engine: fifteen open APIs"
+        : "Library engine: the verified offline collection");
+    }
+  }
+
+  /* ----------------------------------------------------------------- search */
+  function runIndex(q, record) {
+    var S = root.S;
+    S.q = q;
+    state.gen = (state.gen || 0) + 1;
+    var gen = state.gen;
+    doc.getElementById("hero").style.display = "none";
+    var host = doc.getElementById("results");
+    host.style.display = "block";
+
+    var U = ANV.understand;
+    var rewrite = U.context.rewrite(q);
+    var effective = rewrite.rewritten ? rewrite.text : q;
+    var plan = U.plan(effective);
+    if (ANV.ui) {
+      ANV.ui.state.plan = plan;
+      ANV.ui.state.rewrite = rewrite.rewritten ? rewrite : null;
+    }
+
+    host.innerHTML = shell(q, plan);
+    var t0 = now();
+
+    ANV.central.search(effective, { limit: 60 }).then(function (out) {
+      if (gen !== state.gen) return;
+      state.last = out;
+      S.base = out.results;
+      S.results = out.results;
+      S.filters = { type: "all", org: "all", lang: "all", from: null, to: null };
+      var docs = out.results.map(function (r) { return r.doc; });
+      docs.forEach(function (d) { LIVE[d.id] = d; });
+      var mini = null;
+      try { mini = root.buildIndex ? root.buildIndex(docs) : null; } catch (e) { mini = null; }
+      if (ANV.ui) {
+        ANV.ui.state.override = { docs: docs, index: mini };
+        ANV.ui.state.lastRun = { query: effective, ms: out.meta.ms };
+      }
+      try {
+        U.context.observe(effective, plan.intent, out.results.slice(0, 4).map(function (r) { return (r.doc.k || [])[0]; }).filter(Boolean));
+        ANV.learn.logQuery(effective, out.results, { ms: out.meta.ms, engine: "index" });
+      } catch (e) {}
+      root.renderResults();
+      var q2 = doc.getElementById("q2");
+      if (q2) q2.value = q;
+      if (record && root.addBlock) {
+        root.addBlock(q, out.results.slice(0, 8).map(function (r) { return r.doc.id; }));
+        try { history.replaceState(null, "", "#q=" + encodeURIComponent(q) + "&engine=index"); } catch (e) {}
+      }
+    }).catch(function (err) {
+      if (gen !== state.gen) return;
+      var body = doc.getElementById("v4ixbody");
+      if (body) {
+        body.innerHTML = '<div class="v4-block"><h4>The index could not be read</h4><p class="v4-lead">' +
+          esc(err && err.message ? err.message : "unavailable") +
+          "</p><p class='v4-note'>The central index is a set of static files in the repository. If they are missing or blocked, use the Live engine, which queries the open APIs directly.</p>" +
+          '<div class="v4-row"><button class="v4-btn" onclick="ANV.centralUI.setMode(\'live\')">Switch to Live</button>' +
+          '<button class="v4-btn ghost" onclick="ANV.centralUI.setMode(\'library\')">Switch to Library</button></div></div>';
+      }
+    });
+  }
+
+  function shell(q, plan) {
+    var info = state.indexInfo || {};
+    var h = '<div class="resbar"><div class="inner">' +
+      '<div class="mini"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></span>' +
+      '<input id="q2" value="' + esc(q) + '" autocomplete="off" spellcheck="false"><span class="kbd">Enter</span></div>' +
+      modeButtons() +
+      "</div></div>";
+    h += '<div class="v4bar"><div class="inner">' +
+      '<span class="v4-tag">index</span>' +
+      '<span class="v4-dim">' + esc(plan.intent) + "</span>" +
+      '<span class="v4-dim">expects ' + esc(plan.answerType) + "</span>" +
+      '<span class="v4-dim">' + (info.docs || 0) + " documents · built " + esc(String(info.builtAt || "").slice(0, 10)) + "</span>" +
+      '<span class="v4-grow"></span>' +
+      '<button class="v4-mini" onclick="openPanel(\'discover\')">Discover</button>' +
+      '<button class="v4-mini" onclick="openPanel(\'investigate\')">Investigate</button>' +
+      '<button class="v4-mini" onclick="openPanel(\'verify\')">Verify</button>' +
+      "</div>";
+    h += '<div class="v4-src" id="v4ixmeta"></div></div>';
+    h += '<div id="v4ixbody"><p class="v4-note" style="padding:18px 2px">Retrieving from the index…</p></div>';
+    return h;
+  }
+
+  function modeButtons() {
+    var modes = [["index", "Index"], ["live", "Live"], ["library", "Library"]];
+    return modes.map(function (m) {
+      return '<button class="nbtn' + (state.mode === m[0] ? " on" : "") +
+        '" onclick="ANV.centralUI.setMode(\'' + m[0] + '\')" title="' +
+        (m[0] === "index" ? "the crawled corpus, served as static files"
+          : m[0] === "live" ? "fifteen public APIs, queried now"
+          : "the curated offline collection") + '">' + m[1] + "</button>";
+    }).join("");
+  }
+
+  /* -------------------------------------------------------------- painting */
+  /** Keep an engine switcher in the results bar after any repaint. */
+  function injectModeBar() {
+    if (doc.getElementById("v4modes")) return;
+    var inner = doc.querySelector("#results .resbar .inner");
+    if (!inner) return;
+    var box = doc.createElement("span");
+    box.id = "v4modes";
+    box.style.display = "inline-flex";
+    box.style.gap = "4px";
+    box.innerHTML = modeButtons();
+    inner.appendChild(box);
+  }
+
+  function injectMeta() {
+    var host = doc.getElementById("results");
+    if (!host || !state.last) return;
+    if (doc.getElementById("v4ixmeta")) return;
+    var anchor = host.querySelector(".v4bar") || host.querySelector(".resbar");
+    var strip = doc.createElement("div");
+    strip.className = "v4-src";
+    strip.id = "v4ixmeta";
+    var m = state.last.meta || {};
+    var info = state.indexInfo || {};
+    strip.innerHTML =
+      chip((m.matched || 0) + " documents matched", "v4-ok") +
+      chip(m.shards + " term shards", "v4-kind") +
+      chip(kb(m.bytes || 0) + " fetched", "v4-kind") +
+      chip(m.ms + " ms", "v4-kind") +
+      '<span class="v4-grow"></span><span class="v4-dim">corpus ' + (m.corpus || info.docs || 0) +
+      " documents · " + (info.terms || 0) + " terms · " + kb(info.bytes || 0) + " index</span>";
+    if (anchor && anchor.nextSibling) host.insertBefore(strip, anchor.nextSibling);
+    else if (anchor) host.appendChild(strip);
+    else host.insertBefore(strip, host.firstChild);
+    var tag = host.querySelector(".v4bar .v4-tag");
+    if (tag) tag.textContent = "index";
+  }
+
+  function indexBrief(out) {
+    if (!out || !out.results.length) {
+      return '<div class="brief"><div class="brief-top"><span class="brief-tag">No match</span></div>' +
+        '<p class="v4-lead">No document in the crawled corpus matched. The index covers what the crawler has reached so far — try the Live engine for the freshest material.</p></div>';
+    }
+    var terms = ANV.lang.tokenise(out.query || (root.S && root.S.q) || "");
+    var picks = [];
+    out.results.slice(0, 5).forEach(function (r) {
+      var sents = ANV.lang.sentenceSplit(r.doc.b || "");
+      var best = null, bestScore = 0;
+      sents.forEach(function (s) {
+        if (s.length < 50) return;
+        var low = ANV.lang.normalise(s), hits = 0;
+        terms.forEach(function (t) { if (low.indexOf(t) >= 0) hits++; });
+        var sc = hits + (/\d/.test(s) ? 0.4 : 0) - s.length / 900;
+        if (sc > bestScore) { bestScore = sc; best = s; }
+      });
+      if (best) picks.push({ text: best.trim(), doc: r.doc });
+    });
+    if (!picks.length) picks = out.results.slice(0, 3).map(function (r) { return { text: (r.doc.b || r.doc.t).slice(0, 240), doc: r.doc }; });
+    picks = picks.slice(0, 4);
+    var conf = out.results.slice(0, 3).reduce(function (a, r) { return a + (r.confidence || 0); }, 0) / Math.min(3, out.results.length);
+    var body = picks.map(function (p, i) {
+      return esc(p.text) + '<span class="cite" onclick="openDoc(\'' + esc(p.doc.id) + '\')" title="' + esc(p.doc.t) + '">' + (i + 1) + "</span>";
+    }).join(" ");
+    var srcs = picks.map(function (p, i) {
+      var d = p.doc;
+      return '<a class="v4-srcitem" href="' + esc(d.u || "#") + '" target="_blank" rel="noopener noreferrer">[' + (i + 1) + "] " +
+        esc(String(d.t).slice(0, 90)) + " — " + esc(d.s || "") + (d.d ? ", " + esc(String(d.d).slice(0, 4)) : "") + "</a>";
+    }).join("");
+    var expanded = out.expanded && out.expanded.length
+      ? '<div class="v4-note">Related concepts from this result set: ' + out.expanded.map(function (e) { return chip(e.term, "v4-kind"); }).join(" ") + "</div>"
+      : "";
+    return '<div class="brief"><div class="brief-top"><span class="brief-tag">Answer</span>' +
+      '<span class="brief-model">' + (out.meta.matched || 0) + " documents matched · " + pct(conf) +
+      " confidence · quoted from the crawled corpus, nothing generated</span></div>" +
+      '<p class="brief-text">' + body + "</p>" +
+      '<div class="v4-srcs">' + srcs + "</div>" + expanded +
+      '<div class="v4-note">Retrieved from a prebuilt index served as static files: ' + (out.meta.shards || 0) +
+      " term shards fetched, " + kb(out.meta.bytes || 0) + ", " + out.meta.ms + " ms. Open Verify to cross-check these documents against each other.</div></div>";
+  }
+
+  /* ---------------------------------------------------------------- patches */
+  function installPatches() {
+    var prevDoSearch = root.doSearch;
+    LEGACY.doSearch = prevDoSearch;
+
+    root.doSearch = function (q, record) {
+      q = String(q || "").trim();
+      if (!q) { if (root.goHome) return root.goHome(); return; }
+      if (state.mode === "index" && state.indexReady) return runIndex(q, record);
+      return prevDoSearch.apply(null, arguments);
+    };
+
+    var prevBrief = root.briefHTML;
+    root.briefHTML = function () {
+      if (state.mode === "index" && state.last) return indexBrief(state.last);
+      return prevBrief.apply(null, arguments);
+    };
+
+    var prevRender = root.renderResults;
+    root.renderResults = function () {
+      prevRender.apply(null, arguments);
+      if (state.mode === "index" && state.last) { try { injectMeta(); } catch (e) {} }
+      // the engine switcher must survive every repaint, whatever engine painted
+      try { injectModeBar(); } catch (e) {}
+    };
+
+    var prevApply = root.applyFilters;
+    root.applyFilters = function () {
+      if (state.mode !== "index" || !state.last) return prevApply.apply(null, arguments);
+      var S = root.S, f = S.filters || {};
+      var res = (state.last.results || []).filter(function (r) {
+        var d = r.doc;
+        if (f.type && f.type !== "all" && d.ty !== f.type) return false;
+        if (f.org && f.org !== "all" && d.o !== f.org) return false;
+        if (f.lang && f.lang !== "all" && d.l !== f.lang) return false;
+        if (f.from && (parseInt(String(d.d).slice(0, 4), 10) || 0) < f.from) return false;
+        if (f.to && (parseInt(String(d.d).slice(0, 4), 10) || 0) > f.to) return false;
+        return true;
+      });
+      S.results = res;
+    };
+  }
+
+  /* ------------------------------------------------------------------- boot */
+  async function boot() {
+    if (!root.INDEX || !root.S) { setTimeout(boot, 140); return; }
+    installPatches();
+
+    try {
+      var man = await ANV.central.load("index/");
+      state.indexReady = !!(man && man.docs > 0);
+      state.indexInfo = ANV.central.info();
+    } catch (e) {
+      state.indexReady = false;
+      state.error = e.message;
+    }
+
+    if (!state.indexReady && ANV.liveUI) {
+      state.mode = "web" === ANV.liveUI.mode ? "live" : "library";
+      if (ANV.liveUI) ANV.liveUI.mode = state.mode === "live" ? "web" : "library";
+    }
+
+    var hash = (root.location && location.hash) || "";
+    var em = hash.match(/engine=(index|live|library)/);
+    if (em) state.mode = em[1];
+    else if (state.indexReady) state.mode = "index";
+
+    var sub = doc.querySelector(".hero p.sub");
+    if (sub && state.indexReady) {
+      var info = state.indexInfo;
+      var srcs = Object.keys(info.sources || {}).length;
+      sub.innerHTML = "A search engine over its own <b>" + info.docs.toLocaleString("en-IN") + "-document index</b>, crawled from " +
+        srcs + " open sources and served as static files — plus <b>" + (ANV.live ? ANV.live.SOURCES.length : 15) +
+        " live APIs</b> and a verified offline library. Three engines, one verification layer, <b>nothing you type is stored anywhere</b>.";
+    }
+    var tag = doc.querySelector(".brand-txt small");
+    if (tag) tag.textContent = "v6 · universal knowledge engine";
+    var st = doc.getElementById("stDocs");
+    if (st) st.textContent = state.indexReady ? state.indexInfo.docs.toLocaleString("en-IN") : "15 sources";
+
+    state.ready = true;
+    var qm = hash.match(/[#&]q=([^&]+)/);
+    if (qm) { try { root.doSearch(decodeURIComponent(qm[1]), false); } catch (e) {} }
+  }
+
+  state.setMode = setMode;
+  state.info = function () { return { mode: state.mode, ready: state.indexReady, index: state.indexInfo, error: state.error }; };
+
+  if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", function () { setTimeout(boot, 100); });
+  else setTimeout(boot, 100);
 })(typeof globalThis !== "undefined" ? globalThis : this);
 
 </script>
