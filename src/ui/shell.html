@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANVESHAN — search everything</title>
+<meta name="description" content="A free, open-source search engine with its own crawled index, live open-web sources and a verified library. No account, no tracking.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='none' stroke='%23e07b2a' stroke-width='9'/><circle cx='50' cy='50' r='13' fill='%2319865a'/></svg>">
+{{STYLE}}
+</head>
+<body>
+<a class="skip" href="#results">Skip to results</a>
+
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="./" id="homeLink" aria-label="ANVESHAN home">
+      <span class="mark" aria-hidden="true">अ</span>
+      <span class="name">ANVESHAN</span>
+    </a>
+    <div class="grow"></div>
+    <button class="btn ghost" id="btnTools" aria-haspopup="dialog" aria-expanded="false">Tools</button>
+    <button class="btn ghost icon" id="btnTheme" aria-label="Switch between light and dark" title="Light / dark">◐</button>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+
+  <section class="home" id="home">
+    <h1>What are you looking for?</h1>
+    <form class="search" id="searchForm" role="search">
+      <label class="sr" for="q">Search</label>
+      <input id="q" name="q" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Ask a question, or type a few words" enterkeyhint="search">
+      <button class="btn primary" type="submit" id="go">Search</button>
+    </form>
+    <div class="engines" id="engines" role="radiogroup" aria-label="Where to search"></div>
+    <p class="hint" id="hint"></p>
+    <ul class="examples" id="examples"></ul>
+  </section>
+
+  <section class="results" id="results" hidden aria-live="polite">
+    <form class="search small" id="searchForm2" role="search">
+      <label class="sr" for="q2">Search</label>
+      <input id="q2" name="q2" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search">
+      <button class="btn primary" type="submit">Search</button>
+    </form>
+
+    <div class="status" id="status"></div>
+    <div id="answer"></div>
+    <div class="toolbar">
+      <p class="count" id="count"></p>
+      <div class="grow"></div>
+      <button class="btn ghost small" id="btnFilters" aria-expanded="false" aria-controls="filters">Filters</button>
+    </div>
+    <div class="filters" id="filters" hidden></div>
+    <div id="cards" class="cards"></div>
+    <div class="more" id="more"></div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p><b>ANVESHAN</b> · free and open source · <a href="https://github.com/Swami-Prathmesh/anveshan" target="_blank" rel="noopener">source code</a> · nothing you type is stored on a server</p>
+  </div>
+</footer>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-in">
+    <div class="sheet-head">
+      <h2 id="sheetTitle">Tools</h2>
+      <button class="btn ghost icon" id="sheetClose" aria-label="Close">✕</button>
+    </div>
+    <nav class="tabs" id="sheetTabs" role="tablist"></nav>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<div class="drawer" id="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+  <div class="drawer-in">
+    <div class="drawer-head">
+      <h2 id="drawerTitle"></h2>
+      <button class="btn ghost icon" id="drawerClose" aria-label="Close">✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+{{SCRIPTS}}
+</body>
+</html>

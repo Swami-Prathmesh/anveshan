@@ -1,4 +1,4 @@
-# ANVESHAN · अन्वेषण — v6
+# ANVESHAN · अन्वेषण — v6.1
 
 **Live: https://swami-prathmesh.github.io/anveshan/**
 
@@ -8,6 +8,12 @@ directly, with no server, no database and no account. Two more engines sit besid
 public APIs, and a verified 170-document library.
 
 Open the link and type. Or open `index.html` from the repo — same engine.
+
+**The interface is deliberately plain:** one search box, an answer written in sentences, and result
+cards that say what they are. Everything advanced — the ten discovery paradigms, the investigator, the
+verification lab, the learning loop, the source list, the honest audit — is behind one **Tools**
+button, seven tabs deep. Light theme by default with a dark toggle; full keyboard support (`/` to
+search, `Esc` to close); one accent colour and no chrome you have to learn.
 
 ---
 
@@ -69,11 +75,9 @@ hours by itself, and public repositories do not pay for Actions minutes.
 | agent | `src/engine/agent.js` | bounded multi-round investigator, hypotheses, experiment design, reproducibility, failure registry |
 | learning | `src/engine/learn.js` | click-trained LTR with an NDCG gate, corrections, versions, rollback, monitoring, memory, export |
 | ingest | `src/engine/ingest.js` | PDF, DOCX, PPTX, XLSX, ODT, CSV, JSON, HTML, Markdown, ZIP parsed in the tab |
-| ui | `src/engine/ui.js` | evidence strip per result, intelligence strip, six panels |
 | live | `src/engine/live.js` | fifteen adapters, federation, politeness, per-query LSA, cross-source dedupe |
-| live ui | `src/engine/live-ui.js` | live search flow, source chips, live brief, live drawer, Watch, Sources |
-| **central** | `src/engine/central.js` | shard-and-fetch client: BM25 over the crawled index, no server |
-| **central ui** | `src/engine/central-ui.js` | engine switcher, index status, index brief |
+| central | `src/engine/central.js` | shard-and-fetch client: BM25 over the crawled index, no server |
+| **interface** | `src/ui/shell.{html,css,js}` | the whole interface: one search box, plain results, one Tools button |
 
 ## Crawler
 
@@ -147,7 +151,7 @@ python3 tools/build.py --check      # writes index.html + offline.html, syntax-c
 python3 -m crawler.run --out index --budget 20
 ```
 
-### Tests — 374 checks in eight suites
+### Tests — 371 checks in seven suites
 
 ```bash
 npm install                          # jsdom, for the DOM suites
@@ -157,8 +161,7 @@ node tools/test_ingest.js            #  21  real PDF / DOCX / XLSX / ZIP fixture
 node tools/test_live.js              #  38  federation, adapters, LSA, rate limits (network mocked)
 node tools/test_central.js           #  36  the real sharded index, hash parity, shard economics
 python3 tools/test_index.py          #  28  crawler, index format, dedupe, incremental update
-node tools/test_dom.js               #  61  offline build driven in a DOM
-node tools/test_online.js            #  38  online build driven in a DOM, all three engines
+node tools/test_ui.js                #  96  the interface, driven in a DOM for both builds
 ```
 
 ## Repository layout
@@ -168,7 +171,9 @@ index.html                 the engine (served by Pages)
 offline.html               same engine, no network
 index/                     the crawled, sharded index (committed by the crawler)
 crawler/                   crawler: core, sources, index, run
-src/engine/*.js            thirteen layers
+src/engine/*.js            eleven engine layers
+src/ui/shell.*             the interface (html, css, js)
+src/base/engine-v3.js      the data + retrieval library extracted from v3
 src/data/model.js          compiled semantic model
 src/data/v4_matrix.js      the capability audit
 src/styles/v4.css          interface additions

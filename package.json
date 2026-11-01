@@ -1,18 +1,17 @@
 {
   "name": "anveshan",
-  "version": "5.0.0",
+  "version": "6.1.0",
   "private": true,
   "description": "ANVESHAN - a free, open-source online research engine: federated live search over fifteen keyless open APIs, with semantic ranking, claim verification, ten discovery paradigms and a gated self-learning loop",
   "scripts": {
     "build": "python3 tools/build.py --check",
     "model": "python3 tools/build_model.py corpus.json src/data/model.js",
-    "test": "node tools/test_engine.js && node tools/test_layers.js && node tools/test_ingest.js && node tools/test_live.js && node tools/test_dom.js && node tools/test_online.js",
+    "test": "node tools/test_engine.js && node tools/test_layers.js && node tools/test_ingest.js && node tools/test_live.js && node tools/test_central.js && python3 tools/test_index.py && node tools/test_ui.js",
     "test:engine": "node tools/test_engine.js",
     "test:layers": "node tools/test_layers.js",
     "test:ingest": "node tools/test_ingest.js",
-    "test:dom": "node tools/test_dom.js",
     "test:live": "node tools/test_live.js",
-    "test:online": "node tools/test_online.js"
+    "test:ui": "node tools/test_ui.js"
   },
   "devDependencies": {
     "jsdom": "^24.1.3"
