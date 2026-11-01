@@ -41,7 +41,7 @@ window.ANV_MATRIX = [
     ["Search by image, audio, video, documents and voice", "partial", "Documents and PDFs are read fully. Images are catalogued (no offline OCR). Audio and video need a transcript. Voice input uses the browser's speech API when present."],
     ["Search within PDFs, books, papers and datasets", "live", "Client-side PDF, DOCX, PPTX, XLSX, ODT, CSV, JSON, HTML, Markdown and ZIP readers, all local."],
     ["Search by concept rather than exact terminology", "live", "A concept-only mode that ignores exact wording entirely and ranks by vector proximity."],
-    ["Across websites, databases and digital libraries", "partial", "170 curated sources plus anything you import. Continuous crawling is an adapter, not a claim."],
+    ["Across websites, databases and digital libraries", "live", "Fifteen live collections spanning encyclopaedias, knowledge graphs, scholarly indexes, books, archives, code, media, official statistics and instrument measurements, plus anything you import."],
     ["Personalised results without manipulating facts", "live", "Only ranking weights personalise; document text, figures and dates are never altered."],
     ["Customisable ranking", "live", "Six weights (lexical, semantic, authority, credibility, freshness, corrections) exposed as sliders and learnable."],
     ["Search history and research continuity", "live", "Local query log, projects, saved reading list and consent-gated research memory."],
@@ -67,19 +67,19 @@ window.ANV_MATRIX = [
     ["Open and exportable research history", "live", "One JSON export containing log, weights, corrections, versions, memory and failed hypotheses."],
     ["Transparent ranking algorithms", "live", "The scoring function is arithmetic you can read, with each factor's contribution shown."],
     ["Secure search", "partial", "No server means no server breach, and imported text is scanned for injection and rendered sanitised. This is a static page, not a hardened service."],
-    ["Open standards and interoperability", "partial", "JSON export with a versioned schema; no federation or OAI-PMH endpoint."],
+    ["Open standards and interoperability", "live", "Consumes the MediaWiki, Wikidata, OpenAlex, Crossref, Dublin-Core-style archive and CKAN-style dataset interfaces; exports everything as versioned JSON."],
     ["Adversarial and security protection", "partial", "Prompt-injection and poisoning heuristics on ingest, duplicate and circularity checks. Not a security product."]
   ]},
   { g: "F · Self-learning and self-updating", items: [
-    ["Continuously discover newly published information", "adapter", "Needs a crawler. The Import panel is the manual equivalent and takes effect immediately."],
-    ["Crawl new websites and databases", "adapter", "Crawler slot; blocked by the no-network design."],
-    ["Detect newly created research papers", "adapter", "Would need an arXiv/Crossref feed."],
-    ["Discover new books, patents and technical documents", "adapter", "Would need library and patent-office connectors."],
-    ["Monitor scientific discoveries", "adapter", "Feed-dependent."],
+    ["Continuously discover newly published information", "live", "Every query fetches the current state of fifteen open collections. There is no index to go stale because there is no index: the sources are asked fresh each time."],
+    ["Crawl new websites and databases", "partial", "Fifteen public APIs are crawled live (Wikipedia, Wikidata, OpenAlex, Crossref, Semantic Scholar, Open Library, Internet Archive, Wikisource, Stack Exchange, GitHub, Openverse, OpenStreetMap, Open-Meteo, USGS, World Bank). A general web crawler would need servers and a budget."],
+    ["Detect newly created research papers", "live", "OpenAlex, Crossref and Semantic Scholar are queried directly, so a paper published today is findable today."],
+    ["Discover new books, patents and technical documents", "partial", "Books and archival texts are live through Open Library and the Internet Archive. Patents have no free keyless API here."],
+    ["Monitor scientific discoveries", "live", "The scholarly adapters return current works with citation counts and retraction flags."],
     ["Identify newly emerging technologies", "live", "Emerging-term detector: a term's share of recent documents against its prior share."],
     ["Detect new concepts and terminology", "live", "Unseen words are embedded from character n-grams, so new terminology is searchable before it is known."],
     ["Discover previously unknown sources", "partial", "Import plus gap detection tells you what is missing; finding it is your step."],
-    ["Identify disappearing or inaccessible sources", "out", "Requires network link checks."],
+    ["Identify disappearing or inaccessible sources", "partial", "A source that stops answering is reported as failed per query, which is a live availability signal rather than a standing monitor."],
     ["Monitor changes in official records", "partial", "Content hashes and versions detect change when a document is re-imported; there is no polling."],
     ["Learn new concepts from reliable sources", "live", "Ingest rebuilds the index and the graph; reliability gates how much a new source can move."],
     ["Update outdated knowledge", "live", "Half-life flags plus re-verification on ingest; the old record is kept, not overwritten."],
@@ -102,7 +102,7 @@ window.ANV_MATRIX = [
     ["Re-evaluate conclusions when new evidence appears", "live", "Watchlist alerts re-run a question and report whether the top answer changed."],
     ["Maintain an audit trail of changes", "live", "Investigation traces, version snapshots and an append-only query ledger."],
     ["Automatically update the search index", "live", "Incremental rebuild on ingest, with a version snapshot each time."],
-    ["Detect broken links", "out", "Requires network access."],
+    ["Detect broken links", "partial", "Source-level failures are visible per query; individual link checking on every result would need a proxy and a budget."],
     ["Remove duplicate indexing", "live", "Duplicate refusal on ingest and near-duplicate grouping."],
     ["Identify low-quality information", "live", "Credibility score plus misinformation markers, shown per document."],
     ["Detect search-ranking failures", "live", "Zero-result rate, recent misses and a fixed evaluation battery."],
@@ -166,7 +166,7 @@ window.ANV_MATRIX = [
     ["Search satellite imagery and geographic change", "out", "Needs imagery and time-series rasters."],
     ["Search scientific observations in real time", "out", "Needs live instrument feeds."],
     ["Search across 3D models and digital twins", "out", "Needs 3D formats and a viewer."],
-    ["Search across different sensory modalities simultaneously", "out", "Depends on the four rows above."]
+    ["Search across different sensory modalities simultaneously", "partial", "Text, images, media metadata and live instrument measurements are searched in one query; audio and video content is not decoded."]
   ]},
   { g: "I · Thirty proposed innovations", items: [
     ["Knowledge DNA", "live", "Lineage of every claim: origin document, restatements, and how many restatements are independent."],
@@ -219,8 +219,8 @@ window.ANV_MATRIX = [
     ["Incremental learning without catastrophic forgetting", "live", "New documents are added; nothing is un-learned, and earlier states stay versioned."],
     ["Temporal, versioned knowledge graph", "live", "Edges rebuilt on ingest, snapshots retained."],
     ["Zero-trust security", "partial", "No server to trust and sanitised rendering; not a zero-trust deployment."],
-    ["Distributed availability and fault tolerance", "out", "A single static page has no distribution layer to fail over."],
-    ["Scale to billions of documents", "out", "This runs 170 documents plus imports in a browser tab."],
+    ["Distributed availability and fault tolerance", "partial", "There is no server to fail: the page is static and each source degrades independently, so one dead API costs one chip of results, not the search."],
+    ["Scale to billions of documents", "partial", "Federated access reaches collections with hundreds of millions of records (OpenAlex alone indexes 250M+ works) because each source does its own indexing. The engine never holds that index itself."],
     ["Auditable changes and human oversight", "live", "Traces, versions, rollback and printed weights."],
     ["Low-cost operation", "live", "Static hosting; the whole engine is one file with no per-query cost."],
     ["Longevity through open standards", "live", "No dependencies, no build toolchain at runtime, data exportable."]
@@ -236,5 +236,18 @@ window.ANV_MATRIX = [
     ["Protect against poisoned content", "partial", "Injection scanning, duplicate refusal and reliability gates on ingest."],
     ["Require extra verification for high-impact updates", "partial", "Ingest is refused as duplicate and versioned; there is no approval queue."],
     ["Allow human review and rollback", "live", "Every change is reversible and visible."]
-  ]}
+  ]},
+  { g: "M · Online operation (v5)", items: [
+    ["Public availability with no account", "live", "Static hosting on GitHub Pages; no sign-up, no key, no quota to buy. Open index.html or use the hosted URL."],
+    ["Zero-cost operation", "live", "Every source is a free public API. The only infrastructure is a static file host."],
+    ["No API keys anywhere", "live", "Fifteen adapters, none of which requires a credential. Verified by a test that greps the adapters for key patterns."],
+    ["Politeness and rate limits", "live", "Per-source minimum intervals, one retry, eight-second timeouts and a ten-minute cache, so a page that re-queries on every keystroke stays inside fair use."],
+    ["Honest failure reporting", "live", "A source that fails is shown as failed with its error; a query where everything fails says so instead of showing an empty page."],
+    ["Per-query semantic space", "live", "The corpus model cannot know the live web's vocabulary, so each result set gets its own LSA space: a tf-idf document matrix, a truncated SVD by power iteration, term vectors from MᵀU, and query expansion inside that space."],
+    ["Cross-source deduplication", "live", "Same URL or same title collapses to one result and is marked as found by several sources."],
+    ["Live evidence and verification", "live", "Credibility, contradiction detection and the investigator run on the fetched set, not only on the built-in library."],
+    ["Continuous discovery while the tab is open", "partial", "Watch re-runs a saved question and diffs the top source. There is no background worker: nothing runs unless the page is open."],
+    ["Ranking transparency for live results", "live", "Lexical, semantic, authority, recency and bonus contributions are shown per result, with the learned weights applied on top."],
+    ["Limits stated plainly", "live", "No general web crawl, no page-level link checking, no audio or video decoding, no billion-page index. Each is marked above with the reason."]
+  ]},
 ];

@@ -32,8 +32,16 @@
     if (!items || !items.length) return empty("nothing found");
     return '<ul class="v4-list">' + items.map(function (x) { return "<li>" + render(x) + "</li>"; }).join("") + "</ul>";
   }
-  function docs() { return root.DOCS || []; }
-  function index() { return root.INDEX; }
+  // In online mode the "corpus" is whatever the federation just returned, so the
+  // panels ask for the current set instead of the built-in library.
+  function docs() {
+    var o = v4.state.override;
+    return (o && o.docs && o.docs.length) ? o.docs : (root.DOCS || []);
+  }
+  function index() {
+    var o = v4.state.override;
+    return (o && o.index) ? o.index : root.INDEX;
+  }
 
   /* --------------------------------------------------------------- patches - */
   var legacySearch = root.search;

@@ -8,7 +8,8 @@ const path = require("path");
 const { JSDOM, VirtualConsole } = require("jsdom");
 
 const ROOT = path.resolve(__dirname, "..");
-const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+// this suite exercises the offline build; the online build has its own test
+const html = fs.readFileSync(path.join(ROOT, "offline.html"), "utf8");
 
 const errors = [];
 const vc = new VirtualConsole();
@@ -74,11 +75,14 @@ function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
   check("search patched to hybrid", w.search.toString().includes("hybrid"));
   check("v4 stylesheet present", !!d.getElementById("v4-style"));
   check("nav buttons added", !!d.getElementById("navDiscover") && !!d.getElementById("navAudit"));
-  for (let i = 0; i < 30 && !d.getElementById("navImport"); i++) await wait(200);
+  // the v3 nav is built in stages, each waiting on the async Merkle ledger, so
+  // poll for both buttons before asserting on them
+  for (let i = 0; i < 40 && !(d.getElementById("navImport") && d.getElementById("navCaps")); i++) await wait(200);
+  for (let i = 0; i < 20 && d.getElementById("navCaps") && d.getElementById("navCaps").textContent !== "Audit"; i++) await wait(200);
   const oldImp = d.getElementById("navImport");
-  check("legacy nav present", !!oldImp);
-  check("old import panel rebound", oldImp && oldImp.textContent === "Add files", oldImp && oldImp.textContent);
   const oldCaps = d.getElementById("navCaps");
+  check("legacy nav present", !!oldImp && !!oldCaps);
+  check("old import panel rebound", oldImp && oldImp.textContent === "Add files", oldImp && oldImp.textContent);
   check("old capability panel rebound", oldCaps && oldCaps.textContent === "Audit", oldCaps && oldCaps.textContent);
   check("no boot errors", errors.length === 0, errors.slice(0, 3).join(" | "));
 

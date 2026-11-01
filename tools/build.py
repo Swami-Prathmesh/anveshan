@@ -33,11 +33,20 @@ LAYERS = [
     ("src/engine/ui.js", "integration"),
 ]
 
-TITLE = "ANVESHAN - universal knowledge engine"
-DESC = ("ANVESHAN v4 is an offline, Indic-first research and discovery engine: a compiled semantic model "
-        "(PPMI + SVD embeddings) fused with BM25F, claim-level verification, contradiction detection, "
-        "ten discovery paradigms, an autonomous investigator, and a self-learning ranking loop. "
-        "170 indexed sources, Merkle provenance, zero network calls.")
+# The online build adds the live layers; the offline build stops at ui.js so the
+# same sources produce both artefacts.
+LIVE_LAYERS = [
+    ("src/engine/live.js", "live federation"),
+    ("src/engine/live-ui.js", "live interface"),
+]
+
+TITLE = "ANVESHAN - online knowledge engine"
+OFFLINE_TITLE = "ANVESHAN - offline knowledge engine"
+DESC = ("ANVESHAN v5 is a free, open-source online research engine: it queries fifteen keyless open APIs "
+        "(Wikipedia in twelve languages, Wikidata, OpenAlex, Crossref, Internet Archive, Open Library, Wikisource, "
+        "Stack Exchange, GitHub, Openverse, live weather and seismic measurements, World Bank) from your browser, "
+        "then applies semantic reranking, claim verification, contradiction detection, ten discovery paradigms, "
+        "an autonomous investigator and a self-learning ranking loop. No account, no tracking, no server.")
 
 
 def read(path):
@@ -45,7 +54,7 @@ def read(path):
         return f.read()
 
 
-def build():
+def build(target=OUT, live=True, title=None, desc=None):
     html = read(BASE)
     if "ANV_MATRIX" in html or "v4bar" in html:
         raise SystemExit("base file already contains a v4 build; rebuild from the pristine v3 file")
@@ -54,9 +63,9 @@ def build():
     style = '\n<style id="v4-style">\n' + css + "\n</style>\n"
 
     blocks = []
-    for path, label in LAYERS:
+    for path, label in (LAYERS + (LIVE_LAYERS if live else [])):
         code = read(path)
-        blocks.append("<!-- v4 layer: %s -->\n<script>\n%s\n</script>" % (label, code))
+        blocks.append("<!-- layer: %s -->\n<script>\n%s\n</script>" % (label, code))
     payload = "\n".join(blocks)
 
     # 1. stylesheet before </head>
@@ -65,25 +74,26 @@ def build():
     html = html.replace("</head>", style + "</head>", 1)
 
     # 2. title and description
-    html = re.sub(r"<title>.*?</title>", "<title>" + TITLE + "</title>", html, count=1, flags=re.S)
+    html = re.sub(r"<title>.*?</title>", "<title>" + (title or TITLE) + "</title>", html, count=1, flags=re.S)
     html = re.sub(r'<meta name="description" content=".*?">',
-                  '<meta name="description" content="' + DESC + '">', html, count=1, flags=re.S)
+                  '<meta name="description" content="' + (desc or DESC) + '">', html, count=1, flags=re.S)
 
     # 3. scripts before </body>
     if "</body>" not in html:
         raise SystemExit("no </body> in base file")
     html = html.replace("</body>", payload + "\n</body>", 1)
 
-    with open(OUT, "w", encoding="utf-8") as f:
+    with open(target, "w", encoding="utf-8") as f:
         f.write(html)
     size = len(html.encode("utf-8"))
-    print(f"wrote {OUT}: {size/1024:.0f} KB, {len(LAYERS)} v4 layers, base {len(read(BASE).encode())/1024:.0f} KB")
+    n = len(LAYERS) + (len(LIVE_LAYERS) if live else 0)
+    print(f"wrote {target}: {size/1024:.0f} KB, {n} layers, live={'yes' if live else 'no'}")
     return html
 
 
-def check_syntax():
+def check_syntax(target=OUT):
     """Every script block must parse. A build that does not parse is not a build."""
-    html = read(OUT)
+    html = read(target)
     blocks = re.findall(r"<script>(.*?)</script>", html, re.S)
     bad = 0
     for i, b in enumerate(blocks):
@@ -101,8 +111,12 @@ def check_syntax():
     return bad == 0
 
 
+OFFLINE_DESC = ("ANVESHAN offline: the same engine with no network at all - 170 curated sources, a compiled "
+                "semantic model, claim verification, ten discovery paradigms and a learning loop in one file.")
+
 if __name__ == "__main__":
-    build()
-    ok = check_syntax()
+    build("index.html", live=True)
+    build("offline.html", live=False, title=OFFLINE_TITLE, desc=OFFLINE_DESC)
+    ok = check_syntax("index.html") and check_syntax("offline.html")
     if "--check" in sys.argv and not ok:
         raise SystemExit(1)
