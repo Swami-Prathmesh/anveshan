@@ -1,0 +1,2397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ANVESHAN - India's sovereign research engine</title>
+<meta name="description" content="ANVESHAN is an offline-first, Indic-first research search engine built entirely on Indian digital public infrastructure concepts: BM25 plus vector retrieval, Merkle provenance ledger, extractive AI briefs with citations.">
+<meta name="theme-color" content="#05060c">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='none' stroke='%23ff9f43' stroke-width='6'/><circle cx='50' cy='50' r='14' fill='%2322c98b'/></svg>">
+<style>:root{
+  --bg:#05060c; --bg2:#0a0d18; --panel:rgba(16,20,34,.72); --panel2:rgba(22,27,44,.86);
+  --line:rgba(140,160,220,.14); --line2:rgba(140,160,220,.26);
+  --txt:#e8ecf7; --dim:#98a2bd; --dimmer:#6b7695;
+  --saffron:#ff9f43; --saffron2:#ffb86b; --green:#22c98b; --cyan:#4dd6ff; --violet:#8b7dff;
+  --red:#ff6b6b;
+  --r:14px; --r2:10px;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans","Noto Sans Devanagari",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--txt); font-family:var(--sans);
+  font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  min-height:100vh; overflow-x:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(900px 500px at 12% -8%, rgba(255,159,67,.16), transparent 60%),
+    radial-gradient(800px 520px at 88% 4%, rgba(34,201,139,.13), transparent 62%),
+    radial-gradient(1000px 700px at 50% 108%, rgba(139,125,255,.13), transparent 65%),
+    linear-gradient(180deg,#05060c,#070a14 40%,#05060c);
+}
+#grid{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.35;
+  background-image:linear-gradient(rgba(140,160,220,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(140,160,220,.055) 1px,transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 78%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 78%);
+}
+#aurora{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+.wrap{position:relative;z-index:2;max-width:1220px;margin:0 auto;padding:0 22px}
+
+/* ---------------- top bar ---------------- */
+header.top{
+  position:sticky;top:0;z-index:60;
+  backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);
+  background:linear-gradient(180deg,rgba(5,6,12,.92),rgba(5,6,12,.62));
+  border-bottom:1px solid var(--line);
+}
+.top-in{max-width:1220px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none}
+.mark{width:36px;height:36px;flex:0 0 36px;position:relative;display:grid;place-items:center}
+.mark svg{width:36px;height:36px;display:block}
+.brand-txt{display:flex;flex-direction:column;line-height:1.1}
+.brand-txt b{font-size:16.5px;letter-spacing:.16em;font-weight:700}
+.brand-txt span{font-size:9.5px;letter-spacing:.12em;color:var(--dimmer);text-transform:uppercase;margin-top:3px}
+nav.top-nav{display:flex;gap:5px;margin-left:auto;align-items:center}
+.nbtn{
+  background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--dim);
+  padding:7px 13px;border-radius:99px;font-size:12.5px;cursor:pointer;font-family:var(--sans);
+  transition:.18s;display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.nbtn:hover{color:var(--txt);border-color:var(--line2);background:rgba(255,255,255,.06)}
+.nbtn.on{color:#0a0d18;background:linear-gradient(135deg,var(--saffron),var(--saffron2));border-color:transparent;font-weight:650}
+.nbtn.accent{color:var(--cyan);border-color:rgba(77,214,255,.32)}
+.nbtn.accent:hover{background:rgba(77,214,255,.1)}
+.did{
+  font-family:var(--mono);font-size:10.5px;color:var(--green);border:1px solid rgba(34,201,139,.28);
+  background:rgba(34,201,139,.07);padding:5px 10px;border-radius:99px;display:flex;gap:7px;align-items:center;
+  max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;
+}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex:0 0 6px}
+
+/* ---------------- hero ---------------- */
+.hero{padding:64px 0 26px;text-align:center;position:relative}
+.hero h1{
+  font-size:clamp(38px,7.2vw,74px);line-height:.98;margin:0 0 6px;font-weight:800;letter-spacing:-.03em;
+  background:linear-gradient(120deg,#fff 6%,#ffd9a8 38%,#ff9f43 55%,#7ff0c4 78%,#4dd6ff 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero .deva{font-size:clamp(17px,2.6vw,24px);letter-spacing:.1em;color:rgba(255,159,67,.72);margin-bottom:20px;font-weight:500}
+.hero p.sub{color:var(--dim);max-width:660px;margin:0 auto 30px;font-size:14.5px;line-height:1.68}
+.hero p.sub b{color:var(--txt);font-weight:600}
+.flagline{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dimmer);border:1px solid var(--line);padding:5px 12px;border-radius:99px;margin-bottom:22px;background:rgba(255,255,255,.02)}
+.flagline i{width:22px;height:3px;border-radius:2px;display:block}
+.f1{background:#ff9933}.f2{background:#f5f5f5}.f3{background:#138808}
+
+/* ---------------- search field ---------------- */
+.searchwrap{position:relative;max-width:860px;margin:0 auto}
+.searchbox{
+  display:flex;align-items:center;gap:10px;padding:7px 8px 7px 20px;
+  background:linear-gradient(180deg,rgba(22,27,44,.95),rgba(13,17,29,.95));
+  border:1px solid var(--line2);border-radius:18px;
+  box-shadow:0 22px 60px -22px rgba(0,0,0,.9),0 0 0 1px rgba(255,159,67,.06),inset 0 1px 0 rgba(255,255,255,.05);
+  transition:.22s;
+}
+.searchbox:focus-within{border-color:rgba(255,159,67,.55);box-shadow:0 24px 70px -20px rgba(255,159,67,.28),0 0 0 1px rgba(255,159,67,.2)}
+.searchbox .ico{color:var(--saffron);flex:0 0 20px;display:grid;place-items:center}
+.searchbox input{
+  flex:1;background:none;border:0;outline:0;color:var(--txt);font-size:16px;font-family:var(--sans);
+  padding:13px 0;min-width:0;
+}
+.searchbox input::placeholder{color:var(--dimmer)}
+.kbd{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);border:1px solid var(--line);border-radius:5px;padding:2px 6px;background:rgba(255,255,255,.03)}
+.mic{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--dim);display:grid;place-items:center;cursor:pointer;transition:.18s;flex:0 0 38px}
+.mic:hover{color:var(--cyan);border-color:rgba(77,214,255,.4)}
+.mic.rec{color:var(--red);border-color:rgba(255,107,107,.5);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,107,107,.1)}}
+.go{
+  border:0;border-radius:12px;padding:12px 20px;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--sans);
+  background:linear-gradient(135deg,var(--saffron),#ff7a1a);color:#160c02;flex:0 0 auto;
+  box-shadow:0 8px 24px -10px rgba(255,159,67,.8);transition:.18s;
+}
+.go:hover{transform:translateY(-1px);box-shadow:0 12px 30px -10px rgba(255,159,67,.95)}
+
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:20px auto 0;max-width:820px}
+.chip{
+  font-size:12.5px;color:var(--dim);background:rgba(255,255,255,.03);border:1px solid var(--line);
+  padding:6px 13px;border-radius:99px;cursor:pointer;transition:.16s;font-family:var(--sans);
+}
+.chip:hover{color:var(--txt);border-color:var(--line2);background:rgba(255,255,255,.07);transform:translateY(-1px)}
+.chip.hot{color:var(--saffron);border-color:rgba(255,159,67,.3);background:rgba(255,159,67,.07)}
+
+.stats{display:flex;flex-wrap:wrap;gap:0;justify-content:center;margin:44px auto 0;max-width:900px;
+  border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.017);overflow:hidden}
+.stat{flex:1 1 140px;padding:15px 12px;text-align:center;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-size:19px;font-family:var(--mono);color:var(--txt);letter-spacing:-.02em}
+.stat span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
+
+/* ---------------- results shell ---------------- */
+main{padding-bottom:90px}
+.resbar{position:sticky;top:59px;z-index:50;padding:10px 0;background:linear-gradient(180deg,rgba(5,6,12,.96),rgba(5,6,12,.82));backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.resbar .inner{display:flex;gap:10px;align-items:center;max-width:1220px;margin:0 auto;padding:0 22px}
+.mini{flex:1;display:flex;align-items:center;gap:9px;background:rgba(22,27,44,.9);border:1px solid var(--line2);border-radius:12px;padding:0 14px}
+.mini input{flex:1;background:none;border:0;outline:0;color:var(--txt);font-size:14px;padding:11px 0;font-family:var(--sans);min-width:0}
+.mini .ico{color:var(--saffron)}
+.layout{display:grid;grid-template-columns:236px 1fr;gap:26px;padding-top:24px}
+aside.filters{position:sticky;top:132px;align-self:start;max-height:calc(100vh - 160px);overflow-y:auto;padding-right:6px}
+aside.filters::-webkit-scrollbar,.drawer-body::-webkit-scrollbar,.chat-body::-webkit-scrollbar,.panel-body::-webkit-scrollbar{width:6px}
+aside.filters::-webkit-scrollbar-thumb,.drawer-body::-webkit-scrollbar-thumb,.chat-body::-webkit-scrollbar-thumb,.panel-body::-webkit-scrollbar-thumb{background:rgba(140,160,220,.2);border-radius:9px}
+.fgroup{margin-bottom:22px}
+.fgroup h4{font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--dimmer);margin:0 0 9px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.fopt{display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--dim);transition:.14s;border:1px solid transparent}
+.fopt:hover{background:rgba(255,255,255,.04);color:var(--txt)}
+.fopt.on{background:rgba(255,159,67,.1);color:var(--saffron);border-color:rgba(255,159,67,.24)}
+.fopt .n{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--dimmer)}
+.fopt .sw{width:13px;height:13px;border-radius:4px;border:1px solid var(--line2);flex:0 0 13px;display:grid;place-items:center}
+.fopt.on .sw{background:var(--saffron);border-color:var(--saffron)}
+.fopt.on .sw::after{content:"";width:5px;height:5px;border-radius:1px;background:#160c02}
+
+/* brief card */
+.brief{
+  border:1px solid rgba(255,159,67,.22);border-radius:16px;padding:20px 22px;margin-bottom:20px;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,rgba(255,159,67,.09),rgba(20,25,40,.9) 46%,rgba(34,201,139,.05));
+}
+.brief::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--saffron),var(--green))}
+.brief-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.brief-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--saffron);font-weight:700;
+  border:1px solid rgba(255,159,67,.35);padding:3px 9px;border-radius:5px;background:rgba(255,159,67,.08)}
+.brief-model{font-family:var(--mono);font-size:10.5px;color:var(--dimmer)}
+.brief p{margin:0 0 12px;font-size:14.5px;line-height:1.75;color:#e4e9f6}
+.brief .cite{font-family:var(--mono);font-size:10.5px;color:var(--cyan);border:1px solid rgba(77,214,255,.3);
+  background:rgba(77,214,255,.08);border-radius:4px;padding:0 5px;margin-left:2px;cursor:pointer;vertical-align:super;line-height:1.4}
+.brief .cite:hover{background:rgba(77,214,255,.2)}
+.conf{display:flex;align-items:center;gap:9px;font-size:11px;color:var(--dimmer);font-family:var(--mono);flex-wrap:wrap}
+.confbar{width:110px;height:4px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.confbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--saffron),var(--green))}
+.brief-acts{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+
+/* toolbar */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.count{font-size:12.5px;color:var(--dim)}
+.count b{color:var(--txt);font-family:var(--mono)}
+.seg{display:flex;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:9px;padding:2px;margin-left:auto}
+.seg button{background:none;border:0;color:var(--dim);font-size:11.5px;padding:5px 10px;border-radius:7px;cursor:pointer;font-family:var(--sans);transition:.14s}
+.seg button.on{background:rgba(255,159,67,.16);color:var(--saffron)}
+select.sel{background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--dim);border-radius:9px;
+  padding:6px 9px;font-size:11.5px;font-family:var(--sans);outline:0;cursor:pointer}
+
+/* result cards */
+.card{
+  border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-bottom:11px;cursor:pointer;
+  background:linear-gradient(170deg,rgba(20,25,40,.6),rgba(12,16,27,.6));transition:.16s;position:relative;overflow:hidden;
+}
+.card:hover{border-color:rgba(255,159,67,.34);background:linear-gradient(170deg,rgba(28,34,52,.8),rgba(14,18,30,.8));transform:translateX(2px)}
+.card.sel{border-color:rgba(77,214,255,.5)}
+.card-h{display:flex;gap:8px;align-items:center;margin-bottom:7px;flex-wrap:wrap}
+.tbadge{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;padding:2.5px 7px;border-radius:5px;font-weight:650;
+  border:1px solid;background:rgba(255,255,255,.03)}
+.t-policy{color:#ffb86b;border-color:rgba(255,184,107,.34);background:rgba(255,184,107,.08)}
+.t-press{color:#7fd6ff;border-color:rgba(127,214,255,.32);background:rgba(127,214,255,.08)}
+.t-report{color:#8de6b8;border-color:rgba(141,230,184,.32);background:rgba(141,230,184,.08)}
+.t-paper{color:#b3a5ff;border-color:rgba(179,165,255,.34);background:rgba(179,165,255,.08)}
+.t-standard{color:#ffd166;border-color:rgba(255,209,102,.32);background:rgba(255,209,102,.08)}
+.t-dataset{color:#ff9ecd;border-color:rgba(255,158,205,.32);background:rgba(255,158,205,.08)}
+.t-model{color:#9be7ff;border-color:rgba(155,231,255,.32);background:rgba(155,231,255,.08)}
+.t-api{color:#c7d2fe;border-color:rgba(199,210,254,.3);background:rgba(199,210,254,.07)}
+.t-scheme{color:#fca5a5;border-color:rgba(252,165,165,.3);background:rgba(252,165,165,.07)}
+.t-dashboard{color:#a7f3d0;border-color:rgba(167,243,208,.3);background:rgba(167,243,208,.07)}
+.card h3{margin:0 0 6px;font-size:15.5px;font-weight:640;line-height:1.42;letter-spacing:-.01em;color:#eef2fb}
+.card .meta{font-size:11.5px;color:var(--dimmer);display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.card .meta .sep{opacity:.4}
+.card .snip{font-size:13px;color:#b9c2d8;line-height:1.66;margin:0 0 10px}
+mark{background:rgba(255,159,67,.24);color:#ffe0bd;border-radius:3px;padding:0 2px}
+.card-f{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.hashpill{font-family:var(--mono);font-size:10px;color:var(--green);border:1px solid rgba(34,201,139,.24);
+  background:rgba(34,201,139,.06);padding:2px 7px;border-radius:5px;display:flex;gap:5px;align-items:center}
+.mini-act{margin-left:auto;display:flex;gap:5px}
+.iact{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--dim);border-radius:7px;
+  padding:3px 8px;font-size:10.5px;cursor:pointer;font-family:var(--sans);transition:.14s}
+.iact:hover{color:var(--txt);border-color:var(--line2);background:rgba(255,255,255,.09)}
+
+.type-head{display:flex;align-items:center;gap:10px;margin:24px 0 10px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.type-head::after{content:"";flex:1;height:1px;background:var(--line)}
+
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tbl th{text-align:left;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dimmer);
+  padding:8px 10px;border-bottom:1px solid var(--line2);font-weight:600;position:sticky;top:0;background:rgba(8,11,20,.96)}
+table.tbl td{padding:9px 10px;border-bottom:1px solid rgba(140,160,220,.08);color:#c3cbdf;vertical-align:top}
+table.tbl tr:hover td{background:rgba(255,255,255,.03);cursor:pointer}
+table.tbl td.mono{font-family:var(--mono);font-size:11px;color:var(--dimmer)}
+
+/* empty */
+.empty{text-align:center;padding:60px 20px;color:var(--dim)}
+.empty h3{font-size:17px;color:var(--txt);margin:0 0 8px}
+.empty p{font-size:13.5px;max-width:440px;margin:0 auto 18px}
+
+/* ---------------- drawer ---------------- */
+.scrim{position:fixed;inset:0;background:rgba(3,5,10,.72);backdrop-filter:blur(3px);z-index:80;opacity:0;pointer-events:none;transition:.22s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;width:min(620px,94vw);z-index:90;transform:translateX(102%);transition:transform .28s cubic-bezier(.22,1,.36,1);
+  background:linear-gradient(180deg,#0a0e1a,#070a13);border-left:1px solid var(--line2);display:flex;flex-direction:column;
+  box-shadow:-30px 0 80px -20px rgba(0,0,0,.9);
+}
+.drawer.on{transform:none}
+.drawer-h{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.drawer-h h2{margin:0;font-size:17px;line-height:1.4;font-weight:650;flex:1}
+.x{background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--dim);width:30px;height:30px;border-radius:9px;cursor:pointer;flex:0 0 30px;font-size:15px;line-height:1}
+.x:hover{color:var(--txt);border-color:var(--line2)}
+.drawer-body{padding:20px 22px 40px;overflow-y:auto;flex:1}
+.kv{display:grid;grid-template-columns:112px 1fr;gap:7px 12px;font-size:12.5px;margin-bottom:18px}
+.kv dt{color:var(--dimmer);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.kv dd{margin:0;color:#cfd7e8}
+.doc-body{font-size:14px;line-height:1.82;color:#ccd4e6;margin:0 0 22px;white-space:pre-wrap}
+.proofbox{border:1px solid rgba(34,201,139,.24);background:rgba(34,201,139,.05);border-radius:12px;padding:14px 16px;margin-bottom:18px}
+.proofbox h4{margin:0 0 10px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--green)}
+.mono-line{font-family:var(--mono);font-size:10.5px;color:#93a0bd;word-break:break-all;line-height:1.7;margin:4px 0}
+.verdict{font-size:12px;padding:6px 10px;border-radius:8px;display:inline-flex;gap:7px;align-items:center;margin-top:8px}
+.verdict.ok{color:var(--green);background:rgba(34,201,139,.1);border:1px solid rgba(34,201,139,.3)}
+.verdict.bad{color:var(--red);background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3)}
+
+/* ---------------- chat ---------------- */
+.chat{
+  position:fixed;right:22px;bottom:22px;width:min(430px,calc(100vw - 32px));height:min(640px,calc(100vh - 120px));
+  z-index:95;display:flex;flex-direction:column;border-radius:18px;overflow:hidden;
+  background:linear-gradient(180deg,#0b0f1c,#080b14);border:1px solid var(--line2);
+  box-shadow:0 40px 100px -30px rgba(0,0,0,.95),0 0 0 1px rgba(255,159,67,.08);
+  transform:translateY(20px) scale(.97);opacity:0;pointer-events:none;transition:.24s;
+}
+.chat.on{transform:none;opacity:1;pointer-events:auto}
+.chat-h{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;background:rgba(255,159,67,.05)}
+.avatar{width:31px;height:31px;border-radius:10px;background:linear-gradient(135deg,var(--saffron),var(--green));display:grid;place-items:center;font-weight:800;font-size:13px;color:#0a0d18;flex:0 0 31px}
+.chat-h b{font-size:13.5px;display:block;line-height:1.2}
+.chat-h span{font-size:10px;color:var(--green);font-family:var(--mono);display:flex;align-items:center;gap:5px}
+.chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:13px}
+.msg{max-width:90%;font-size:13px;line-height:1.68;padding:11px 14px;border-radius:14px;white-space:pre-wrap;word-break:break-word}
+.msg.bot{background:rgba(255,255,255,.045);border:1px solid var(--line);border-bottom-left-radius:5px;color:#dbe2f0}
+.msg.user{background:linear-gradient(135deg,rgba(255,159,67,.9),rgba(255,122,26,.9));color:#160c02;align-self:flex-end;border-bottom-right-radius:5px;font-weight:500}
+.msg .srcs{margin-top:9px;padding-top:9px;border-top:1px solid rgba(140,160,220,.15);font-size:11px;color:var(--dimmer)}
+.msg .srcs div{margin:3px 0;cursor:pointer}
+.msg .srcs div:hover{color:var(--cyan)}
+.chips-row{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px}
+.chips-row .chip{font-size:11px;padding:5px 10px}
+.chat-in{display:flex;gap:8px;padding:11px 13px;border-top:1px solid var(--line);background:rgba(255,255,255,.02)}
+.chat-in input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;
+  color:var(--txt);padding:9px 12px;font-size:13px;outline:0;font-family:var(--sans);min-width:0}
+.chat-in input:focus{border-color:rgba(255,159,67,.45)}
+.send{background:linear-gradient(135deg,var(--saffron),#ff7a1a);border:0;color:#160c02;width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:15px;flex:0 0 36px}
+.typing{display:flex;gap:4px;padding:13px 15px;align-items:center}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--saffron);animation:bounce 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+/* ---------------- big panel (stack / ledger / settings) ---------------- */
+.panel{
+  position:fixed;inset:0;z-index:88;display:none;overflow:hidden;background:rgba(4,6,12,.96);backdrop-filter:blur(8px);
+}
+.panel.on{display:block}
+.panel-in{max-width:1000px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+.panel-h{padding:20px 26px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.panel-h h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em}
+.panel-h p{margin:2px 0 0;font-size:12px;color:var(--dimmer)}
+.panel-body{padding:24px 26px 60px;overflow-y:auto;flex:1}
+.sec{margin-bottom:30px}
+.sec h3{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--saffron);margin:0 0 12px;font-weight:700}
+.sec p{font-size:13.5px;line-height:1.75;color:#b9c2d8;margin:0 0 11px}
+.sec p b{color:var(--txt)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:rgba(255,255,255,.02)}
+.tile h4{margin:0 0 6px;font-size:13px;color:var(--txt);display:flex;gap:7px;align-items:center}
+.tile p{margin:0;font-size:12px;color:var(--dim);line-height:1.65}
+.tile .tag{font-family:var(--mono);font-size:9.5px;color:var(--green);border:1px solid rgba(34,201,139,.25);padding:1px 6px;border-radius:4px}
+.flow{display:flex;flex-direction:column;gap:7px;margin:14px 0}
+.flow-row{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:rgba(255,255,255,.02);font-size:12.5px}
+.flow-row .idx{font-family:var(--mono);font-size:10px;color:var(--saffron);border:1px solid rgba(255,159,67,.3);border-radius:5px;padding:1px 6px;flex:0 0 auto}
+.flow-row .who{margin-left:auto;font-size:10.5px;color:var(--dimmer);font-family:var(--mono);text-align:right}
+.ledger-tbl{width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--mono)}
+.ledger-tbl td,.ledger-tbl th{padding:7px 8px;border-bottom:1px solid rgba(140,160,220,.09);text-align:left}
+.ledger-tbl th{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dimmer);font-family:var(--sans)}
+.ledger-tbl td{color:#9fabca;word-break:break-all}
+.bigroot{font-family:var(--mono);font-size:12px;color:var(--green);word-break:break-all;background:rgba(34,201,139,.06);
+  border:1px solid rgba(34,201,139,.22);border-radius:10px;padding:12px 14px;line-height:1.7}
+.warn{border:1px solid rgba(255,209,102,.28);background:rgba(255,209,102,.06);border-radius:10px;padding:12px 14px;font-size:12.5px;color:#e8d9a8;line-height:1.7}
+.warn b{color:#ffd166}
+input.txt,textarea.txt{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:9px;
+  color:var(--txt);padding:9px 11px;font-size:12.5px;outline:0;font-family:var(--sans);margin-bottom:9px}
+input.txt:focus,textarea.txt:focus{border-color:rgba(255,159,67,.45)}
+label.lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dimmer);display:block;margin-bottom:5px}
+.switch{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--dim);cursor:pointer;margin-bottom:12px}
+.track{width:38px;height:21px;border-radius:99px;background:rgba(255,255,255,.1);position:relative;transition:.18s;flex:0 0 38px}
+.track::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#8b94ad;transition:.18s}
+.switch.on .track{background:rgba(34,201,139,.32)}
+.switch.on .track::after{left:19px;background:var(--green)}
+
+/* command palette */
+.cmdk{position:fixed;inset:0;z-index:99;display:none;background:rgba(3,5,10,.75);backdrop-filter:blur(5px);padding-top:14vh}
+.cmdk.on{display:block}
+.cmdk-in{max-width:560px;margin:0 auto;background:#0b0f1c;border:1px solid var(--line2);border-radius:14px;overflow:hidden;box-shadow:0 40px 100px -30px #000}
+.cmdk-in input{width:100%;background:none;border:0;border-bottom:1px solid var(--line);color:var(--txt);padding:15px 18px;font-size:15px;outline:0;font-family:var(--sans)}
+.cmdk-list{max-height:340px;overflow-y:auto;padding:6px}
+.cmdk-item{padding:9px 13px;border-radius:8px;font-size:13px;color:var(--dim);cursor:pointer;display:flex;gap:10px;align-items:center}
+.cmdk-item:hover,.cmdk-item.on{background:rgba(255,159,67,.12);color:var(--txt)}
+.cmdk-item span.k{font-family:var(--mono);font-size:10px;color:var(--dimmer);margin-left:auto}
+
+/* toast */
+#toasts{position:fixed;bottom:22px;left:22px;z-index:120;display:flex;flex-direction:column;gap:8px}
+.toast{background:rgba(20,26,42,.97);border:1px solid var(--line2);border-left:2px solid var(--green);
+  padding:10px 15px;border-radius:9px;font-size:12.5px;color:var(--txt);box-shadow:0 18px 40px -14px #000;
+  animation:slidein .22s ease-out;max-width:340px}
+@keyframes slidein{from{transform:translateX(-16px);opacity:0}}
+
+/* fab */
+.fab{position:fixed;right:22px;bottom:22px;z-index:94;width:54px;height:54px;border-radius:16px;border:1px solid rgba(255,159,67,.4);
+  background:linear-gradient(135deg,#ff9f43,#ff7a1a);color:#160c02;font-size:21px;cursor:pointer;display:grid;place-items:center;
+  box-shadow:0 16px 40px -12px rgba(255,159,67,.8);transition:.2s}
+.fab:hover{transform:translateY(-2px) scale(1.03)}
+.fab.hide{opacity:0;pointer-events:none;transform:scale(.8)}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  aside.filters{position:static;max-height:none;display:none}
+  aside.filters.show{display:block;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+  .grid2{grid-template-columns:1fr}
+  .did{display:none}
+  nav.top-nav .lbl-txt{display:none}
+  .nbtn{padding:7px 10px}
+  .hero{padding:40px 0 20px}
+  .resbar{top:56px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="grid"></div>
+<canvas id="aurora" aria-hidden="true"></canvas>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand" onclick="goHome()" title="ANVESHAN home">
+      <div class="mark">
+        <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="17.5" stroke="url(#g1)" stroke-width="1.6"/>
+          <circle cx="20" cy="20" r="11" stroke="rgba(255,159,67,.55)" stroke-width="1"/>
+          <circle cx="20" cy="20" r="4.2" fill="#22c98b"/>
+          <g stroke="rgba(77,214,255,.75)" stroke-width="1.2">
+            <line x1="20" y1="2.5" x2="20" y2="9"/><line x1="20" y1="31" x2="20" y2="37.5"/>
+            <line x1="2.5" y1="20" x2="9" y2="20"/><line x1="31" y1="20" x2="37.5" y2="20"/>
+          </g>
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="40" y2="40">
+            <stop stop-color="#ff9f43"/><stop offset=".55" stop-color="#f5f5f5"/><stop offset="1" stop-color="#22c98b"/>
+          </linearGradient></defs>
+        </svg>
+      </div>
+      <div class="brand-txt"><b>ANVESHAN</b><span>अन्वेषण &middot; sovereign search</span></div>
+    </div>
+    <nav class="top-nav">
+      <button class="nbtn" onclick="openPanel('stack')" title="India-only technology stack">Stack</button>
+      <button class="nbtn" onclick="openPanel('ledger')" title="Provenance ledger">Ledger</button>
+      <button class="nbtn" onclick="openPanel('saved')" title="Reading list">Saved</button>
+      <button class="nbtn accent" onclick="openPanel('settings')" title="Settings">Settings</button>
+      <button class="nbtn on" onclick="toggleChat()" title="Pragya AI agent">Pragya AI</button>
+      <div class="did" id="didChip" title="Your decentralised identifier, generated on this device"><span class="dot"></span><span id="didText">did:anveshan:...</span></div>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap" id="stage">
+  <section class="hero" id="hero">
+    <div class="flagline"><i class="f1"></i><i class="f2"></i><i class="f3"></i><span>Built in India &middot; runs on your device</span></div>
+    <h1>ANVESHAN</h1>
+    <div class="deva">अन्वेषण</div>
+    <p class="sub">A research engine for <b>Indian public knowledge</b>. Every answer is quoted from a source document,
+    every document carries a <b>SHA-256 Merkle proof</b>, and <b>nothing you type leaves this device</b>.
+    No cloud. No tracking. No foreign API. Free and unlimited by construction.</p>
+
+    <div class="searchwrap">
+      <div class="searchbox">
+        <span class="ico" aria-hidden="true">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+        </span>
+        <label class="sr" for="q">Search the index</label>
+        <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Ask anything: UPI scale, Bhashini languages, Vishvasya, IndiaAI GPUs...">
+        <span class="kbd">/</span>
+        <button class="mic" id="mic" title="Voice query (uses your device's speech engine)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+        </button>
+        <button class="go" onclick="runSearch(document.getElementById('q').value)">Search</button>
+      </div>
+      <div class="hero-chips" id="heroChips"></div>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="stat"><b id="stDocs">-</b><span>documents indexed</span></div>
+      <div class="stat"><b id="stTerms">-</b><span>unique terms</span></div>
+      <div class="stat"><b id="stRoot">-</b><span>merkle root</span></div>
+      <div class="stat"><b id="stNet">0</b><span>network calls</span></div>
+    </div>
+  </section>
+
+  <section id="results" style="display:none"></section>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeAll()"></div>
+
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-h">
+    <h2 id="dTitle">Document</h2>
+    <button class="x" onclick="closeDrawer()" aria-label="Close">&times;</button>
+  </div>
+  <div class="drawer-body" id="dBody"></div>
+</aside>
+
+<div class="chat" id="chat" aria-hidden="true">
+  <div class="chat-h">
+    <div class="avatar">प्र</div>
+    <div style="flex:1">
+      <b>Pragya</b>
+      <span><span class="dot"></span><span id="chatMode">on-device &middot; extractive &middot; cited</span></span>
+    </div>
+    <button class="x" onclick="toggleChat(false)" aria-label="Close">&times;</button>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chips-row" id="chatChips"></div>
+  <div class="chat-in">
+    <input id="chatIn" placeholder="Ask Pragya about the index..." autocomplete="off">
+    <button class="send" onclick="sendChat()" aria-label="Send">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="panel" id="panel" role="dialog" aria-modal="true">
+  <div class="panel-in">
+    <div class="panel-h">
+      <div style="flex:1"><h2 id="panelTitle">Panel</h2><p id="panelSub"></p></div>
+      <button class="x" onclick="closePanel()" aria-label="Close">&times;</button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+</div>
+
+<div class="cmdk" id="cmdk">
+  <div class="cmdk-in">
+    <input id="cmdkIn" placeholder="Jump to a query, panel or action..." autocomplete="off">
+    <div class="cmdk-list" id="cmdkList"></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<button class="fab" id="fab" onclick="toggleChat()" title="Ask Pragya" aria-label="Ask Pragya">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 01-8 8H8l-5 3 1.5-5A8 8 0 1121 12z"/></svg>
+</button>
+
+<script>/* ANVESHAN index corpus - real, sourced documents about India-built digital and AI infrastructure.
+   Every record cites its issuing body and a public URL. Bodies are condensed summaries written for retrieval,
+   not verbatim reproductions. */
+const DOCS = [
+{
+ id: "d01", t: "IndiaAI Mission: seven pillars, Rs 10,372 crore outlay and the national AI stack",
+ s: "Press Information Bureau", o: "MeitY", ty: "policy", y: 2026, d: "2026-02-13",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2227612", l: "en", a: 5,
+ k: ["indiaai", "mission", "policy", "compute", "foundation models", "governance", "aikosh"],
+ b: "The IndiaAI Mission was launched in March 2024 with an outlay of Rs 10,372 crore to build an end-to-end sovereign AI ecosystem. It is organised around seven pillars: compute capacity, foundation models, datasets through the AIKosh platform, AI applications, FutureSkills talent programmes, safe and trusted AI, and startup financing. Within roughly two years the mission onboarded more than 38 thousand GPUs for a common compute facility offered to Indian startups and academia at subsidised rates, shortlisted twelve organisations to build indigenous large and small language models, approved thirty India-specific AI applications, established twenty seven India Data and AI labs with 543 more identified, and began supporting thousands of students from undergraduate to PhD level. The design principle is a shared national compute pool rather than duplicated captive capacity."
+},
+{
+ id: "d02", t: "IndiaAI compute capacity: 38,231 GPUs from 14 empanelled providers at about Rs 65 per GPU hour",
+ s: "Press Information Bureau", o: "MeitY / IndiaAI", ty: "dashboard", y: 2026, d: "2026-03-25",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2245063", l: "en", a: 5,
+ k: ["compute", "gpu", "h100", "h200", "subsidy", "data centre", "indiaai"],
+ b: "As on March 2026 the IndiaAI Mission had onboarded 38,231 GPUs from 14 empanelled AI service providers under the IndiaAI Compute Capacity framework. Eligible users include startups, MSMEs, researchers, academic institutions, students and government entities, who request capacity through the IndiaAI Compute Portal. The average subsidised rate is approximately Rs 65 per GPU per hour, with select high-end GPUs priced higher. Empanelled providers supply storage, networking and AI platform services alongside raw compute. Data centres hosting the capacity are distributed across Mumbai, Navi Mumbai, Hyderabad, Bengaluru, Noida and Jamnagar. A further 20,000 GPUs are in the process of being added. The subsidy model is deliberate: it lowers the entry cost of training and inference for Indian builders instead of subsidising foreign cloud spend."
+},
+{
+ id: "d03", t: "Sarvam-105B model card: 105B parameter MoE, 128K context, Apache 2.0, Indian language native",
+ s: "Sarvam AI documentation", o: "Sarvam AI", ty: "model", y: 2026, d: "2026-04-02",
+ u: "https://docs.sarvam.ai/api/getting-started/models/sarvam-105b", l: "en", a: 4,
+ k: ["sarvam", "llm", "105b", "moe", "indic", "chat completions", "api", "reasoning"],
+ b: "Sarvam-105B is a flagship chat model with a mixture-of-experts architecture and 128 sparse experts using multi-head latent attention, pre-trained on 12 trillion tokens and released under Apache 2.0. It supports a 128,000 token context window and is exposed through an OpenAI-compatible chat completions endpoint. A conversational sibling, sarvam-105b-conversations, is post-trained for real-time dialogue and voice agents with a 32,000 token window. The model targets the ten most spoken Indian languages plus English, accepting native script, romanised and code-mixed input. Its positioning is complex reasoning, code generation, long-context document analysis and agentic tool use. The earlier Sarvam-M 24B model has been deprecated in favour of the 105B line. Pricing is quoted in rupees per million tokens, which keeps cost accounting in the domestic currency."
+},
+{
+ id: "d04", t: "Sarvam-30B and Sarvam-105B unveiled at the India AI Impact Summit 2026, trained entirely in India",
+ s: "ETV Bharat", o: "Sarvam AI", ty: "press", y: 2026, d: "2026-02-20",
+ u: "https://www.etvbharat.com/en/technology/sarvam-ai-and-bharatgen-unveil-their-latest-ai-models-at-the-india-ai-impact-summit-2026-enn26022006144", l: "en", a: 3,
+ k: ["sarvam", "impact summit", "30b", "105b", "indic", "benchmark"],
+ b: "At the India AI Impact Summit 2026 in Hyderabad, Sarvam AI released Sarvam-30B and Sarvam-105B, both trained in India. The 30B model uses a mixture-of-experts design pre-trained on 16 trillion tokens with a 32,000 token context window and one billion activated parameters, aimed at low-latency conversational workloads, and is benchmarked against open models of similar size. The 105B model carries nine billion active parameters and a 128,000 token context window for long-form reasoning, coding and Indian language processing. BharatGen used the same event to unveil Param2, a 17B mixture-of-experts model built on an NVIDIA training stack and optimised for Indic languages across governance, education, healthcare and agriculture. BharatGen stated that its models and tooling would be open-sourced on Hugging Face."
+},
+{
+ id: "d05", t: "BharatGen Param2 17B MoE: India's flagship sovereign multilingual model from the IIT Bombay consortium",
+ s: "Press Information Bureau", o: "BharatGen / IIT Bombay", ty: "model", y: 2026, d: "2026-04-01",
+ u: "https://sansad.in/getFile/lsapps/loksabhaquestions/annex/187/AU6044_lZOsLn.pdf", l: "en", a: 5,
+ k: ["bharatgen", "param2", "iit bombay", "sovereign", "multilingual", "moe"],
+ b: "BharatGen is an IIT Bombay led consortium supported under the IndiaAI foundation model pillar to build multilingual and multimodal models ranging from 2 billion to 1 trillion parameters on an open-source basis. Its Param2 model is a 17 billion parameter mixture-of-experts system optimised for multiple Indic languages and aimed at governance, education, healthcare, agriculture and enterprise use. The government describes BharatGen as having developed the Param2 model with a strong Indic benchmark showing, and both BharatGen and Sarvam models are now listed on the AIKosh platform so that other startups and researchers can build on them. The consortium's stated intent is to keep models and tooling open rather than gated, so that Indian language capability is not rented from abroad."
+},
+{
+ id: "d06", t: "Twelve organisations selected to build India's foundation models: the full cohort",
+ s: "Sansad / Lok Sabha question 6044", o: "MeitY", ty: "policy", y: 2026, d: "2026-04-01",
+ u: "https://sansad.in/getFile/lsapps/loksabhaquestions/annex/187/AU6044_lZOsLn.pdf", l: "en", a: 5,
+ k: ["foundation models", "cohort", "sarvam", "soket", "gnani", "gan ai", "avataar", "fractal", "tech mahindra", "zenteiq", "genloop", "shodh"],
+ b: "Under the IndiaAI Innovation Centre foundation models pillar, twelve organisations and consortia were selected from 506 proposals. They are Sarvam AI building an open-source 120 billion parameter model for governance use cases; Soket AI with a 120 billion parameter multilingual model for defence, healthcare and education; Gnani AI with a 14 billion parameter voice model; Gan AI with a 70 billion parameter multilingual model targeting text to speech; Avataar AI with domain AI avatars up to 70 billion parameters; the IIT Bombay consortium BharatGen spanning 2 billion to 1 trillion parameters; Fractal Analytics with a 70 billion parameter reasoning model; Tech Mahindra Maker's Lab with an 8 billion parameter Indic model and an agentic platform named Orion; Zenteiq with the BrahmAI science model; GenLoop with 2 billion parameter Yukti, Varta and Kavach small models covering all 22 scheduled languages; Intellihealth with a 20 billion parameter EEG model; and Shodh AI with a 7 billion parameter materials discovery model. The models are trained on datasets spanning all 22 scheduled Indian languages."
+},
+{
+ id: "d07", t: "AIKosh: controlled access to India-based datasets and sovereign model tryouts",
+ s: "IndiaAI", o: "MeitY / IndiaAI", ty: "dataset", y: 2026, d: "2026-03-10",
+ u: "https://aikosh.indiaai.gov.in/", l: "en", a: 4,
+ k: ["aikosh", "datasets", "data governance", "model tryout", "indic trans2"],
+ b: "AIKosh is the IndiaAI Mission platform for controlled and secure access to India-based datasets, intended to support data governance, privacy protection and responsible data use. It hosts dataset collections contributed by government departments and research institutions, and provides model tryout pages so developers can test sovereign models before integrating them. Sarvam and BharatGen models were made available on AIKosh for the developer community following their 2026 launch. IndicTrans2, the AI4Bharat translation model for 22 scheduled languages, is published on the platform with a tryout interface. For a search or research product, AIKosh is the sanctioned route to Indian-language training data and to on-platform inference without sending citizen data to foreign clouds."
+},
+{
+ id: "d08", t: "India AI Governance Guidelines: the seven sutras and what they require of a search or AI system",
+ s: "Principal Scientific Adviser to the Government of India", o: "MeitY / PSA", ty: "standard", y: 2025, d: "2025-11-05",
+ u: "https://psa.gov.in/CMS/web/sites/default/files/publication/India%20Al%20Governance%20Guidelines%205%C2%A0Nov%C2%A02025.pdf", l: "en", a: 5,
+ k: ["ai governance", "sutras", "trust", "people first", "fairness", "accountability", "understandable by design", "safety"],
+ b: "The India AI Governance Guidelines, drafted by a MeitY committee constituted in July 2025 and released in November 2025, set out seven sutras adapted from the RBI FREE-AI committee report: Trust is the Foundation; People First; Innovation over Restraint; Fairness and Equity; Accountability; Understandable by Design; and Safety, Resilience and Sustainability. The framework is principle-based and technology neutral, recommends building on existing laws rather than a new statute, and proposes institutions including an AI Governance Group, a Technology and Policy Expert Committee and an AI Safety Institute. For builders, the operative requirements are disclosure of how a system reaches an answer, visible accountability for outputs, avoidance of bias against marginalised groups, human oversight in sensitive domains, and preference for lightweight resource-efficient models."
+},
+{
+ id: "d09", t: "AI Safety Institute, AI Governance Group and Technology and Policy Expert Committee explained",
+ s: "Press Information Bureau", o: "MeitY", ty: "policy", y: 2026, d: "2026-02-15",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2228315", l: "en", a: 5,
+ k: ["ai safety institute", "aigg", "tpec", "institutions", "risk", "deepfake"],
+ b: "The India AI Governance Guidelines recommend three new national institutions. The AI Governance Group provides strategic coordination across ministries; the Technology and Policy Expert Committee supplies expert advisory input; and the AI Safety Institute carries out technical validation and safety research, including testing for deepfake detection and content provenance. The guidelines also recommend an India-specific AI risk assessment and classification framework focused on vulnerable groups, a national federated AI incident reporting mechanism, proportionate voluntary risk mitigation through standards and audits, and mandatory human oversight in sensitive and critical sectors. Existing bodies retain enforcement roles, including CERT-In for cyber incidents, the Indian Cyber Crime Coordination Centre, the National Critical Information Infrastructure Protection Centre and the Data Protection Board under the DPDP Act."
+},
+{
+ id: "d10", t: "Digital Personal Data Protection Act 2023: consent, purpose limitation and what it means for indexing",
+ s: "MeitY", o: "MeitY", ty: "standard", y: 2023, d: "2023-08-11",
+ u: "https://www.meity.gov.in/data-protection-framework", l: "en", a: 5,
+ k: ["dpdp", "privacy", "consent", "data fiduciary", "personal data", "significant data fiduciary"],
+ b: "The Digital Personal Data Protection Act 2023 governs the collection and processing of digital personal data in India. It requires consent or a specified legitimate use for processing, limits use to the stated purpose, mandates data minimisation and accuracy, and creates obligations for data fiduciaries including security safeguards and breach notification. Significant data fiduciaries carry additional duties such as impact assessment and appointment of a data protection officer. The Act establishes the Data Protection Board of India as the enforcement body. For any search or retrieval product the practical consequences are: do not index personal data without a lawful basis, honour erasure requests, keep processing local where possible, and disclose in plain language what is stored. Consent managers under the account aggregator model are the recognised mechanism for user-controlled data sharing."
+},
+{
+ id: "d11", t: "Bhashini at scale: 22 languages by voice, 36 by text, 350+ models, 4 billion inferences",
+ s: "Press Information Bureau", o: "MeitY / Bhashini (NLTM)", ty: "dashboard", y: 2026, d: "2026-02-09",
+ u: "https://www.pib.gov.in/PressNoteDetails.aspx?ModuleId=3&NoteId=157269", l: "en", a: 5,
+ k: ["bhashini", "nltm", "language", "asr", "tts", "translation", "indic", "dpi"],
+ b: "Bhashini, the National Language Translation Mission launched in 2022, is India's language layer as digital public infrastructure. It supports voice in 22 languages and text services in 36 languages, hosts more than 350 AI models and datasets, and has completed over 4 billion language inferences. Its stated purpose is to remove three barriers together: the language barrier, the digital interface barrier and the literacy barrier that forces reading and typing. Services include automatic speech recognition, machine translation, text to speech, transliteration, voice cloning and document understanding, delivered as APIs so platforms can add language capability without building models themselves. Deployment examples include real-time speech translation at Kashi Tamil Sangamam and the Kumbh Sah'AI'yak multilingual chatbot at Maha Kumbh 2025, which served pilgrims in 11 languages with navigation, event information and a digital lost and found."
+},
+{
+ id: "d12", t: "Bhashini API catalogue: service IDs for ASR, translation, transliteration, TTS and language detection",
+ s: "Bhashini developer documentation", o: "MeitY / Bhashini", ty: "api", y: 2026, d: "2026-10-13",
+ u: "https://dibd-bhashini.gitbook.io/bhashini-apis/available-models-for-usage", l: "en", a: 4,
+ k: ["bhashini api", "service id", "asr", "nmt", "tts", "transliteration", "language detection"],
+ b: "Bhashini exposes models through REST APIs addressed by service ID. For speech recognition, entries include an AI4Bharat multilingual conformer covering all 22 scheduled languages plus Bhojpuri, Chhattisgarhi, Haryanvi and Bhili through Bodhan.AI, Dravidian language models from IIT Madras, and Hindi conformer models from AI4Bharat. Translation service IDs include IIIT Hyderabad's nmt-all covering 36 languages and Hinglish, AI4Bharat's indictrans-v2-all, IIT Bombay's trilingual English-Hindi-Marathi model, C-DAC Noida and Pune models, and a Sanskrit to Tamil route from IIIT Hyderabad. Transliteration is served by AI4Bharat IndicXlit over 21 languages. Text to speech is served by IIT Madras, AI4Bharat coqui models split by language family, IISc SYSPIN and Bodhan. Language identification is available as indic-lang-detection-all. Each service ID is independently versioned and quota-managed."
+},
+{
+ id: "d13", t: "IndicTrans2: the first open translation model covering all 22 scheduled Indian languages",
+ s: "AI4Bharat, IIT Madras (arXiv 2305.16307)", o: "AI4Bharat", ty: "paper", y: 2023, d: "2023-05-25",
+ u: "https://arxiv.org/pdf/2305.16307v3.pdf", l: "en", a: 5,
+ k: ["indictrans2", "translation", "nmt", "22 languages", "ai4bharat", "open source"],
+ b: "IndicTrans2 is the first open-source transformer-based multilingual machine translation model supporting all 22 scheduled Indian languages, including multiple scripts for low-resource languages such as Kashmiri, Manipuri and Sindhi. It adopts script unification where feasible so that transfer learning can share lexical information across languages, covering Perso-Arabic, Ol Chiki, Meitei, Latin and Devanagari scripts. The work contributed four missing pieces: BPCC, the largest public parallel corpus for Indic languages; IN22, the first n-way parallel benchmark across all 22 languages with India-origin content across thirteen domains; the models themselves; and permissive open licensing for commercial deployment. A distilled variant about one fifth the size provides comparable quality at lower deployment cost, and IndicTrans2-M2M supports 462 direct translation directions between Indian languages."
+},
+{
+ id: "d14", t: "BPCC and IN22: 230 million bitext pairs and an India-origin translation benchmark",
+ s: "AI4Bharat", o: "AI4Bharat / Nilekani Centre", ty: "dataset", y: 2023, d: "2023-05-25",
+ u: "https://github.com/AI4Bharat/IndicTrans2", l: "en", a: 5,
+ k: ["bpcc", "in22", "dataset", "parallel corpus", "benchmark", "indic"],
+ b: "The Bharat Parallel Corpus Collection contains about 230 million bitext pairs for Indic languages, of which roughly 126 million were newly added, including 644 thousand manually translated sentence pairs created by an in-house team. Seed data covers human translations of English sentences into all 22 Indic languages across multiple domains, and filled gaps for seven languages that previously had no manually created parallel data. IN22 is the accompanying benchmark with an English source-original side, drawn from India-specific articles across culture, economy, education, entertainment, geography, government, health, industry, legal, news, religion, sports and tourism, plus a conversational subset built from everyday Indian context prompts. The corpus and benchmark are released with permissive licences so that downstream products can be evaluated on Indian content rather than translated foreign text."
+},
+{
+ id: "d15", t: "IndicXlit and Aksharantar: roman to native script transliteration for 21 languages",
+ s: "AI4Bharat models", o: "AI4Bharat", ty: "model", y: 2025, d: "2025-09-01",
+ u: "https://models.ai4bharat.org/", l: "en", a: 4,
+ k: ["indicxlit", "aksharantar", "transliteration", "hinglish", "roman", "script"],
+ b: "IndicXlit is a transformer-based multilingual transliteration model of about 11 million parameters for Roman to native script conversion and back, supporting 21 Indic languages. It is trained on Aksharantar, described as the largest publicly available parallel corpus for this task with 26 million word pairs spanning 20 Indic languages. In a search product transliteration matters more than it appears: Indian users type Hinglish queries such as aadhaar, upi kitna or bhashini kaise, and a retrieval engine that only matches Devanagari or only matches English will silently fail on a large share of real queries. Running queries through IndicXlit before indexing and at query time is the standard fix, and Bhashini exposes it as the ai4bharat/indicxlit--cpu-fsv2 service."
+},
+{
+ id: "d16", t: "Indic speech recognition: conformer and whisper models for 22 languages on commodity hardware",
+ s: "AI4Bharat models", o: "AI4Bharat", ty: "model", y: 2025, d: "2025-09-01",
+ u: "https://models.ai4bharat.org/", l: "en", a: 4,
+ k: ["asr", "speech to text", "conformer", "whisper", "indicconformer", "voice search"],
+ b: "IndicConformer is a conformer-based automatic speech recognition model with only about 30 million parameters, built for real-time speech recognition in Indian languages and small enough to deploy on an Android device or serve over websockets. It was trained on ULCA, Kathbath, Shrutilipi and MUCS datasets. A separate IndicWhisper line uses the whisper architecture for higher accuracy at higher compute cost. AI4Bharat states that its speech work was funded through MeitY grants and that it operates as the Data Management Unit of Bhashini, gathering transcribed audio from over 400 districts across all 22 scheduled languages. For a voice-first search interface the conformer class is the practical choice: latency stays low, the model runs on-device, and no audio leaves the phone."
+},
+{
+ id: "d17", t: "Indic text to speech: FastPitch acoustic models with HiFi-GAN vocoders for Indian voices",
+ s: "AI4Bharat models", o: "AI4Bharat", ty: "model", y: 2025, d: "2025-09-01",
+ u: "https://models.ai4bharat.org/", l: "en", a: 4,
+ k: ["tts", "text to speech", "fastpitch", "hifi-gan", "voice", "accessibility"],
+ b: "Indic-TTS is ongoing research on multispeaker text to speech for Indian languages, split into two models: an acoustic model that generates a waveform representation for given text, and a vocoder that synthesises audio from it. The released pipeline uses FastPitch for acoustics and HiFi-GAN for vocoding. Bhashini serves these through service IDs split by language family, with AI4Bharat coqui models covering Dravidian and Indo-Aryan groups, IIT Madras covering 23 languages, IISc SYSPIN covering Kannada, Telugu, English, Hindi, Marathi, Bengali, Gujarati, Maithili, Bhojpuri, Chhattisgarhi and Magahi, and Bodhan covering the full scheduled list. For a search engine, TTS is the accessibility layer: results read aloud in the user's language, which matters for low-literacy users and for hands-free use."
+},
+{
+ id: "d18", t: "Airavata, IndicBERT and Sangraha: the open Indic language model family",
+ s: "AI4Bharat, IIT Madras", o: "AI4Bharat", ty: "model", y: 2025, d: "2025-06-01",
+ u: "https://ai4bharat.iitm.ac.in/", l: "en", a: 4,
+ k: ["airavata", "indicbert", "sangraha", "indiccorpora", "llm", "embeddings"],
+ b: "AI4Bharat, a research lab at IIT Madras, develops open datasets, tools and models for Indian languages across transliteration, natural language understanding, generation, translation, speech recognition and speech synthesis. Its language models include IndicBERT for understanding tasks, IndicBART for generation and Airavata for instruction following, trained on corpora such as IndicCorpora and Sangraha. The lab states that its work is deployed in real-world use cases across academia, industry and government, and that it holds grants from MeitY while running the data management unit of Bhashini. For a retrieval system the most useful artefact is the embedding side: IndicBERT-class encoders give dense vectors that behave sensibly on Indian-language text where an English-only sentence encoder collapses distinct queries into one neighbourhood."
+},
+{
+ id: "d19", t: "Kumbh Sah'AI'yak: a multilingual voice chatbot in 11 languages at Maha Kumbh 2025",
+ s: "Press Information Bureau", o: "MeitY / Bhashini", ty: "press", y: 2026, d: "2026-02-09",
+ u: "https://www.pib.gov.in/PressNoteDetails.aspx?ModuleId=3&NoteId=157269", l: "en", a: 5,
+ k: ["chatbot", "kumbh", "voice", "multilingual", "public service", "case study"],
+ b: "Bhashini powered the Kumbh Sah'AI'yak chatbot at Maha Kumbh 2025, a multilingual and voice-enabled assistant that gave pilgrims navigation and event information in 11 languages, covering Hindi, English and nine others. It also ran a digital lost and found function with real-time text and voice translation so that families separated at the gathering could be reunited across language barriers. The case is a useful reference point for anyone building a conversational interface for India: the hard requirements were low-bandwidth operation, tolerance of dialect and accent variation, voice input for users who do not type, and answers short enough to be heard once and understood. It demonstrates that a language-first assistant is a service delivery mechanism, not a novelty."
+},
+{
+ id: "d20", t: "Sansad Bhashini: AI translation, transcription and summarisation inside Parliament",
+ s: "Bhashini", o: "MeitY / Bhashini", ty: "scheme", y: 2026, d: "2026-01-20",
+ u: "https://bhashini.gov.in/", l: "en", a: 4,
+ k: ["sansad bhashini", "parliament", "transcription", "summarisation", "translation"],
+ b: "Sansad Bhashini is the deployment of Bhashini language technology inside Parliament for multilingual translation, transcription and summarisation of proceedings, so that members can follow business in Indian languages. The platform reports over a million mobile app downloads, more than a billion inferences, and a large user base across states. It operates as an ecosystem rather than a single vendor product: research institutions, language experts, startups, state governments and industry partners contribute models, which are then composed into service flows. For a research tool the lesson is architectural: the language layer should be an interchangeable set of service IDs behind a stable interface, so that a better ASR or translation model can be swapped in without rewriting the product."
+},
+{
+ id: "d21", t: "Aadhaar: 144 crore identities and 2,707 crore authentication transactions in one year",
+ s: "Press Information Bureau", o: "UIDAI", ty: "dashboard", y: 2026, d: "2026-03-06",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?lang=2&PRID=2235812&reg=3", l: "en", a: 5,
+ k: ["aadhaar", "identity", "uidai", "ekyc", "authentication", "jam"],
+ b: "Aadhaar is the world's largest digital identity programme, providing biometric and demographic based unique identity to residents. As of March 2026 more than 144 crore Aadhaar numbers had been generated, and in 2024-25 alone over 2,707 crore authentication transactions were carried out. Aadhaar e-KYC had processed more than 2,458 crore transactions by late June 2026. The identity layer was seeded through the JAM trinity of Jan Dhan bank accounts, Aadhaar enrolment and mobile penetration, which let welfare benefits move directly into bank accounts and reduced leakage. Identity became portable and verification near instant. For software, Aadhaar is the anchor for consent-based identity assertions: a product does not store the number, it stores a verified claim and a purpose, which is the pattern the DPDP Act expects."
+},
+{
+ id: "d22", t: "UPI in FY 2025-26: 24,161 crore transactions worth Rs 314 lakh crore",
+ s: "Press Information Bureau", o: "NPCI", ty: "report", y: 2026, d: "2026-08-12",
+ u: "https://www.pib.gov.in/FactsheetDetails.aspx?ModuleId=16&id=150840", l: "en", a: 5,
+ k: ["upi", "npci", "payments", "transactions", "real time", "financial inclusion"],
+ b: "The Unified Payments Interface processed 24,161.69 crore transactions worth Rs 314.23 lakh crore in FY 2025-26. It serves more than 55.49 crore individuals and 6.5 crore merchants and connects 731 banks on one platform, accounting for about 85 percent of India's digital payment volume and nearly half of global real-time payment transaction volume. Monthly volume grew from 0.01 crore transactions in 2016 to over 2,000 crore by 2025, and the platform handles roughly 66 crore transactions a day. Micro-payments dominate: 86 percent of merchant transactions are below Rs 500. UPI is accepted in 11 foreign countries including Singapore, UAE, France, Mauritius and Cambodia. The IMF recognised it as the world's largest retail fast payment system by volume in its June 2025 report."
+},
+{
+ id: "d23", t: "ONDC by mid 2026: 20 crore buyers, 5 lakh sellers, 1,000 cities, 90 lakh monthly transactions",
+ s: "Press Information Bureau", o: "ONDC", ty: "report", y: 2026, d: "2026-08-12",
+ u: "https://www.pib.gov.in/FactsheetDetails.aspx?ModuleId=16&id=150840", l: "en", a: 5,
+ k: ["ondc", "open network", "commerce", "sellers", "interoperability", "beckn"],
+ b: "The Open Network for Digital Commerce, launched in 2022, is an open network that connects buyers and sellers through interoperable platforms instead of a single marketplace, so that discovery and fulfilment are separated from any one application. By June 2026 it reported over 20 crore buyers, 5 lakh sellers, presence in 1,000 cities and nearly 90 lakh monthly transactions. Integration with eSaras and Indiahandmade extended market access to self-help groups, weavers and artisans across more than 11 buyer apps, and a Sahayak WhatsApp bot supports small businesses in five languages. ONDC is the clearest Indian example of a protocol-first alternative to platform lock-in, and it is the closest existing model for a search layer that indexes participants rather than owning them."
+},
+{
+ id: "d24", t: "DigiLocker: 72 crore users and over 936 crore documents issued by 2,822 issuers",
+ s: "Press Information Bureau", o: "MeitY / DigiLocker", ty: "dashboard", y: 2026, d: "2026-07-29",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2291148", l: "en", a: 5,
+ k: ["digilocker", "documents", "issuer", "verification", "consent", "paperless"],
+ b: "DigiLocker, launched in 2015, is a secure digital document wallet that lets citizens store, access and share authenticated electronic documents with consent-based access. As of mid 2026 it had more than 72 crore registered users, over 936 crore documents issued through 2,822 onboarded issuers, and 5,437 document types available, split between 661 central and 4,776 state services. In a single recent year 17.9 crore users registered and 26.74 crore documents were issued. Because documents originate with the issuer rather than being uploaded by the citizen, verification is against the source of truth and forged documents are structurally harder. Platforms are hosted in government data centres with SSL, Aadhaar or OTP based authentication, Parichay-based access control, encryption, VAPT and CERT-In aligned security audits."
+},
+{
+ id: "d25", t: "UMANG: 2,575 government services from 241 departments in one application",
+ s: "Press Information Bureau", o: "MeitY / NeGD", ty: "dashboard", y: 2026, d: "2026-07-31",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2298116", l: "en", a: 5,
+ k: ["umang", "services", "governance", "single window", "mobile"],
+ b: "UMANG, the Unified Mobile Application for New-age Governance launched in 2017, provides a single window on mobile and web for central, state and local government services. As on 31 July 2026 it offered approximately 2,575 services, 880 from central government and 1,695 from states, across 241 departments, and had more than 11.66 crore registered users with about 798 crore transactions over three years. Services span EPFO balances and claims, PAN and Aadhaar services, DigiLocker access, utility payments, pensions, scholarships, passport and driving licence services and exam results. UMANG is integrated with Aadhaar, eSign and API Setu. For a search product, UMANG is the canonical example of a fragmented service catalogue that a good retrieval layer can make navigable."
+},
+{
+ id: "d26", t: "API Setu: 8,904 government APIs published for interoperable service delivery",
+ s: "Sansad / Lok Sabha question 1781", o: "MeitY / NIC", ty: "api", y: 2026, d: "2026-07-29",
+ u: "https://sansad.in/getFile/lsapps/loksabhaquestions/annex/188/AU1781_nvUxaL.pdf", l: "en", a: 5,
+ k: ["api setu", "apis", "interoperability", "nic", "data exchange"],
+ b: "API Setu is the government's API directory, intended to promote efficient sharing of data among data owners and between government agencies so that services can be delivered in an integrated manner. As of July 2026 the portal had published 8,904 APIs contributed by central and state government departments. It sits alongside MeriPehchaan, the national single sign-on, and the core digital public infrastructure components. Practically, API Setu is the discovery layer for a builder: it is where a search or assistant product would look for a sanctioned, rate-limited interface to scheme data, document verification, or service status, rather than scraping portals. Its existence is also an architectural argument: public data is meant to be consumed through published contracts, not crawlers."
+},
+{
+ id: "d27", t: "GeM: Rs 18.4 lakh crore cumulative procurement, with 11 lakh MSMEs selling to government",
+ s: "Press Information Bureau", o: "GeM", ty: "report", y: 2026, d: "2026-08-12",
+ u: "https://www.pib.gov.in/FactsheetDetails.aspx?ModuleId=16&id=150840", l: "en", a: 4,
+ k: ["gem", "procurement", "msme", "marketplace", "swayatt"],
+ b: "The Government eMarketplace digitises public procurement and widens participation in government contracting. By June 2026 it had recorded over Rs 18.4 lakh crore in cumulative gross merchandise value, including Rs 5 lakh crore in FY 2025-26, and enabled more than 11 lakh MSMEs to access government markets. The platform covers over 10,894 product categories and 348 service categories with more than 1.67 lakh buyer organisations onboard, and over 24 lakh sellers and service providers have completed profiles. Women-led businesses recorded Rs 83,323 crore and startups Rs 54,005.8 crore in cumulative order value under the SWAYATT initiative. As a data source it is unusually structured: every order carries a category, a buyer and a value, which makes procurement a good proving ground for faceted search."
+},
+{
+ id: "d28", t: "Direct Benefit Transfer: over Rs 52 lakh crore moved across 318 schemes and 56 ministries",
+ s: "Sansad / Lok Sabha question 1781", o: "Ministry of Finance / DBT Bharat", ty: "report", y: 2026, d: "2026-07-29",
+ u: "https://sansad.in/getFile/lsapps/loksabhaquestions/annex/188/AU1781_nvUxaL.pdf", l: "en", a: 5,
+ k: ["dbt", "welfare", "beneficiaries", "leakage", "pfms", "aadhaar"],
+ b: "Aadhaar-linked Direct Benefit Transfer moves welfare benefits directly from 318 schemes across 56 ministries into beneficiary bank accounts, and cumulative transfers have crossed Rs 52 lakh crore. The Public Financial Management System provides end-to-end monitoring of government funds and electronic payments, and was mandated for DBT payment, accounting and reporting in December 2014. The government reports savings of more than Rs 4.31 lakh crore between 2015 and March 2024 from removing duplicate and fake beneficiaries. The National Scholarship Portal has disbursed about 8.16 crore scholarships worth roughly Rs 53,300 crore through DBT. The relevant lesson for information systems is that identity plus a payment rail plus a status API turns a paper entitlement into a queryable fact."
+},
+{
+ id: "d29", t: "eSign and e-Hastakshar: 155 crore legally valid electronic signatures issued",
+ s: "Press Information Bureau", o: "C-DAC / MeitY", ty: "dashboard", y: 2026, d: "2026-07-29",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2291148", l: "en", a: 5,
+ k: ["esign", "e-hastakshar", "cdac", "digital signature", "legal"],
+ b: "eSign is an online electronic signature service that can be integrated through an API so that a user can digitally sign a document in a legally acceptable form. A total of 155.56 crore eSigns have been issued by all eSign service providers, of which 44.23 crore were issued by C-DAC under the e-Hastakshar project, with about 12.46 crore issued in the last year. The service is built on Aadhaar-based authentication and is operated by licensed providers under the IT Act framework. For a research or records product this matters because it closes the loop on provenance: a document can be authenticated at issue, hashed at index time, and signed by the party that published it, giving three independent checks rather than one."
+},
+{
+ id: "d30", t: "myScheme: 4,750 government schemes with 385 crore API hits",
+ s: "Sansad / Lok Sabha question 1781", o: "MeitY / NeGD", ty: "api", y: 2026, d: "2026-07-29",
+ u: "https://sansad.in/getFile/lsapps/loksabhaquestions/annex/188/AU1781_nvUxaL.pdf", l: "en", a: 4,
+ k: ["myscheme", "schemes", "eligibility", "discovery", "api"],
+ b: "myScheme is a national platform that lets citizens discover and access information on government schemes offered by central and state governments. It hosts over 4,750 schemes and has recorded more than 4.5 crore visitors, 6.5 lakh registered users and over 385 crore API hits. The platform's design problem is the same one a search engine faces at larger scale: eligibility rules are written in administrative language, schemes overlap, names differ between states, and the user knows their situation but not the scheme's name. Any serious Indian search product should treat scheme discovery as a first-class vertical, because it is the highest-value query class for ordinary citizens and the one least served by general web search."
+},
+{
+ id: "d31", t: "Account Aggregator framework: consent-based financial data sharing with purpose limitation",
+ s: "Reserve Bank of India", o: "RBI / Sahamati", ty: "standard", y: 2025, d: "2025-12-01",
+ u: "https://www.rbi.org.in/", l: "en", a: 4,
+ k: ["account aggregator", "consent", "financial data", "dpi", "sahamati", "privacy"],
+ b: "The Account Aggregator framework, introduced by the Reserve Bank of India, lets an individual share financial data across institutions through licensed consent managers rather than by handing over credentials. Data flows are purpose-bound, time-bound and revocable, and the consent artefact records who asked, for what, for how long and for which accounts. The model is now applied beyond finance as the reference design for user-controlled data sharing in India. It is the pattern to copy when a product needs personal context for research: ask for a specific slice for a specific purpose, record the grant, and expire it. It is also the mechanism the DPDP Act anticipates when it refers to consent managers, which makes it both a technical and a compliance choice."
+},
+{
+ id: "d32", t: "Vishvasya: MeitY's National Blockchain Framework stack offering Blockchain-as-a-Service",
+ s: "Press Information Bureau", o: "MeitY / C-DAC / NIC", ty: "standard", y: 2024, d: "2024-09-04",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2051934", l: "en", a: 5,
+ k: ["vishvasya", "blockchain", "baas", "nbf", "national blockchain framework", "smart contracts"],
+ b: "MeitY launched the Vishvasya Blockchain Technology Stack on 4 September 2024 to offer Blockchain-as-a-Service on geographically distributed infrastructure for permissioned blockchain applications. The National Blockchain Framework is architected with distributed infrastructure, core framework functionality, smart contracts and an API gateway, plus security, privacy and interoperability layers, and it currently supports two permissioned platforms while remaining extensible. It is hosted in NIC data centres at Bhubaneswar, Pune and Hyderabad. The stack provides a dashboard for automated network setup, a generic smart contract layer, authentication and authorisation functions, open APIs for recording and querying contracts, node management, security-audited containers and hardened docker images. It supports NFT and oracle integrations and an indigenous certification authority with indigenous crypto modules for key storage."
+},
+{
+ id: "d33", t: "NBFLite: the lightweight blockchain sandbox for Indian startups and academia",
+ s: "MeitY National Blockchain Framework", o: "C-DAC / NIC / IDRBT / IIT Hyderabad / IIIT Hyderabad / SETS", ty: "api", y: 2024, d: "2024-09-04",
+ u: "https://blockchain.meity.gov.in/index.php/articles/184-vishvasya-national-blockchain-technology-stack", l: "en", a: 5,
+ k: ["nbflite", "sandbox", "hyperledger fabric", "sawtooth", "prototyping"],
+ b: "NBFLite is a lightweight blockchain framework for research, experimentation and rapid prototyping, powered by the National Blockchain Framework. It supports Hyperledger Fabric and Hyperledger Sawtooth in single node setups and bundles smart contract templates for insurance, supply chain, certificates and drug track and trace. It was developed jointly by C-DAC, NIC, IDRBT Hyderabad, IIT Hyderabad, IIIT Hyderabad and SETS Chennai under MeitY support. The purpose is to remove the two barriers that stop Indian teams from building on-chain applications: the cost of standing up a network, and the absence of domain-specific contract templates. For a prototype, NBFLite is the sanctioned starting point; for production, the same contracts move to the Vishvasya BaaS stack without a rewrite."
+},
+{
+ id: "d34", t: "Praamaanik: blockchain-backed verification of mobile app origin",
+ s: "Press Information Bureau", o: "MeitY / C-DAC", ty: "press", y: 2024, d: "2024-09-04",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2051934", l: "en", a: 5,
+ k: ["praamaanik", "app verification", "m kavach", "authenticity", "fraud"],
+ b: "Praamaanik is a blockchain-enabled solution for verifying the origin and authenticity of mobile applications. Developers upload an app and its unique details are recorded on the blockchain ledger; citizens then check an app against those records to confirm that it is the genuine build from the claimed publisher, using the M Kavach 2 mobile security application. The problem it addresses is fraudulent and repackaged apps that impersonate legitimate services and harvest credentials, including fake customer support applications. It is the clearest citizen-facing use of the National Blockchain Framework, and it demonstrates the right pattern for provenance systems generally: record the claim at the moment of publication, make verification cheap and public, and let the user check without trusting the verifier."
+},
+{
+ id: "d35", t: "National Blockchain Framework: 34 crore documents verified, Rs 64.76 crore outlay",
+ s: "Press Information Bureau", o: "MeitY", ty: "report", y: 2025, d: "2025-10-24",
+ u: "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/oct/doc20251024674101.pdf", l: "en", a: 5,
+ k: ["nbf", "documents verified", "certificate chain", "property chain", "governance"],
+ b: "The National Blockchain Framework was initiated in March 2021 with a budget outlay of Rs 64.76 crore and formally launched on 4 September 2024. Its core components are the Vishvasya blockchain stack, NBFLite, Praamaanik and the National Blockchain Portal, deployed across NIC data centres in Bhubaneswar, Pune and Hyderabad. Over 34 crore documents had been verified on the platform as of 21 October 2025. Live applications include property chain for revenue departments in Karnataka, Andhra Pradesh and Jharkhand; certificate chain for education and revenue records in Karnataka, Chhattisgarh, Maharashtra, Delhi, Manipur and Puducherry; and drug logistics supply chain for the Karnataka State Medical Supplies Corporation. A blockchain-based SMS header registry covering over 1.13 lakh entities was built with RBI, SEBI, NIC and C-DAC."
+},
+{
+ id: "d36", t: "Blockchain for land records and certificates: what Indian states actually run in production",
+ s: "Sansad / Lok Sabha question 3917", o: "MeitY", ty: "report", y: 2026, d: "2026-08-01",
+ u: "https://sansad.in/getFile/lsapps/loksabhaquestions/annex/188/AU3917_s9EMsL.pdf", l: "en", a: 5,
+ k: ["land records", "property chain", "certificate chain", "karnataka", "andhra pradesh", "jharkhand"],
+ b: "Government answers in Parliament list the blockchain applications hosted on National Blockchain Framework infrastructure. Property chain runs for the Revenue Department, Town Municipal Council and City Corporation of Karnataka, the Departments of Revenue and Survey in Andhra Pradesh, and the Department of Revenue in Jharkhand. Certificate chain covers revenue records and economic statistics in Karnataka, Indira Gandhi Krishi Vishwavidyalaya in Chhattisgarh, Maharashtra University of Health Sciences in Nashik, the Revenue Department in Delhi, the Council of Higher Secondary Education in Manipur, the Department of Civil Supplies in Puducherry, and a service level training record system for the Sardar Vallabhbhai Patel National Police Academy. Drug logistics supply chain runs for the Karnataka State Medical Supplies Corporation. These are production systems, not pilots, which matters when judging whether Indian blockchain infrastructure is real."
+},
+{
+ id: "d37", t: "National Strategy on Blockchain: MeitY's roadmap for adoption across governance and industry",
+ s: "MeitY", o: "MeitY", ty: "policy", y: 2021, d: "2021-12-01",
+ u: "https://www.meity.gov.in/content/national-strategy-blockchain", l: "en", a: 4,
+ k: ["blockchain strategy", "niti aayog", "roadmap", "e-governance", "standards"],
+ b: "The National Strategy on Blockchain developed by MeitY sets out a roadmap for blockchain adoption in India, identifies challenges across technology, regulation and skills, and defines short-term and long-term goals for integration across domains. It is the policy parent of the National Blockchain Framework, which turned the strategy into shared infrastructure. The strategy takes a permissioned-first position suited to government record keeping: known participants, auditable governance, and no requirement for public token economics. It also flags the risks it intends to manage, including vendor lock-in, interoperability across divergent platforms, performance and scalability limits, and the shortage of trained developers. NIC's Centre of Excellence in Blockchain Technology supports departments with proof of concept work on Hyperledger Fabric, Sawtooth and Ethereum before scale deployment."
+},
+{
+ id: "d38", t: "BharatNet and rural connectivity: 2.21 lakh gram panchayats on optical fibre",
+ s: "Press Information Bureau", o: "Department of Telecommunications / BBNL", ty: "report", y: 2026, d: "2026-07-29",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2291148", l: "en", a: 4,
+ k: ["bharatnet", "fibre", "gram panchayat", "connectivity", "rural", "broadband"],
+ b: "BharatNet is the national optical fibre programme extending broadband to gram panchayats, with over 2.21 lakh gram panchayats enabled and more than 5 lakh Common Service Centres functioning as last-mile access points, including 3.91 lakh at panchayat level. Internet subscribers rose from 25.15 crore in 2014 to over 109.2 crore by the end of March 2026, and over 6.39 crore people have been trained in digital literacy. The design implication for a search product is bandwidth realism: a rural user on a shared connection cannot absorb a two megabyte page, so an engine that ships a lean interface and answers in text rather than video will reach more of the country than one that assumes fibre."
+},
+{
+ id: "d39", t: "Bharat 6G Vision: indigenous research, standards and IP by 2030",
+ s: "Department of Telecommunications", o: "DoT", ty: "policy", y: 2026, d: "2026-08-12",
+ u: "https://www.pib.gov.in/FactsheetDetails.aspx?ModuleId=16&id=150840", l: "en", a: 4,
+ k: ["6g", "bharat 6g", "telecom", "standards", "spectrum", "future"],
+ b: "The Bharat 6G Vision aims to position India among global leaders in sixth generation telecom by 2030, with emphasis on indigenous research, intellectual property creation, standards development and next-generation telecom innovation. It sits alongside a wider telecom reform programme covering spectrum, licensing and satellite communication. For software architecture the practical relevance is latency and device assumptions: a 6G era assumes edge inference, always-on connectivity and dense device meshes, which argues for search products that degrade gracefully to offline mode rather than assuming a fat server. It also matters for standards work, because whoever defines the interface between networks and AI services sets terms for everyone else, and India's stated position is that it intends to be a definer rather than only an adopter."
+},
+{
+ id: "d40", t: "NavIC: India's regional satellite navigation system and its use in geospatial services",
+ s: "ISRO", o: "ISRO", ty: "standard", y: 2025, d: "2025-10-15",
+ u: "https://www.isro.gov.in/", l: "en", a: 4,
+ k: ["navic", "isro", "gps", "geospatial", "location", "satellite"],
+ b: "NavIC, the Navigation with Indian Constellation, is India's regional satellite navigation system built and operated by ISRO, providing position, navigation and timing services over India and an extended surrounding region. It is designed to serve both civilian and strategic users and is being mandated in phases for devices and applications in India, including vehicle tracking and public fleet management. For a search product, NavIC matters at the layer above positioning: local relevance. Queries such as nearby hospital, which office handles this, or where is the camp are resolved by joining a place name to an authoritative boundary and service dataset. Owning the positioning layer means the relevance model does not have to rent its geography from a foreign provider."
+},
+{
+ id: "d41", t: "Param Rudra: three indigenous supercomputing systems under the National Supercomputing Mission",
+ s: "Press Information Bureau", o: "C-DAC / MeitY / DST", ty: "report", y: 2024, d: "2024-09-26",
+ u: "https://www.pib.gov.in/", l: "en", a: 4,
+ k: ["param rudra", "supercomputer", "c-dac", "nsm", "hpc", "compute"],
+ b: "Under the National Supercomputing Mission, the government commissioned Param Rudra supercomputing systems at three institutions, with C-DAC as the implementing agency and an outlay in the range of Rs 850 crore for the tranche. The systems support weather and climate research, materials science, and other compute-heavy scientific work, and they form part of a wider mission that has deployed tens of petaflops of capacity across academic and research institutions in India. Alongside the IndiaAI Mission GPU cloud, the supercomputing mission is the second leg of domestic compute: one optimised for AI training and inference, the other for simulation and scientific workloads. Together they are the reason a sovereign AI story in India is not purely aspirational."
+},
+{
+ id: "d42", t: "India Semiconductor Mission: fabs, ATMP plants and the push for domestic chip capacity",
+ s: "Press Information Bureau", o: "MeitY / ISM", ty: "policy", y: 2026, d: "2026-06-01",
+ u: "https://www.meity.gov.in/semiconductors", l: "en", a: 4,
+ k: ["semiconductor", "fab", "atmp", "chips", "ism", "manufacturing"],
+ b: "The India Semiconductor Mission is the national programme to build domestic semiconductor manufacturing, assembly, testing, marking and packaging capacity, with approved projects across Gujarat, Assam and Uttar Pradesh and a mix of fabrication, compound semiconductor and ATMP facilities. The strategic logic is straightforward: an AI and search stack that runs on imported accelerators is sovereign at the software layer only. Domestic packaging and eventually fabrication reduce exposure to export controls and supply shocks. For a technology roadmap the realistic reading is that India will build strength in design, packaging and systems integration before leading-edge fabrication, and that system-level innovation, including efficient models and lean inference, is where the near-term advantage lies."
+},
+{
+ id: "d43", t: "India Data and AI Labs: 27 established, 543 more identified, plus 686 AI fellowships",
+ s: "Press Information Bureau", o: "MeitY / IndiaAI", ty: "report", y: 2026, d: "2026-02-13",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2227612", l: "en", a: 5,
+ k: ["data and ai labs", "fellowships", "skills", "yuva ai", "talent"],
+ b: "Under the IndiaAI Mission's FutureSkills pillar, 27 India Data and AI labs have been established with 543 more identified for expansion, and 686 AI fellowships have been awarded across 178 institutions. The YUVA AI for All programme has seen more than 26.5 lakh individuals complete training, and support extends to over 8,000 undergraduate, 5,000 postgraduate and 500 PhD students. A further 188 additional labs are in progress. The point of the programme is not the headline numbers but the distribution: the labs are placed in institutions outside the handful of metros that already concentrate technology employment, which is what makes a domestic talent pipeline rather than a concentration of it."
+},
+{
+ id: "d44", t: "GIGW and WCAG: the accessibility and quality standards Indian government websites must meet",
+ s: "NIC / MeitY", o: "NIC", ty: "standard", y: 2025, d: "2025-08-01",
+ u: "https://guidelines.india.gov.in/", l: "en", a: 4,
+ k: ["gigw", "wcag", "accessibility", "usability", "standards", "government websites"],
+ b: "The Guidelines for Indian Government Websites and Apps set mandatory quality requirements for public-facing government digital services, covering usability, accessibility, security, lifecycle management and metadata. They align with the Web Content Accessibility Guidelines, which require perceivable, operable, understandable and robust interfaces: text alternatives, keyboard operability, sufficient contrast, resizable text, and compatibility with assistive technology. Government answers in Parliament describe adherence to GIGW and WCAG alongside mobile-first design, multilingual interfaces, AI-powered chatbot support and assisted delivery through Common Service Centres as the standard accessibility package. Any product claiming to serve Indian citizens should treat these as a floor, not a differentiator, and test with a screen reader and at 200 percent zoom."
+},
+{
+ id: "d45", t: "IT Amendment Rules 2026: labelling synthetic content and takedown timelines for deepfakes",
+ s: "MeitY", o: "MeitY", ty: "standard", y: 2026, d: "2026-02-15",
+ u: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2228315", l: "en", a: 5,
+ k: ["it rules", "deepfake", "synthetic content", "labelling", "intermediary", "provenance"],
+ b: "The Information Technology Rules 2021 and their 2026 amendments provide the baseline intermediary liability structure and enforcement backbone for AI-related harms, including rules on AI-generated and deepfake content with expedited takedown timelines. The India AI Governance Guidelines identify content authentication and provenance as a specific regulatory gap requiring common standards and benchmarks, and recommend embedding transparency, fairness and security by design. For a search engine the operational consequence is that provenance is no longer optional polish: results need an auditable origin, generated summaries need to be marked as generated, and the system should be able to show which source sentence supports which claim. Systems that cannot do this will struggle to comply, and users already distrust answers they cannot trace."
+},
+{
+ id: "d46", t: "CERT-In: incident reporting, vulnerability coordination and national cyber security advisories",
+ s: "CERT-In", o: "MeitY / CERT-In", ty: "standard", y: 2025, d: "2025-11-01",
+ u: "https://www.cert-in.org.in/", l: "en", a: 4,
+ k: ["cert-in", "cyber security", "incident response", "vapt", "advisories"],
+ b: "CERT-In is India's national agency for cyber incident response, coordination and real-time threat advisories, operating under MeitY. Its directions require specified categories of incidents to be reported within defined timelines and require entities to maintain logs for a mandated retention period. Alongside it sit the Indian Cyber Crime Coordination Centre for coordinated cybercrime response, the National Critical Information Infrastructure Protection Centre for strategic sectors, and the National Cyber Coordination Centre for real-time threat monitoring. Government platforms describe compliance with CERT-In and NIC-CERT guidelines, periodic security audits, vulnerability assessment and penetration testing, and continuous monitoring as standard practice. For any product handling user queries at scale, these are the operational baselines for logging, disclosure and incident response."
+},
+{
+ id: "d47", t: "Open Network thinking: why protocol-first beats platform-first for Indian discovery",
+ s: "ONDC / Beckn protocol", o: "ONDC", ty: "paper", y: 2026, d: "2026-05-01",
+ u: "https://ondc.org/", l: "en", a: 3,
+ k: ["beckn", "protocol", "open network", "discovery", "interoperability", "lock-in"],
+ b: "The Beckn protocol, developed as the technical basis for ONDC, separates discovery, ordering and fulfilment into interoperable messages exchanged between participants rather than functions performed inside one application. The consequence is that a buyer app does not need to own inventory, and a seller does not need to be present on every marketplace. India's digital public infrastructure repeats this pattern across identity, payments, documents and language: define a protocol, licence it openly, let many implementations compete. Applied to search, the argument is that a national discovery layer should index and route rather than own and rank behind closed doors, and that the ranking function itself should be inspectable, replaceable and, ideally, locally computed."
+},
+{
+ id: "d48", t: "What a sovereign search engine actually needs: retrieval, language, provenance and compute",
+ s: "ANVESHAN technical note", o: "ANVESHAN", ty: "paper", y: 2026, d: "2026-11-01",
+ u: "https://anveshan.local/dossier", l: "en", a: 3,
+ k: ["architecture", "search engine", "retrieval", "bm25", "vector", "merkle", "rag"],
+ b: "A search engine is four systems in one. Retrieval turns text into an inverted index and scores documents, classically with BM25 term weighting over title, tags and body fields. Ranking blends lexical score with vector similarity so that paraphrases and Indian language variants still match. Language handling normalises scripts, transliterates roman input and expands synonyms. Provenance attaches an identity to every result so a claim can be traced to a source and a hash. Generation, when added, must be grounded in retrieved passages and must cite them. The full stack can run in a browser with no external service: an inverted index over a few thousand documents, a Merkle tree over document hashes using the platform crypto API, and an extractive answerer that selects source sentences rather than inventing prose."
+},
+{
+ id: "d49", t: "Extractive versus generative answers: why grounded citation beats fluent confidence",
+ s: "ANVESHAN technical note", o: "ANVESHAN", ty: "paper", y: 2026, d: "2026-11-01",
+ u: "https://anveshan.local/dossier", l: "en", a: 3,
+ k: ["rag", "hallucination", "extractive", "citations", "trust", "evaluation"],
+ b: "A generative model asked to summarise retrieval results will sometimes produce a sentence that no retrieved document supports, and the failure is invisible to the reader because the prose is fluent. An extractive answerer has a different failure mode: it can select an irrelevant sentence, but it cannot fabricate one, because every output sentence is quoted from an indexed source with a citation. For high-stakes queries about entitlements, payments or identity, the extractive guarantee is worth more than fluency. The pragmatic architecture is layered: extract first, cite always, and allow a generative model to rewrite only when it is constrained to the retrieved passages and its output is marked as generated. Measure with a citation-support check, not with a fluency judgement."
+},
+{
+ id: "d50", t: "Running an Indian language search layer without a foreign API: the offline-first design",
+ s: "ANVESHAN technical note", o: "ANVESHAN", ty: "paper", y: 2026, d: "2026-11-01",
+ u: "https://anveshan.local/dossier", l: "en", a: 3,
+ k: ["offline", "privacy", "local first", "indic", "transliteration", "pwa"],
+ b: "The offline-first pattern inverts the usual assumption that search is a service you call. The index, the ranking function and the language normaliser ship with the application; queries never leave the device; the tool works on a train with no signal and on a shared connection where a round trip costs more than the page. For Indian languages the achievable offline layer is smaller but real: script detection, a transliteration table for roman input, a synonym and expansion map for domain terms, and light stemming per script. What cannot be done offline at quality is translation and speech; those belong behind a pluggable adapter that a user can point at Bhashini or a Sarvam endpoint when connectivity and credentials exist, and that degrades to local retrieval when they do not."
+}
+];
+
+if (typeof module !== "undefined") module.exports = { DOCS };
+
+if (typeof globalThis !== "undefined") { globalThis.DOCS = DOCS; }
+</script>
+<script>/* ============================================================================
+   ANVESHAN CORE - sovereign retrieval engine (no dependencies, no network)
+   Part 1: tokeniser, inverted index, BM25 + vector hybrid ranking, snippets,
+           extractive answerer, conversational agent, Merkle provenance ledger.
+   ========================================================================== */
+
+var STOP = ("a an and are as at be been but by for from had has have how i if in into is it its of on or "
+  + "that the their then there these they this to was were what when where which who why will with you your "
+  + "we our us do does did can could should would about me my more most other some such no not only own same "
+  + "than too very s t just don now run runs work works tell give show need needs use used using also "
+  + "may many much get gets like want wants please").split(" ");
+
+var STOP_HI = ["का","के","की","को","और","में","से","है","हैं","था","थी","थे","पर","यह","वह","कि","जो","एक","लिए","क्या","कैसे","कितना","कितने","कितनी","कब","कौन","हो","ने","नहीं","हुआ","हुई","कर","करने","वाले","साथ","बारे","लिये","हम","आप"];
+
+/* Domain thesaurus: expands a query so that a user who types "upi" also reaches
+   documents about NPCI payments, and a Hindi query reaches English sources. */
+var SYN = {
+  "upi": ["npci", "payments", "transactions", "real time", "payment"],
+  "payment": ["upi", "npci", "transactions"],
+  "aadhaar": ["uidai", "identity", "authentication", "ekyc", "jam"],
+  "identity": ["aadhaar", "uidai", "ekyc", "verification"],
+  "blockchain": ["vishvasya", "nbf", "ledger", "smart contract", "chain"],
+  "chain": ["blockchain", "vishvasya", "ledger"],
+  "ledger": ["blockchain", "merkle", "hash", "chain"],
+  "ai": ["artificial", "intelligence", "model", "llm"],
+  "llm": ["model", "sarvam", "ai", "foundation"],
+  "model": ["llm", "foundation", "parameters", "training"],
+  "translate": ["translation", "bhashini", "indictrans", "nmt", "language"],
+  "translation": ["bhashini", "indictrans", "nmt", "language"],
+  "language": ["indic", "bhashini", "translation", "multilingual"],
+  "indic": ["language", "bhashini", "translation", "22"],
+  "hindi": ["indic", "language", "bhashini", "translation"],
+  "voice": ["speech", "asr", "tts", "audio"],
+  "speech": ["asr", "tts", "voice", "conformer"],
+  "search": ["retrieval", "index", "ranking", "query", "engine"],
+  "retrieval": ["search", "index", "ranking", "bm25"],
+  "compute": ["gpu", "h100", "indiaai", "subsidy", "data centre"],
+  "gpu": ["compute", "indiaai", "h100", "training"],
+  "privacy": ["dpdp", "consent", "data", "protection"],
+  "consent": ["account aggregator", "dpdp", "privacy", "purpose"],
+  "document": ["digilocker", "certificate", "verification", "issuer"],
+  "digilocker": ["document", "issuer", "verification", "certificate"],
+  "scheme": ["myscheme", "eligibility", "welfare", "benefit"],
+  "welfare": ["dbt", "benefit", "scheme", "transfer"],
+  "procurement": ["gem", "marketplace", "msme", "orders"],
+  "commerce": ["ondc", "network", "sellers", "marketplace"],
+  "internet": ["connectivity", "bharatnet", "subscribers", "broadband"],
+  "governance": ["policy", "guidelines", "framework", "standard"],
+  "guidelines": ["governance", "standard", "framework", "sutras"],
+  "भुगतान": ["upi", "payments", "npci"],
+  "पहचान": ["aadhaar", "identity", "uidai"],
+  "अनुवाद": ["translation", "bhashini", "indictrans"],
+  "भाषा": ["language", "indic", "bhashini"],
+  "दस्तावेज़": ["document", "digilocker", "certificate"],
+  "खोज": ["search", "retrieval", "index"],
+  "सरकार": ["government", "policy", "scheme"],
+  "योजना": ["scheme", "welfare", "benefit"],
+  "ब्लॉकचेन": ["blockchain", "vishvasya", "ledger"],
+  "कंप्यूट": ["compute", "gpu", "indiaai"],
+  "धन": ["payments", "upi", "dbt"],
+  "डिजिलॉकर": ["digilocker", "document", "certificate"],
+  "आधार": ["aadhaar", "uidai", "identity"],
+  "यूजर": ["users", "registered", "citizens"],
+  "उपयोगकर्ता": ["users", "registered", "citizens"],
+  "सूची": ["list", "catalogue", "services"],
+  "भाषिणी": ["bhashini", "language", "translation"],
+  "अनुवाद": ["translation", "bhashini", "indictrans"],
+  "ब्लॉकचेन": ["blockchain", "vishvasya", "ledger"],
+  "विश्वास्य": ["vishvasya", "blockchain", "baas"],
+  "सरकारी": ["government", "public", "scheme"],
+  "सेवा": ["services", "scheme", "platform"],
+  "डेटा": ["data", "dataset", "privacy"],
+  "मॉडल": ["model", "llm", "ai"],
+  "कंप्यूट": ["compute", "gpu", "indiaai"],
+  "जीपीयू": ["gpu", "compute", "indiaai"],
+  "नियम": ["rules", "guidelines", "regulation"],
+  "सुरक्षा": ["security", "safety", "privacy"]
+};
+
+/* Roman -> Devanagari hints so that Hinglish queries reach Devanagari text. */
+var TRANSLIT = {
+  "bhashini": "भाषिणी", "aadhaar": "आधार", "adhar": "आधार", "paisa": "पैसा",
+  "bhugtan": "भुगतान", "pehchan": "पहचान", "anuvad": "अनुवाद", "bhasha": "भाषा",
+  "yojana": "योजना", "sarkar": "सरकार", "dastavez": "दस्तावेज़", "khoj": "खोज"
+};
+
+function isDevanagari(ch) {
+  var c = ch.charCodeAt(0);
+  return c >= 0x0900 && c <= 0x097F;
+}
+
+function normalise(text) {
+  var s = String(text).toLowerCase();
+  var out = "";
+  for (var i = 0; i < s.length; i++) {
+    var ch = s[i];
+    var code = ch.charCodeAt(0);
+    var keep = (code >= 97 && code <= 122) || (code >= 48 && code <= 57) || (code >= 0x0900 && code <= 0x097F);
+    out += keep ? ch : " ";
+  }
+  return out.replace(/\s+/g, " ").trim();
+}
+
+function stem(w) {
+  if (!w) return w;
+  if (isDevanagari(w[0])) return w;
+  if (w.length > 4 && /ies$/.test(w)) return w.slice(0, -3) + "y";
+  if (w.length > 4 && /(ses|xes|ches|shes)$/.test(w)) return w.slice(0, -2);
+  if (w.length > 3 && /s$/.test(w) && !/ss$/.test(w)) return w.slice(0, -1);
+  if (w.length > 5 && /ing$/.test(w)) return w.slice(0, -3);
+  if (w.length > 4 && /ed$/.test(w)) return w.slice(0, -2);
+  if (w.length > 5 && /tion$/.test(w)) return w.slice(0, -3);
+  return w;
+}
+
+function tokenise(text) {
+  var parts = normalise(text).split(" ");
+  var out = [];
+  for (var i = 0; i < parts.length; i++) {
+    var w = parts[i];
+    if (!w) continue;
+    if (w.length < 2 && !isDevanagari(w[0])) continue;
+    if (STOP.indexOf(w) >= 0) continue;
+    if (STOP_HI.indexOf(w) >= 0) continue;
+    out.push(stem(w));
+  }
+  return out;
+}
+
+function uniq(a) {
+  var seen = {}, out = [];
+  for (var i = 0; i < a.length; i++) { if (!seen[a[i]]) { seen[a[i]] = 1; out.push(a[i]); } }
+  return out;
+}
+
+/* ---------------------------------------------------------------- index ---- */
+function buildIndex(docs) {
+  var idx = { docs: docs, postings: {}, df: {}, idf: {}, len: [], avgdl: 0, vecs: [], vocab: [] };
+  var totalLen = 0;
+  for (var i = 0; i < docs.length; i++) {
+    var d = docs[i];
+    var titleT = tokenise(d.t + " " + d.t);
+    var tagT = tokenise((d.k || []).join(" "));
+    var bodyT = tokenise(d.b);
+    var all = titleT.concat(tagT).concat(bodyT);
+    idx.len[i] = all.length;
+    totalLen += all.length;
+
+    var tf = {};
+    var fields = {};
+    for (var j = 0; j < all.length; j++) {
+      var w = all[j];
+      var weight = 1;
+      tf[w] = (tf[w] || 0) + weight;
+    }
+    // field boosts stored separately so BM25 can weight them
+    var fTitle = {}, fTag = {};
+    for (var a = 0; a < titleT.length; a++) fTitle[titleT[a]] = (fTitle[titleT[a]] || 0) + 1;
+    for (var b = 0; b < tagT.length; b++) fTag[tagT[b]] = (fTag[tagT[b]] || 0) + 1;
+    fields.title = fTitle; fields.tag = fTag;
+
+    for (var term in tf) {
+      if (!idx.postings[term]) idx.postings[term] = {};
+      idx.postings[term][i] = { tf: tf[term], ft: fTitle[term] || 0, gt: fTag[term] || 0 };
+      idx.df[term] = (idx.df[term] || 0) + 1;
+    }
+  }
+  idx.avgdl = totalLen / Math.max(1, docs.length);
+  var N = docs.length;
+  for (var t in idx.df) {
+    idx.idf[t] = Math.log(1 + (N - idx.df[t] + 0.5) / (idx.df[t] + 0.5));
+  }
+  idx.vocab = Object.keys(idx.postings);
+
+  // tf-idf vectors for the cosine layer
+  for (var v = 0; v < docs.length; v++) idx.vecs.push({});
+  for (var term2 in idx.postings) {
+    var idf = idx.idf[term2];
+    for (var di in idx.postings[term2]) {
+      var rec = idx.postings[term2][di];
+      var w2 = (1 + Math.log(rec.tf)) * idf * (1 + 1.6 * (rec.ft > 0 ? 1 : 0) + 0.8 * (rec.gt > 0 ? 1 : 0));
+      idx.vecs[di][term2] = w2;
+    }
+  }
+  for (var n = 0; n < idx.vecs.length; n++) idx.vecs[n].__norm = vecNorm(idx.vecs[n]);
+  return idx;
+}
+
+function vecNorm(v) {
+  var s = 0;
+  for (var k in v) { if (k === "__norm") continue; s += v[k] * v[k]; }
+  return Math.sqrt(s) || 1;
+}
+
+function expandQuery(query) {
+  var base = uniq(tokenise(query));
+  var extra = [];
+  for (var i = 0; i < base.length; i++) {
+    var w = base[i];
+    if (SYN[w]) extra = extra.concat(SYN[w].map(function (x) { return stem(normalise(x).split(" ")[0]); }));
+    if (TRANSLIT[w]) extra = extra.concat(tokenise(TRANSLIT[w]));
+  }
+  // also try full-phrase transliteration for multiword Hinglish
+  var words = normalise(query).split(" ");
+  for (var j = 0; j < words.length; j++) {
+    if (TRANSLIT[words[j]]) extra = extra.concat(tokenise(TRANSLIT[words[j]]));
+  }
+  return { primary: base, expanded: uniq(base.concat(extra)) };
+}
+
+function trigramSim(a, b) {
+  function grams(s) {
+    var g = {};
+    for (var i = 0; i < s.length - 2; i++) g[s.substr(i, 3)] = 1;
+    return Object.keys(g);
+  }
+  var ga = grams(a), gb = grams(b), hit = 0;
+  for (var i = 0; i < ga.length; i++) if (gb.indexOf(ga[i]) >= 0) hit++;
+  return hit / Math.max(1, Math.min(ga.length, gb.length));
+}
+
+/* ---------------------------------------------------------------- search --- */
+function search(index, query, opts) {
+  opts = opts || {};
+  var q = expandQuery(query);
+  if (!q.primary.length && !opts.allowEmpty) return [];
+  var N = index.docs.length;
+  var k1 = 1.45, b = 0.72;
+  var scores = [];
+  var cand = {};
+
+  for (var i = 0; i < q.expanded.length; i++) {
+    var term = q.expanded[i];
+    var plist = index.postings[term];
+    var primary = q.primary.indexOf(term) >= 0;
+    if (plist) {
+      for (var di in plist) {
+        var rec = plist[di];
+        var dl = index.len[di] || 1;
+        var denom = rec.tf + k1 * (1 - b + b * (dl / index.avgdl));
+        var s = index.idf[term] * ((rec.tf * (k1 + 1)) / denom);
+        s *= primary ? 1 : 0.55;
+        s += (rec.ft || 0) * 2.2 * index.idf[term];
+        s += (rec.gt || 0) * 1.1 * index.idf[term];
+        cand[di] = (cand[di] || 0) + s;
+      }
+    } else {
+      // fuzzy fallback against vocabulary for typos
+      for (var v = 0; v < index.vocab.length; v++) {
+        var word = index.vocab[v];
+        if (Math.abs(word.length - term.length) > 3) continue;
+        var sim = trigramSim(term, word);
+        if (sim > 0.62) {
+          var p2 = index.postings[word];
+          for (var d2 in p2) {
+            var r2 = p2[d2];
+            cand[d2] = (cand[d2] || 0) + index.idf[word] * sim * 0.8 * (primary ? 1 : 0.5);
+          }
+        }
+      }
+    }
+  }
+
+  // cosine layer over the same expanded terms
+  var qvec = {};
+  for (var t2 = 0; t2 < q.expanded.length; t2++) {
+    var term3 = q.expanded[t2];
+    var idf3 = index.idf[term3] || 0.4;
+    var boost = q.primary.indexOf(term3) >= 0 ? 1 : 0.5;
+    qvec[term3] = (qvec[term3] || 0) + idf3 * boost;
+  }
+  var qnorm = vecNorm(qvec);
+
+  for (var d3 in cand) {
+    var dv = index.vecs[d3];
+    var dot = 0;
+    for (var qt in qvec) { if (dv[qt]) dot += qvec[qt] * dv[qt]; }
+    var cos = dot / (qnorm * (dv.__norm || 1));
+    var bm25 = cand[d3];
+    var doc = index.docs[d3];
+    var score = 0.62 * (bm25 / 12) + 0.30 * cos * 1.6 + 0.08 * ((doc.a || 3) / 5);
+    scores.push({ i: +d3, score: score, bm25: bm25, cos: cos });
+  }
+
+  scores.sort(function (x, y) { return y.score - x.score; });
+  var filtered = scores.filter(function (r) {
+    var d = index.docs[r.i];
+    if (opts.type && opts.type !== "all" && d.ty !== opts.type) return false;
+    if (opts.org && opts.org !== "all" && d.o !== opts.org) return false;
+    if (opts.lang && opts.lang !== "all" && d.l !== opts.lang) return false;
+    if (opts.from && d.y < opts.from) return false;
+    if (opts.to && d.y > opts.to) return false;
+    return true;
+  });
+
+  var sort = opts.sort || "relevance";
+  if (sort === "date") filtered.sort(function (x, y) { return index.docs[y.i].d.localeCompare(index.docs[x.i].d); });
+  if (sort === "authority") filtered.sort(function (x, y) { return (index.docs[y.i].a - index.docs[x.i].a) || (y.score - x.score); });
+  if (sort === "title") filtered.sort(function (x, y) { return index.docs[x.i].t.localeCompare(index.docs[y.i].t); });
+
+  var limit = opts.limit || 50;
+  return filtered.slice(0, limit).map(function (r) {
+    var d = index.docs[r.i];
+    return {
+      doc: d, score: r.score, bm25: r.bm25, cos: r.cos,
+      confidence: Math.max(0.18, Math.min(0.99, 1 - Math.exp(-r.score * 1.5))),
+      snippet: makeSnippet(d.b, q.expanded)
+    };
+  });
+}
+
+function makeSnippet(body, terms) {
+  var sentences = body.split(/(?<=[.!?])\s+/);
+  if (sentences.length < 2) sentences = [body];
+  var best = 0, bestScore = -1;
+  for (var i = 0; i < sentences.length; i++) {
+    var low = normalise(sentences[i]);
+    var sc = 0;
+    for (var t = 0; t < terms.length; t++) {
+      if (low.indexOf(terms[t]) >= 0) sc += 1 + Math.min(3, terms[t].length) / 6;
+    }
+    sc = sc / (1 + sentences[i].length / 260);
+    if (sc > bestScore) { bestScore = sc; best = i; }
+  }
+  var out = sentences[best] || body;
+  if (out.length > 320) out = out.slice(0, 300).replace(/\s+\S*$/, "") + "...";
+  return out;
+}
+
+function highlight(text, terms) {
+  var esc = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  var sorted = terms.slice().sort(function (a, b) { return b.length - a.length; }).slice(0, 14);
+  for (var i = 0; i < sorted.length; i++) {
+    var t = sorted[i];
+    if (!t || t.length < 3) continue;
+    try {
+      var re = new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+      esc = esc.replace(re, "<mark>$1</mark>");
+    } catch (e) { /* ignore */ }
+  }
+  return esc;
+}
+
+/* ------------------------------------------------------- answer (Pragya) ---- */
+function splitSentences(text) {
+  return text.split(/(?<=[.!?])\s+/).filter(function (s) { return s.trim().length > 30; });
+}
+
+function detectIntent(q) {
+  var s = q.toLowerCase();
+  if (/^(hi|hello|hey|namaste|namaskar|hola)\b/.test(s)) return "greeting";
+  if (/(what can you do|who are you|help|capabilities|features|kaise use)/.test(s)) return "meta";
+  if (/(how many|how much|number of|stats|statistic|figure|count|kitna|kitne)/.test(s)) return "quantitative";
+  if (/(when|what year|which year|kab|timeline|history)/.test(s)) return "temporal";
+  if (/( vs | versus |compare|difference between|better than|tulna)/.test(s)) return "compare";
+  if (/(how to|how do|how does|steps|kaise|process|implement|build)/.test(s)) return "procedural";
+  if (/(list|examples|which|top|all the|types of|kya kya)/.test(s)) return "list";
+  if (/(what is|what are|define|meaning|explain|kya hai|about)/.test(s)) return "definition";
+  if (/(source|evidence|proof|verify|citation|reference)/.test(s)) return "evidence";
+  return "general";
+}
+
+function answerQuery(index, query) {
+  var results = search(index, query, { limit: 8 });
+  if (!results.length) return { text: "", citations: [], results: results, confidence: 0, intent: detectIntent(query) };
+  var intent = detectIntent(query);
+  var expanded = expandQuery(query);
+  var terms = expanded.expanded;
+  var primary = expanded.primary;
+  var topScore = results[0].score || 1;
+
+  // sentence candidates from the top documents, gated so that off-topic
+  // sentences from a neighbouring document cannot leak into the brief
+  var cands = [];
+  for (var r = 0; r < Math.min(5, results.length); r++) {
+    var res = results[r];
+    if (r > 0 && res.score < topScore * 0.3) continue;
+    var sents = splitSentences(res.doc.b);
+    for (var s = 0; s < sents.length; s++) {
+      var low = normalise(sents[s]);
+      var pHits = 0, xHits = 0, hitTerms = [];
+      for (var t = 0; t < terms.length; t++) {
+        if (low.indexOf(terms[t]) >= 0) {
+          if (primary.indexOf(terms[t]) >= 0) { pHits++; hitTerms.push(terms[t]); }
+          else { xHits++; }
+        }
+      }
+      if (!pHits && xHits < 2) continue;
+      var score = pHits * 2.3 + xHits * 0.7 + (res.score * 2.2) + ((res.doc.a || 3) / 5);
+      if (intent === "quantitative" && /\d/.test(sents[s])) score += 2.4;
+      if (intent === "temporal" && (/\b(19|20)\d\d\b/.test(sents[s]) || /\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/i.test(sents[s]))) score += 1.8;
+      if (intent === "definition" && /\b(is|are|was|were|refers to|means|describes|designed to|set out)\b/i.test(sents[s]) && sents[s].length > 70 && sents[s].length < 430) score += 1.6;
+      if ((intent === "list" || intent === "definition") && /:.*;/.test(sents[s])) score += 1.4;
+      if (s === 0) score += 0.9;
+      score = score / (1 + sents[s].length / 430);
+      cands.push({ text: sents[s].trim(), score: score, doc: res.doc, hits: hitTerms });
+    }
+  }
+  cands.sort(function (a, b) { return b.score - a.score; });
+
+  // MMR: keep diverse, non-redundant sentences
+  var picked = [];
+  for (var c = 0; c < cands.length && picked.length < 4; c++) {
+    var cand = cands[c];
+    var dup = false;
+    for (var p = 0; p < picked.length; p++) {
+      if (trigramSim(normalise(cand.text), normalise(picked[p].text)) > 0.55) { dup = true; break; }
+      if (picked[p].doc.id === cand.doc.id) { dup = true; break; }
+    }
+    if (!dup) picked.push(cand);
+  }
+  if (!picked.length) picked = cands.slice(0, 2);
+
+  var conf = 0;
+  for (var k = 0; k < Math.min(3, results.length); k++) conf += results[k].confidence;
+  conf = Math.min(0.97, conf / Math.max(1, Math.min(3, results.length)));
+
+  var lead = {
+    definition: "Here is what the indexed Indian sources establish.",
+    quantitative: "The figures below come straight from the source documents.",
+    temporal: "The timeline, as recorded in the sources.",
+    procedural: "The sources describe this process as follows.",
+    list: "The sources list these items.",
+    compare: "Comparing what the sources say.",
+    evidence: "The evidence trail for this query.",
+    general: "Synthesised from the retrieved passages."
+  }[intent] || "Synthesised from the retrieved passages.";
+
+  return {
+    text: picked.map(function (p) { return p.text; }).join(" "),
+    sentences: picked.map(function (p) { return { text: p.text, docId: p.doc.id, title: p.doc.t }; }),
+    lead: lead,
+    citations: uniq(picked.map(function (p) { return p.doc.id; })),
+    results: results,
+    confidence: conf,
+    intent: intent
+  };
+}
+
+/* ------------------------------------------------------------ chat agent --- */
+function chatReply(index, message, memory) {
+  memory = memory || { turns: [], lastQuery: "", lastResults: [] };
+  var m = String(message).trim();
+  var low = m.toLowerCase();
+  var intent = detectIntent(m);
+
+  if (intent === "greeting") {
+    return {
+      text: "Namaste. I am Pragya, the on-device research agent inside ANVESHAN. I answer only from the " +
+        "50 Indian source documents in this index - PIB releases, MeitY and UIDAI material, NPCI data, " +
+        "AI4Bharat papers, C-DAC blockchain documentation. Ask me about Aadhaar, UPI, ONDC, DigiLocker, " +
+        "Bhashini, IndicTrans2, Sarvam models, IndiaAI compute, Vishvasya, or search architecture. " +
+        "Nothing you type leaves this device.",
+      chips: ["How many GPUs does IndiaAI have?", "What is Bhashini?", "Compare Vishvasya and NBFLite", "How does UPI scale work?"]
+    };
+  }
+  if (intent === "meta") {
+    return {
+      text: "I run entirely in your browser. My pipeline is: expand the query with an Indian domain thesaurus " +
+        "and roman-to-Devanagari transliteration, score all 50 documents with BM25 over boosted title and tag " +
+        "fields, blend in a TF-IDF cosine pass for paraphrase matching, then select source sentences with an " +
+        "MMR de-duplicator so the brief is diverse rather than repetitive. Every sentence I show is quoted from " +
+        "an indexed document, with its citation. I can also verify any document against the Merkle ledger, " +
+        "filter by file type, or hand the retrieval context to Sarvam-105B if you add a key in Settings.",
+      chips: ["Show me the architecture", "What is a Merkle proof?", "Which sources do you index?"]
+    };
+  }
+  if (/(source|sources do you|index contain|what do you have)/.test(low)) {
+    var orgs = {};
+    for (var i = 0; i < index.docs.length; i++) orgs[index.docs[i].o] = (orgs[index.docs[i].o] || 0) + 1;
+    var top = Object.keys(orgs).sort(function (a, b) { return orgs[b] - orgs[a]; }).slice(0, 10)
+      .map(function (o) { return o + " (" + orgs[o] + ")"; }).join(", ");
+    return { text: "The index holds " + index.docs.length + " documents. Issuing bodies: " + top + ".", chips: ["What is IndiaAI?", "Explain ONDC"] };
+  }
+
+  // follow-ups
+  if (/^(more|explain|go on|elaborate|detail)/.test(low) && memory.lastQuery) {
+    m = memory.lastQuery;
+  }
+  var res = answerQuery(index, m);
+  if (!res.sentences || !res.sentences.length) {
+    return {
+      text: "I could not find that in the 50 indexed Indian sources. I only answer from this corpus, so rather " +
+        "than guess I will say so. Try one of these, or widen the query.",
+      chips: ["IndiaAI compute", "Bhashini languages", "DigiLocker users", "National Blockchain Framework"]
+    };
+  }
+
+  var body = res.sentences.map(function (s, n) {
+    return s.text + " [" + (n + 1) + "]";
+  }).join(" ");
+  var sourceList = res.sentences.map(function (s, n) {
+    return "[" + (n + 1) + "] " + s.title;
+  }).join("\n");
+
+  var conf = res.confidence > 0.66 ? "high" : res.confidence > 0.4 ? "moderate" : "low";
+  var text = res.lead + " " + body + "\n\nConfidence: " + conf + " (" + Math.round(res.confidence * 100) + "%). " +
+    "All statements above are extracted verbatim from the cited sources.";
+
+  memory.lastQuery = m;
+  memory.lastResults = res.results;
+  return { text: text, sources: res.sentences, citations: res.citations, chips: nextChips(res), confidence: res.confidence };
+}
+
+function nextChips(res) {
+  var chips = [];
+  var ids = res.citations || [];
+  if (ids.length) chips.push("Sources for this");
+  var t = (res.sentences && res.sentences[0]) ? res.sentences[0].text : "";
+  if (/\d/.test(t)) chips.push("Give me the exact figures");
+  if (/blockchain|vishvasya|ledger/i.test(t)) chips.push("How is this verified on-chain?");
+  if (/language|indic|translation/i.test(t)) chips.push("Which Indic languages are covered?");
+  if (chips.length < 3) chips.push("What else is in the index?");
+  return chips.slice(0, 3);
+}
+
+/* ------------------------------------------------------- provenance layer --- */
+async function sha256Hex(str) {
+  var enc = new TextEncoder().encode(str);
+  var buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+}
+
+async function buildMerkle(docs) {
+  var leaves = [];
+  for (var i = 0; i < docs.length; i++) {
+    var d = docs[i];
+    var h = await sha256Hex(d.id + "|" + d.t + "|" + d.o + "|" + d.u + "|" + d.b);
+    leaves.push({ id: d.id, hash: h, doc: d });
+  }
+  var level = leaves.map(function (l) { return l.hash; });
+  var levels = [level.slice()];
+  var idxOf = {};
+  for (var j = 0; j < leaves.length; j++) idxOf[leaves[j].id] = j;
+  while (level.length > 1) {
+    var next = [];
+    for (var k = 0; k < level.length; k += 2) {
+      var left = level[k];
+      var right = level[k + 1] || left;
+      next.push(await sha256Hex(left + right));
+    }
+    levels.push(next);
+    level = next;
+  }
+  return { leaves: leaves, levels: levels, root: level[0], idxOf: idxOf };
+}
+
+async function merkleProof(tree, docId) {
+  var idx = tree.idxOf[docId];
+  if (idx === undefined) return null;
+  var proof = [];
+  var pos = idx;
+  for (var l = 0; l < tree.levels.length - 1; l++) {
+    var level = tree.levels[l];
+    var sib = pos % 2 === 0 ? pos + 1 : pos - 1;
+    if (sib < level.length) proof.push({ side: pos % 2 === 0 ? "right" : "left", hash: level[sib] });
+    pos = Math.floor(pos / 2);
+  }
+  return proof;
+}
+
+async function verifyProof(leafHash, proof) {
+  var h = leafHash;
+  for (var i = 0; i < proof.length; i++) {
+    var p = proof[i];
+    h = p.side === "right" ? await sha256Hex(h + p.hash) : await sha256Hex(p.hash + h);
+  }
+  return h;
+}
+
+function makeDid() {
+  var seed = "";
+  var chars = "0123456789abcdef";
+  for (var i = 0; i < 32; i++) seed += chars[Math.floor(Math.random() * 16)];
+  return "did:anveshan:" + seed;
+}
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    DOCS: null, tokenise: tokenise, stem: stem, buildIndex: buildIndex, search: search,
+    answerQuery: answerQuery, chatReply: chatReply, expandQuery: expandQuery,
+    buildMerkle: buildMerkle, merkleProof: merkleProof, verifyProof: verifyProof,
+    sha256Hex: sha256Hex, normalise: normalise, detectIntent: detectIntent, makeSnippet: makeSnippet
+  };
+}
+</script>
+<script>/* ============================================================================
+   ANVESHAN UI - interface, provenance ledger, agent dock, panels
+   ========================================================================== */
+var INDEX = buildIndex(DOCS);
+var TREE = null;
+var S = {
+  q: "", base: [], results: [], answer: null,
+  filters: { type: "all", org: "all", lang: "all", from: null, to: null },
+  sort: "relevance", view: "list", filterOpen: false,
+  did: "", chatMem: { turns: [], lastQuery: "", lastResults: [] },
+  saved: [], chain: [], lang: "en",
+  sarvam: { key: "", on: false, model: "sarvam-105b" },
+  t0: Date.now()
+};
+var TYPE_LABEL = {
+  policy: "Policy", press: "Press release", report: "Report", paper: "Research paper",
+  standard: "Standard", dataset: "Dataset", model: "Model card", api: "API / developer",
+  scheme: "Scheme", dashboard: "Dashboard"
+};
+
+/* ------------------------------------------------------------------ boot --- */
+async function boot() {
+  S.did = localStorage.getItem("anv_did") || makeDid();
+  localStorage.setItem("anv_did", S.did);
+  document.getElementById("didText").textContent = S.did.slice(0, 22) + "...";
+  document.getElementById("stDocs").textContent = DOCS.length;
+  document.getElementById("stTerms").textContent = INDEX.vocab.length;
+
+  try { S.saved = JSON.parse(localStorage.getItem("anv_saved") || "[]"); } catch (e) { S.saved = []; }
+  try { S.chain = JSON.parse(localStorage.getItem("anv_chain") || "[]"); } catch (e) { S.chain = []; }
+  try {
+    var sv = JSON.parse(localStorage.getItem("anv_sarvam") || "null");
+    if (sv) S.sarvam = sv;
+  } catch (e) {}
+
+  try {
+    TREE = await buildMerkle(DOCS);
+    document.getElementById("stRoot").textContent = TREE.root.slice(0, 8) + "...";
+    document.getElementById("stRoot").title = TREE.root;
+  } catch (e) { toast("Ledger could not be built in this browser"); }
+
+  renderHeroChips();
+  wireEvents();
+  drawAurora();
+  seedChat();
+
+  var hashQ = decodeURIComponent((location.hash || "").replace(/^#q=/, ""));
+  if (hashQ && location.hash.indexOf("#q=") === 0) {
+    document.getElementById("q").value = hashQ;
+    doSearch(hashQ, true);
+  }
+}
+
+function renderHeroChips() {
+  var chips = [
+    ["How many GPUs does IndiaAI have?", "hot"],
+    ["Bhashini Indic languages", ""],
+    ["UPI transactions FY 2025-26", ""],
+    ["Vishvasya blockchain stack", ""],
+    ["DigiLocker document verification", ""],
+    ["IndicTrans2 22 languages", ""],
+    ["ONDC sellers 2026", ""],
+    ["AI governance sutras", ""],
+    ["How to build a search engine", ""],
+    ["डिजिलॉकर यूजर", ""]
+  ];
+  var el = document.getElementById("heroChips");
+  el.innerHTML = chips.map(function (c) {
+    return '<button class="chip ' + c[1] + '" onclick="quick(\'' + c[0].replace(/'/g, "\\'") + '\')">' + c[0] + "</button>";
+  }).join("");
+}
+
+function quick(q) {
+  document.getElementById("q").value = q;
+  doSearch(q, true);
+}
+
+/* ------------------------------------------------------------- searching --- */
+function doSearch(q, record) {
+  q = (q || "").trim();
+  if (!q) { goHome(); return; }
+  S.q = q;
+  S.base = search(INDEX, q, { limit: 200 });
+  applyFilters();
+  S.answer = answerQuery(INDEX, q);
+  document.getElementById("hero").style.display = "none";
+  document.getElementById("results").style.display = "block";
+  renderResults();
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  if (record) {
+    addBlock(q, S.results.slice(0, 8).map(function (r) { return r.doc.id; }));
+    history.replaceState(null, "", "#q=" + encodeURIComponent(q));
+  }
+}
+
+function applyFilters() {
+  S.results = search(INDEX, S.q, {
+    type: S.filters.type, org: S.filters.org, lang: S.filters.lang,
+    from: S.filters.from, to: S.filters.to, sort: S.sort, limit: 80
+  });
+}
+
+function facetCounts() {
+  var ty = {}, org = {}, yr = {}, lg = {};
+  for (var i = 0; i < S.base.length; i++) {
+    var d = S.base[i].doc;
+    ty[d.ty] = (ty[d.ty] || 0) + 1;
+    org[d.o] = (org[d.o] || 0) + 1;
+    yr[d.y] = (yr[d.y] || 0) + 1;
+    lg[d.l] = (lg[d.l] || 0) + 1;
+  }
+  return { ty: ty, org: org, yr: yr, lg: lg };
+}
+
+function renderResults() {
+  var f = facetCounts();
+  var html = "";
+
+  /* search bar */
+  html += '<div class="resbar"><div class="inner">' +
+    '<div class="mini"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></span>' +
+    '<input id="q2" value="' + esc(S.q) + '" autocomplete="off" spellcheck="false">' +
+    '<span class="kbd">Enter</span></div>' +
+    '<button class="nbtn" onclick="toggleFilters()">Filters' + (filtersActive() ? " &middot; on" : "") + '</button>' +
+    '<button class="nbtn" onclick="exportMarkdown()">Export</button>' +
+    '</div></div>';
+
+  html += '<div class="layout">';
+
+  /* sidebar */
+  html += '<aside class="filters ' + (S.filterOpen ? "show" : "") + '">' + filterHTML(f) + '</aside>';
+
+  /* main column */
+  html += '<div>';
+  html += briefHTML();
+  html += '<div class="toolbar">' +
+    '<div class="count"><b>' + S.results.length + '</b> result' + (S.results.length === 1 ? "" : "s") +
+    ' &nbsp;·&nbsp; ' + S.base.length + ' matched &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px">index built locally &middot; 0 network calls</span></div>' +
+    '<select class="sel" onchange="setSort(this.value)">' +
+    opt("relevance", "Relevance", S.sort) + opt("date", "Newest first", S.sort) +
+    opt("authority", "Authority", S.sort) + opt("title", "A-Z", S.sort) + '</select>' +
+    '<div class="seg">' +
+    segBtn("list", "List") + segBtn("type", "By type") + segBtn("table", "Table") +
+    '</div></div>';
+
+  if (!S.results.length) {
+    html += emptyHTML();
+  } else if (S.view === "table") {
+    html += tableHTML();
+  } else if (S.view === "type") {
+    html += groupedHTML();
+  } else {
+    html += S.results.map(cardHTML).join("");
+  }
+  html += '</div></div>';
+
+  document.getElementById("results").innerHTML = html;
+  var q2 = document.getElementById("q2");
+  if (q2) {
+    q2.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { S.refocus = false; doSearch(q2.value, true); }
+    });
+    q2.addEventListener("input", debounce(function () {
+      if (q2.value.trim().length > 2) { S.refocus = true; doSearch(q2.value, false); }
+    }, 280));
+    if (S.refocus) {
+      q2.focus();
+      try { q2.setSelectionRange(q2.value.length, q2.value.length); } catch (e) {}
+    }
+  }
+}
+
+function opt(v, label, cur) { return '<option value="' + v + '"' + (cur === v ? " selected" : "") + ">" + label + "</option>"; }
+function segBtn(v, label) { return '<button class="' + (S.view === v ? "on" : "") + '" onclick="setView(\'' + v + '\')">' + label + "</button>"; }
+function setView(v) { S.view = v; renderResults(); }
+function setSort(v) { S.sort = v; applyFilters(); renderResults(); }
+function toggleFilters() { S.filterOpen = !S.filterOpen; renderResults(); }
+function filtersActive() {
+  return S.filters.type !== "all" || S.filters.org !== "all" || S.filters.lang !== "all" || S.filters.from || S.filters.to;
+}
+
+function filterHTML(f) {
+  var h = "";
+  h += '<div class="fgroup"><h4>File type</h4>';
+  h += fopt("type", "all", "All types", S.base.length);
+  Object.keys(f.ty).sort(function (a, b) { return f.ty[b] - f.ty[a]; }).forEach(function (k) {
+    h += fopt("type", k, TYPE_LABEL[k] || k, f.ty[k]);
+  });
+  h += "</div>";
+
+  h += '<div class="fgroup"><h4>Issuing body</h4>';
+  h += fopt("org", "all", "All bodies", S.base.length);
+  Object.keys(f.org).sort(function (a, b) { return f.org[b] - f.org[a]; }).slice(0, 12).forEach(function (k) {
+    h += fopt("org", k, k, f.org[k]);
+  });
+  h += "</div>";
+
+  h += '<div class="fgroup"><h4>Language</h4>';
+  h += fopt("lang", "all", "All", S.base.length);
+  h += fopt("lang", "en", "English", (f.lg && f.lg.en) || "");
+  h += "</div>";
+
+  h += '<div class="fgroup"><h4>Year</h4>';
+  var years = Object.keys(f.yr).sort();
+  for (var i = years.length - 1; i >= 0; i--) {
+    h += '<div class="fopt ' + (S.filters.from === +years[i] && S.filters.to === +years[i] ? "on" : "") + '" onclick="setYear(' + years[i] + ')">' +
+      '<span class="sw"></span>' + years[i] + '<span class="n">' + f.yr[years[i]] + "</span></div>";
+  }
+  h += "</div>";
+
+  if (filtersActive()) {
+    h += '<button class="nbtn" style="width:100%;justify-content:center" onclick="clearFilters()">Clear all filters</button>';
+  }
+  h += '<div class="fgroup" style="margin-top:22px;font-size:11px;color:var(--dimmer);line-height:1.7">' +
+    'Every result is a document from an Indian public source. Click any card to read it, verify its hash, or ask Pragya about it.</div>';
+  return h;
+}
+
+function fopt(field, val, label, n) {
+  var on = S.filters[field] === val;
+  return '<div class="fopt ' + (on ? "on" : "") + '" onclick="setFilter(\'' + field + '\',\'' + esc(val).replace(/'/g, "\\'") + '\')">' +
+    '<span class="sw"></span><span>' + label + "</span>" + (n ? '<span class="n">' + n + "</span>" : "") + "</div>";
+}
+function setFilter(field, val) {
+  S.filters[field] = S.filters[field] === val ? "all" : val;
+  applyFilters(); renderResults();
+}
+function setYear(y) {
+  if (S.filters.from === y && S.filters.to === y) { S.filters.from = null; S.filters.to = null; }
+  else { S.filters.from = y; S.filters.to = y; }
+  applyFilters(); renderResults();
+}
+function clearFilters() {
+  S.filters = { type: "all", org: "all", lang: "all", from: null, to: null };
+  applyFilters(); renderResults();
+}
+
+/* ----------------------------------------------------------------- brief --- */
+function briefHTML() {
+  var a = S.answer;
+  if (!a || !a.sentences || !a.sentences.length) return "";
+  var docMap = {};
+  DOCS.forEach(function (d) { docMap[d.id] = d; });
+  var body = a.sentences.map(function (s, i) {
+    return esc(s.text) + '<span class="cite" onclick="openDoc(\'' + s.docId + '\')" title="' + esc(s.title) + '">' + (i + 1) + "</span>";
+  }).join(" ");
+  var conf = Math.round(a.confidence * 100);
+  var label = a.confidence > 0.66 ? "high confidence" : a.confidence > 0.4 ? "moderate confidence" : "low confidence - read the sources";
+
+  return '<div class="brief">' +
+    '<div class="brief-top"><span class="brief-tag">Pragya brief</span>' +
+    '<span class="brief-model">extractive &middot; ' + a.sentences.length + ' source sentence' + (a.sentences.length === 1 ? "" : "s") + ' &middot; intent: ' + a.intent + '</span></div>' +
+    '<p>' + body + "</p>" +
+    '<div class="conf"><span>Confidence ' + conf + '%</span><span class="confbar"><i style="width:' + conf + '%"></i></span><span>' + label + "</span></div>" +
+    '<div class="brief-acts">' +
+    '<button class="iact" onclick="askAbout(\'' + esc(S.q).replace(/'/g, "\\'") + '\')">Discuss in Pragya</button>' +
+    '<button class="iact" onclick="copyBrief()">Copy brief with citations</button>' +
+    '<button class="iact" onclick="openPanel(\'stack\')">How this answer was made</button>' +
+    "</div></div>";
+}
+
+function copyBrief() {
+  var a = S.answer;
+  if (!a) return;
+  var docMap = {};
+  DOCS.forEach(function (d) { docMap[d.id] = d; });
+  var txt = "ANVESHAN brief for: " + S.q + "\n\n";
+  a.sentences.forEach(function (s, i) {
+    txt += "[" + (i + 1) + "] " + s.text + "\n    source: " + docMap[s.docId].t + " - " + docMap[s.docId].o + " (" + docMap[s.docId].u + ")\n";
+  });
+  txt += "\nConfidence: " + Math.round(a.confidence * 100) + "% | generated locally by ANVESHAN, no network calls.";
+  copy(txt, "Brief with citations copied");
+}
+
+/* ----------------------------------------------------------------- cards --- */
+function cardHTML(r) {
+  var d = r.doc;
+  var hash = TREE ? shortHash(d.id) : "--------";
+  var terms = expandQuery(S.q).expanded;
+  return '<article class="card" onclick="openDoc(\'' + d.id + '\')">' +
+    '<div class="card-h"><span class="tbadge t-' + d.ty + '">' + (TYPE_LABEL[d.ty] || d.ty) + "</span>" +
+    '<span style="font-size:10.5px;color:var(--dimmer);font-family:var(--mono)">' + d.id.toUpperCase() + "</span>" +
+    '<span style="margin-left:auto;font-size:10.5px;color:var(--dimmer);font-family:var(--mono)">' + Math.round(r.confidence * 100) + "% match</span></div>" +
+    "<h3>" + highlight(d.t, terms) + "</h3>" +
+    '<div class="meta"><span>' + esc(d.o) + '</span><span class="sep">|</span><span>' + esc(d.s) + '</span><span class="sep">|</span><span>' + d.d + "</span></div>" +
+    '<p class="snip">' + highlight(r.snippet, terms) + "</p>" +
+    '<div class="card-f"><span class="hashpill"><span class="dot"></span>' + hash + "</span>" +
+    '<div class="mini-act">' +
+    '<button class="iact" onclick="event.stopPropagation();openDoc(\'' + d.id + '\',true)">Verify</button>' +
+    '<button class="iact" onclick="event.stopPropagation();copyCitation(\'' + d.id + '\')">Cite</button>' +
+    '<button class="iact" onclick="event.stopPropagation();toggleSave(\'' + d.id + '\')">' + (S.saved.indexOf(d.id) >= 0 ? "Saved" : "Save") + "</button>" +
+    "</div></div></article>";
+}
+
+function shortHash(id) {
+  if (!TREE) return "--------";
+  var i = TREE.idxOf[id];
+  if (i === undefined) return "--------";
+  return TREE.leaves[i].hash.slice(0, 8);
+}
+
+function groupedHTML() {
+  var byType = {};
+  S.results.forEach(function (r) {
+    (byType[r.doc.ty] = byType[r.doc.ty] || []).push(r);
+  });
+  return Object.keys(byType).sort(function (a, b) { return byType[b].length - byType[a].length; })
+    .map(function (ty) {
+      return '<div class="type-head">' + (TYPE_LABEL[ty] || ty) + " &middot; " + byType[ty].length + "</div>" +
+        byType[ty].map(cardHTML).join("");
+    }).join("");
+}
+
+function tableHTML() {
+  var h = '<div style="border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:70vh">' +
+    '<table class="tbl"><thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Body</th><th>Year</th><th>Match</th></tr></thead><tbody>';
+  S.results.forEach(function (r) {
+    var d = r.doc;
+    h += '<tr onclick="openDoc(\'' + d.id + '\')"><td class="mono">' + d.id + "</td><td>" + esc(d.t) + "</td><td>" +
+      (TYPE_LABEL[d.ty] || d.ty) + "</td><td>" + esc(d.o) + '</td><td class="mono">' + d.y + '</td><td class="mono">' +
+      Math.round(r.confidence * 100) + "%</td></tr>";
+  });
+  return h + "</tbody></table></div>";
+}
+
+function emptyHTML() {
+  return '<div class="empty"><h3>Nothing in the index matches that</h3>' +
+    "<p>ANVESHAN only answers from its " + DOCS.length + " indexed Indian source documents, so it will not invent a result. " +
+    "Try a broader term, or clear the filters.</p>" +
+    '<button class="nbtn" onclick="clearFilters();doSearch(S.q,false)">Clear filters</button> ' +
+    '<button class="nbtn accent" onclick="askAbout(\'' + esc(S.q).replace(/'/g, "\\'") + '\')">Ask Pragya instead</button></div>';
+}
+
+/* ---------------------------------------------------------------- drawer --- */
+function openDoc(id, verify) {
+  var d = DOCS.filter(function (x) { return x.id === id; })[0];
+  if (!d) return;
+  var terms = expandQuery(S.q).expanded;
+  document.getElementById("dTitle").textContent = d.t;
+  var h = "";
+  h += '<div class="kv">' +
+    "<dt>Type</dt><dd><span class=\"tbadge t-" + d.ty + '">' + (TYPE_LABEL[d.ty] || d.ty) + "</span></dd>" +
+    "<dt>Issuing body</dt><dd>" + esc(d.o) + "</dd>" +
+    "<dt>Source</dt><dd>" + esc(d.s) + "</dd>" +
+    "<dt>Date</dt><dd>" + d.d + "</dd>" +
+    "<dt>Authority</dt><dd>" + d.a + " / 5</dd>" +
+    "<dt>Doc ID</dt><dd style=\"font-family:var(--mono)\">" + d.id + "</dd>" +
+    "<dt>Language</dt><dd>" + (d.l === "en" ? "English" : d.l) + "</dd>" +
+    "</div>";
+  h += '<div class="doc-body">' + highlight(d.b, terms) + "</div>";
+  h += '<div class="proofbox" id="proofBox"><h4>Merkle provenance</h4><div class="mono-line">verifying leaf hash against index root...</div></div>';
+  h += '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px">' +
+    '<button class="iact" onclick="copyCitation(\'' + d.id + '\')">Copy citation</button>' +
+    '<button class="iact" onclick="toggleSave(\'' + d.id + '\')">' + (S.saved.indexOf(d.id) >= 0 ? "Remove from reading list" : "Save to reading list") + "</button>" +
+    '<button class="iact" onclick="askAbout(\'' + esc(d.t).replace(/'/g, "\\'") + '\')">Ask Pragya about this</button>' +
+    '<a class="iact" href="' + d.u + '" target="_blank" rel="noopener noreferrer">Open original source</a>' +
+    "</div>";
+  h += '<div class="warn"><b>Source note.</b> This is a condensed summary written for retrieval, not the original text. ' +
+    "The issuing body and URL are shown above; always check the original before relying on a figure for a decision.</div>";
+
+  document.getElementById("dBody").innerHTML = h;
+  document.getElementById("drawer").classList.add("on");
+  document.getElementById("scrim").classList.add("on");
+  if (verify) setTimeout(function () { verifyDoc(d.id); }, 120);
+  else setTimeout(function () { verifyDoc(d.id); }, 400);
+}
+
+function verifyDoc(id) {
+  var box = document.getElementById("proofBox");
+  if (!TREE) { if (box) box.innerHTML = "<h4>Merkle provenance</h4><div class='mono-line'>ledger still building...</div>"; return; }
+  var d = DOCS.filter(function (x) { return x.id === id; })[0];
+  merkleProof(TREE, id).then(function (proof) {
+    return sha256Hex(d.id + "|" + d.t + "|" + d.o + "|" + d.u + "|" + d.b).then(function (leaf) {
+      return verifyProof(leaf, proof).then(function (root) {
+        var ok = root === TREE.root;
+        var html = "<h4>Merkle provenance</h4>";
+        html += '<div class="mono-line">leaf&nbsp;&nbsp; ' + leaf + "</div>";
+        html += '<div class="mono-line">root&nbsp;&nbsp; ' + TREE.root + "</div>";
+        html += '<div class="mono-line">proof ' + proof.length + " sibling hashes, depth " + proof.length + "</div>";
+        html += '<div class="verdict ' + (ok ? "ok" : "bad") + '">' +
+          (ok ? "Verified - this document's content hash reconstructs the index root" : "Mismatch - content does not match the ledger") + "</div>";
+        html += '<div class="mono-line" style="margin-top:9px;color:var(--dimmer)">SHA-256 computed locally with the Web Crypto API. ' +
+          "Nothing was sent anywhere to verify this.</div>";
+        box.innerHTML = html;
+      });
+    });
+  });
+}
+
+function closeDrawer() {
+  document.getElementById("drawer").classList.remove("on");
+  document.getElementById("scrim").classList.remove("on");
+}
+
+/* ---------------------------------------------------------------- ledger --- */
+function addBlock(q, ids) {
+  var prev = S.chain.length ? S.chain[S.chain.length - 1].hash : "0".repeat(64);
+  var ts = new Date().toISOString();
+  var payload = prev + "|" + q + "|" + ids.join(",") + "|" + ts;
+  sha256Hex(payload).then(function (h) {
+    S.chain.push({ i: S.chain.length, q: q, ids: ids, ts: ts, prev: prev, hash: h });
+    if (S.chain.length > 40) S.chain = S.chain.slice(-40);
+    localStorage.setItem("anv_chain", JSON.stringify(S.chain));
+  });
+}
+
+/* ----------------------------------------------------------------- saved --- */
+function toggleSave(id) {
+  var i = S.saved.indexOf(id);
+  if (i >= 0) { S.saved.splice(i, 1); toast("Removed from reading list"); }
+  else { S.saved.push(id); toast("Saved to reading list"); }
+  localStorage.setItem("anv_saved", JSON.stringify(S.saved));
+  if (S.q) renderResults();
+}
+
+/* ----------------------------------------------------------------- panels --- */
+function openPanel(which) {
+  var t = "", sub = "", body = "";
+  if (which === "stack") {
+    t = "The India-only stack";
+    sub = "Every layer mapped to an Indian institution, programme or open model - and what is genuinely shipped vs still a prototype";
+    body = stackBody();
+  } else if (which === "ledger") {
+    t = "Satya ledger";
+    sub = "Merkle tree over every indexed document, plus an append-only chain of your queries - all computed on this device";
+    body = ledgerBody();
+  } else if (which === "saved") {
+    t = "Reading list";
+    sub = S.saved.length + " document" + (S.saved.length === 1 ? "" : "s") + " saved on this device";
+    body = savedBody();
+  } else {
+    t = "Settings";
+    sub = "Language, AI adapter and local data";
+    body = settingsBody();
+  }
+  document.getElementById("panelTitle").textContent = t;
+  document.getElementById("panelSub").textContent = sub;
+  document.getElementById("panelBody").innerHTML = body;
+  document.getElementById("panel").classList.add("on");
+  if (which === "ledger") renderLedgerTables();
+}
+function closePanel() { document.getElementById("panel").classList.remove("on"); }
+
+function stackBody() {
+  var rows = [
+    ["Retrieval core", "BM25 + TF-IDF cosine hybrid, written from scratch", "Public information retrieval research; no licensed engine", "shipped"],
+    ["Index", "Inverted index over 50 Indian source documents", "Built at load time in your browser", "shipped"],
+    ["Language layer", "Script-aware tokeniser, roman-to-Devanagari transliteration, Indic domain thesaurus", "Design follows AI4Bharat IndicXlit and Bhashini service model", "shipped (offline subset)"],
+    ["Provenance", "SHA-256 Merkle tree + hash-linked query chain", "Web Crypto API; modelled on MeitY Vishvasya / NBF record-keeping", "shipped"],
+    ["Answer layer", "Extractive sentence selection with MMR and citation binding", "No generative model in the default path", "shipped"],
+    ["Generative AI", "Optional adapter to Sarvam-105B chat completions", "Sarvam AI, IndiaAI foundation model cohort", "adapter ready, needs your key"],
+    ["Translation", "Query-side transliteration only, offline", "Bhashini ULCA / AI4Bharat IndicTrans2 for full translation", "not wired (needs API)"],
+    ["Speech", "Browser speech engine for voice query", "Bhashini ASR / IndicConformer for on-device Indic ASR", "browser fallback"],
+    ["Identity", "did:anveshan: local decentralised identifier", "DPDP-aligned local-only identifier", "shipped"],
+    ["Compute", "Your device", "IndiaAI Mission GPU pool at about Rs 65 per GPU hour for training; Param Rudra for HPC", "not needed here"],
+    ["Hosting", "A single HTML file, zero external requests", "NIC / MeitY government cloud for production", "portable"],
+    ["Governance", "Citations on every sentence, confidence shown, limits disclosed", "India AI Governance Guidelines, seven sutras", "shipped"]
+  ];
+  var h = '<div class="sec"><h3>Layer by layer</h3><p>This build uses <b>no foreign service at runtime</b>. ' +
+    "The retrieval engine, the ranking maths, the tokeniser, the thesaurus and the Merkle ledger are all local code. " +
+    "Where an Indian programme exists but cannot run inside a browser tab, the row says so instead of pretending.</p>" +
+    '<table class="ledger-tbl" style="font-family:var(--sans)"><thead><tr><th>Layer</th><th>What runs here</th><th>Indian reference</th><th>Status</th></tr></thead><tbody>' +
+    rows.map(function (r) {
+      var col = r[3] === "shipped" ? "var(--green)" : r[3].indexOf("not") === 0 ? "var(--dimmer)" : "var(--saffron)";
+      return "<tr><td style='color:#dbe2f0;font-weight:600'>" + r[0] + "</td><td>" + r[1] +
+        "</td><td style='color:var(--dim)'>" + r[2] + "</td><td style='color:" + col + ";font-family:var(--mono);font-size:10px'>" + r[3] + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+
+  h += '<div class="sec"><h3>Query pipeline</h3><div class="flow">' +
+    flowRow("01", "Normalise", "lowercase, strip punctuation, keep Devanagari codepoints", "local") +
+    flowRow("02", "Tokenise + stem", "stopwords in English and Hindi, light suffix stripping", "local") +
+    flowRow("03", "Expand", "Indian domain thesaurus plus roman to Devanagari transliteration", "local") +
+    flowRow("04", "Score", "BM25 over boosted title and tag fields, k1 1.45, b 0.72", "local") +
+    flowRow("05", "Blend", "0.62 BM25 + 0.30 cosine + 0.08 source authority", "local") +
+    flowRow("06", "Snippet", "sentence window maximising query-term density", "local") +
+    flowRow("07", "Brief", "sentence selection with MMR de-duplication and citation binding", "local") +
+    flowRow("08", "Attest", "SHA-256 leaf hash, Merkle proof against the index root", "local") +
+    "</div></div>";
+
+  h += '<div class="sec"><h3>What this is not</h3>' +
+    '<div class="warn"><b>Be clear-eyed about scope.</b> This is a working search engine over 50 curated Indian documents, not a crawler over the Indian web. ' +
+    "It does not index live pages, it does not call Bhashini or Sarvam unless you add a key, and the Merkle ledger is local - it is not a live Vishvasya network node. " +
+    "What is real: the retrieval maths, the ranking, the language handling, the cryptographic verification, and the citation discipline. " +
+    "What is honest labelling: everything else.</div></div>";
+
+  h += '<div class="sec"><h3>Why the design is future-proof</h3><div class="grid2">' +
+    tile("Zero dependencies", "No framework, no CDN, no build step. The file you have will run in a browser shipped a decade from now.", "durable") +
+    tile("Offline first", "Bandwidth is still the binding constraint for 60% of India. The engine works with the network off.", "DPI logic") +
+    tile("Protocol not platform", "Index and rank locally; swap in any model behind an adapter. Mirrors the ONDC and Beckn argument.", "open") +
+    tile("Provenance by default", "Content hashing at index time is cheap now and mandatory under emerging synthetic-content rules.", "compliance") +
+    tile("Extractive before generative", "A quote cannot hallucinate. Generation is an optional layer on top, never the source of truth.", "trust") +
+    tile("Lightweight models", "The India AI Governance Guidelines explicitly favour resource-efficient models. This runs on a phone.", "guideline") +
+    "</div></div>";
+  return h;
+}
+
+function flowRow(n, title, detail, who) {
+  return '<div class="flow-row"><span class="idx">' + n + "</span><b style='color:#e8ecf7'>" + title + "</b><span style='color:var(--dim)'>" + detail + "</span><span class='who'>" + who + "</span></div>";
+}
+function tile(title, text, tag) {
+  return '<div class="tile"><h4>' + title + '<span class="tag">' + tag + "</span></h4><p>" + text + "</p></div>";
+}
+
+function ledgerBody() {
+  return '<div class="sec"><h3>Index root</h3>' +
+    '<div class="bigroot" id="rootLine">computing...</div>' +
+    "<p style='margin-top:10px;font-size:12.5px;color:var(--dim)'>The root is the SHA-256 hash of the top of a Merkle tree whose leaves are the 50 documents. " +
+    "Change one character in one document and the root changes. This is the same record-integrity argument MeitY makes for the National Blockchain Framework, " +
+    "implemented here with the Web Crypto API instead of a network of nodes.</p></div>" +
+    '<div class="sec"><h3>Document leaves</h3><div id="leafTable"></div></div>' +
+    '<div class="sec"><h3>Your query chain</h3><p style="font-size:12.5px;color:var(--dim)">Each search you run appends a block hashed over the previous block, the query and the result IDs. ' +
+    'It is append-only on this device: editing an earlier block breaks every hash after it.</p><div id="chainTable"></div></div>';
+}
+
+function renderLedgerTables() {
+  if (TREE) {
+    var r = document.getElementById("rootLine");
+    if (r) r.textContent = TREE.root;
+    var lt = document.getElementById("leafTable");
+    if (lt) {
+      var h = '<table class="ledger-tbl"><thead><tr><th>ID</th><th>Document</th><th>Leaf hash</th></tr></thead><tbody>';
+      TREE.leaves.forEach(function (l) {
+        h += "<tr><td>" + l.id + "</td><td style='font-family:var(--sans);color:#c3cbdf'>" + esc(l.doc.t.slice(0, 62)) +
+          "</td><td>" + l.hash.slice(0, 40) + "...</td></tr>";
+      });
+      lt.innerHTML = h + "</tbody></table>";
+    }
+  }
+  var ct = document.getElementById("chainTable");
+  if (ct) {
+    if (!S.chain.length) {
+      ct.innerHTML = '<div class="warn">No blocks yet. Run a search and it will be attested here.</div>';
+    } else {
+      var h2 = '<table class="ledger-tbl"><thead><tr><th>#</th><th>Query</th><th>Results</th><th>Block hash</th><th>Time</th></tr></thead><tbody>';
+      S.chain.slice().reverse().forEach(function (b) {
+        h2 += "<tr><td>" + b.i + "</td><td style='font-family:var(--sans);color:#c3cbdf'>" + esc(b.q.slice(0, 40)) +
+          "</td><td>" + b.ids.length + "</td><td style='color:var(--green)'>" + b.hash.slice(0, 24) +
+          "...</td><td>" + b.ts.slice(11, 19) + "</td></tr>";
+      });
+      ct.innerHTML = h2 + "</tbody></table>";
+    }
+  }
+}
+
+function savedBody() {
+  if (!S.saved.length) return '<div class="warn">Nothing saved yet. Hit <b>Save</b> on any result to keep it here. Saved items live in this browser only.</div>';
+  return S.saved.map(function (id) {
+    var d = DOCS.filter(function (x) { return x.id === id; })[0];
+    if (!d) return "";
+    return '<article class="card" onclick="openDoc(\'' + d.id + '\')"><div class="card-h"><span class="tbadge t-' + d.ty + '">' +
+      (TYPE_LABEL[d.ty] || d.ty) + "</span></div><h3>" + esc(d.t) + "</h3><div class='meta'><span>" + esc(d.o) +
+      "</span><span class='sep'>|</span><span>" + d.d + "</span></div><p class='snip'>" + esc(d.b.slice(0, 190)) + "...</p></article>";
+  }).join("");
+}
+
+function settingsBody() {
+  var sv = S.sarvam;
+  return '<div class="sec"><h3>Generative AI adapter (optional)</h3>' +
+    '<p>By default Pragya is extractive: it quotes source sentences and never generates prose. If you want fluent rewriting on top of retrieval, ' +
+    "point it at an Indian model. The adapter speaks the OpenAI-compatible chat completions schema that <b>Sarvam-105B</b> exposes, so nothing is hard-coded to a foreign vendor.</p>" +
+    '<label class="lbl">Sarvam API key (api-subscription-key)</label>' +
+    '<input class="txt" id="skey" type="password" placeholder="paste your key - stored only in this browser" value="' + (sv.key ? "••••••••••••" : "") + '">' +
+    '<label class="lbl">Model</label>' +
+    '<select class="sel" id="smodel" style="width:100%;margin-bottom:12px">' +
+    '<option value="sarvam-105b"' + (sv.model === "sarvam-105b" ? " selected" : "") + '>sarvam-105b (128K context, Apache 2.0)</option>' +
+    '<option value="sarvam-105b-conversations"' + (sv.model === "sarvam-105b-conversations" ? " selected" : "") + '>sarvam-105b-conversations (voice agents)</option>' +
+    "</select>" +
+    '<div class="switch ' + (sv.on ? "on" : "") + '" id="swAI" onclick="toggleAI()"><span class="track"></span><span>Route Pragya answers through the model when a key is present</span></div>' +
+    '<button class="nbtn on" onclick="saveKey()">Save adapter settings</button> ' +
+    '<button class="nbtn" onclick="clearKey()">Remove key</button>' +
+    '<div class="warn" style="margin-top:14px"><b>Honest caveat.</b> A browser page calling api.sarvam.ai directly depends on that endpoint allowing cross-origin requests from your origin. ' +
+    "If the call is blocked, the adapter falls back to the local extractive answerer and tells you so - it never silently invents an answer. " +
+    "For production you would proxy this through your own backend so the key never sits in a browser.</div></div>" +
+
+    '<div class="sec"><h3>Language</h3>' +
+    '<p>The interface is English; queries in Devanagari, romanised Hinglish and English all hit the same index. ' +
+    "Translation of results into Indian languages would route through Bhashini ULCA or AI4Bharat IndicTrans2 - both need an API, so they are documented rather than faked here.</p>" +
+    '<div class="grid2">' + tile("Devanagari queries", "डिजिलॉकर, भुगतान, आधार and 20 more terms map to their English source documents through the thesaurus.", "shipped") +
+    tile("Hinglish", "kitne gpu indiaai - roman input is transliterated and stemmed before scoring.", "shipped") + "</div></div>" +
+
+    '<div class="sec"><h3>Local data</h3>' +
+    '<p>Stored in this browser only: your DID, reading list, query chain and adapter settings. No cookies, no analytics, no server.</p>' +
+    '<button class="nbtn" onclick="wipeLocal()">Erase all local data</button></div>';
+}
+
+function toggleAI() {
+  S.sarvam.on = !S.sarvam.on;
+  document.getElementById("swAI").classList.toggle("on", S.sarvam.on);
+  localStorage.setItem("anv_sarvam", JSON.stringify(S.sarvam));
+  toast(S.sarvam.on ? "Model adapter armed - answers will try the model first" : "Model adapter off - extractive answers only");
+}
+function saveKey() {
+  var el = document.getElementById("skey");
+  var v = el.value.trim();
+  if (v && v.indexOf("•") === -1) S.sarvam.key = v;
+  S.sarvam.model = document.getElementById("smodel").value;
+  localStorage.setItem("anv_sarvam", JSON.stringify(S.sarvam));
+  toast(S.sarvam.key ? "Adapter saved locally" : "Saved without a key - still extractive");
+}
+function clearKey() {
+  S.sarvam = { key: "", on: false, model: "sarvam-105b" };
+  localStorage.removeItem("anv_sarvam");
+  toast("Key removed");
+  openPanel("settings");
+}
+function wipeLocal() {
+  ["anv_did", "anv_saved", "anv_chain", "anv_sarvam"].forEach(function (k) { localStorage.removeItem(k); });
+  S.saved = []; S.chain = []; S.sarvam = { key: "", on: false, model: "sarvam-105b" };
+  S.did = makeDid();
+  localStorage.setItem("anv_did", S.did);
+  document.getElementById("didText").textContent = S.did.slice(0, 22) + "...";
+  toast("Local data erased");
+  openPanel("settings");
+}
+
+/* ------------------------------------------------------------------ chat --- */
+function seedChat() {
+  var el = document.getElementById("chatBody");
+  el.innerHTML = "";
+  addMsg("bot", "Namaste. I am **Pragya**, the agent inside ANVESHAN.\n\nI answer only from the " + DOCS.length +
+    " Indian source documents in this index - PIB releases, MeitY and UIDAI material, NPCI data, AI4Bharat papers, C-DAC blockchain documentation. " +
+    "Every sentence I give you is quoted, with a citation. Nothing you type leaves this device.\n\nWhat are you researching?");
+  renderChatChips(["How many GPUs does IndiaAI have?", "What is Bhashini?", "Compare Vishvasya and NBFLite", "What can you do?"]);
+}
+
+function toggleChat(force) {
+  var c = document.getElementById("chat");
+  var on = typeof force === "boolean" ? force : !c.classList.contains("on");
+  c.classList.toggle("on", on);
+  document.getElementById("fab").classList.toggle("hide", on);
+  if (on) setTimeout(function () { document.getElementById("chatIn").focus(); }, 220);
+}
+
+function addMsg(who, text, sources) {
+  var el = document.getElementById("chatBody");
+  var d = document.createElement("div");
+  d.className = "msg " + who;
+  var safe = esc(text).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
+  var src = "";
+  if (sources && sources.length) {
+    src = '<div class="srcs">' + sources.map(function (s, i) {
+      return '<div onclick="openDoc(\'' + s.docId + '\')">[' + (i + 1) + "] " + esc(s.title.slice(0, 78)) + "</div>";
+    }).join("") + "</div>";
+  }
+  d.innerHTML = safe + src;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+  return d;
+}
+
+function renderChatChips(chips) {
+  document.getElementById("chatChips").innerHTML = (chips || []).map(function (c) {
+    return '<button class="chip" onclick="chatQuick(\'' + esc(c).replace(/'/g, "\\'") + '\')">' + esc(c) + "</button>";
+  }).join("");
+}
+
+function chatQuick(t) {
+  document.getElementById("chatIn").value = t;
+  sendChat();
+}
+
+function typing() {
+  var el = document.getElementById("chatBody");
+  var d = document.createElement("div");
+  d.className = "msg bot typing";
+  d.innerHTML = "<i></i><i></i><i></i>";
+  d.id = "typing";
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function sendChat() {
+  var inp = document.getElementById("chatIn");
+  var text = inp.value.trim();
+  if (!text) return;
+  inp.value = "";
+  addMsg("user", text);
+  typing();
+  document.getElementById("chatChips").innerHTML = "";
+
+  var localReply = chatReply(INDEX, text, S.chatMem);
+
+  if (S.sarvam.on && S.sarvam.key) {
+    askModel(text, localReply).then(function (r) {
+      done(r.text, r.sources, r.mode);
+    }).catch(function () {
+      done(localReply.text, localReply.sources, "local (model call blocked)");
+    });
+  } else {
+    setTimeout(function () { done(localReply.text, localReply.sources, "local extractive"); }, 420);
+  }
+
+  function done(t, srcs, mode) {
+    var ty = document.getElementById("typing");
+    if (ty) ty.remove();
+    addMsg("bot", t, srcs);
+    document.getElementById("chatMode").textContent = mode;
+    renderChatChips(localReply.chips);
+  }
+}
+
+function askModel(question, localReply) {
+  var ctx = (localReply.sources || []).map(function (s, i) {
+    return "[" + (i + 1) + "] " + s.title + ": " + s.text;
+  }).join("\n");
+  var body = {
+    model: S.sarvam.model,
+    messages: [
+      { role: "system", content: "You are Pragya, a research assistant for Indian public knowledge. Answer ONLY from the provided sources. Cite them as [1], [2]. If the sources do not contain the answer, say so plainly. Be concise and factual." },
+      { role: "user", content: "Sources:\n" + ctx + "\n\nQuestion: " + question }
+    ],
+    temperature: 0.3,
+    max_tokens: 600
+  };
+  return fetch("https://api.sarvam.ai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "api-subscription-key": S.sarvam.key },
+    body: JSON.stringify(body)
+  }).then(function (r) {
+    if (!r.ok) throw new Error("status " + r.status);
+    return r.json();
+  }).then(function (j) {
+    var txt = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+    if (!txt) throw new Error("empty");
+    return { text: txt + "\n\n(rewritten by " + S.sarvam.model + " from the retrieved passages above)", sources: localReply.sources, mode: S.sarvam.model };
+  });
+}
+
+function askAbout(q) {
+  toggleChat(true);
+  document.getElementById("chatIn").value = q;
+  sendChat();
+}
+
+/* ------------------------------------------------------------------ misc --- */
+function goHome() {
+  document.getElementById("hero").style.display = "block";
+  document.getElementById("results").style.display = "none";
+  document.getElementById("q").value = "";
+  S.q = ""; S.results = []; S.answer = null;
+  history.replaceState(null, "", location.pathname);
+  window.scrollTo({ top: 0 });
+}
+
+function copy(text, msg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () { toast(msg || "Copied"); }, function () { fallbackCopy(text, msg); });
+  } else fallbackCopy(text, msg);
+}
+function fallbackCopy(text, msg) {
+  var ta = document.createElement("textarea");
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); toast(msg || "Copied"); } catch (e) { toast("Copy blocked by browser"); }
+  ta.remove();
+}
+
+function copyCitation(id) {
+  var d = DOCS.filter(function (x) { return x.id === id; })[0];
+  if (!d) return;
+  var txt = d.o + ". \"" + d.t + "\". " + d.s + ", " + d.d + ". " + d.u +
+    " (ANVESHAN doc " + d.id + ", sha256 leaf " + shortHash(id) + ")";
+  copy(txt, "Citation copied");
+}
+
+function exportMarkdown() {
+  if (!S.results.length) { toast("Nothing to export"); return; }
+  var md = "# ANVESHAN research export\n\n";
+  md += "**Query:** " + S.q + "  \n**Generated:** " + new Date().toISOString() +
+    "  \n**Documents matched:** " + S.results.length + " of " + S.base.length + "  \n**Network calls:** 0\n\n";
+  if (S.answer && S.answer.sentences.length) {
+    md += "## Pragya brief\n\n";
+    S.answer.sentences.forEach(function (s, i) {
+      md += "> " + s.text + " [" + (i + 1) + "]\n\n";
+    });
+    md += "Confidence: " + Math.round(S.answer.confidence * 100) + "%\n\n";
+  }
+  md += "## Results\n\n";
+  S.results.forEach(function (r) {
+    var d = r.doc;
+    md += "### " + d.t + "\n\n";
+    md += "- Type: " + (TYPE_LABEL[d.ty] || d.ty) + "\n- Issuing body: " + d.o + "\n- Source: " + d.s +
+      "\n- Date: " + d.d + "\n- Match: " + Math.round(r.confidence * 100) + "%\n- Merkle leaf: `" + shortHash(d.id) +
+      "`\n- URL: " + d.u + "\n\n" + d.b + "\n\n";
+  });
+  md += "---\nGenerated locally by ANVESHAN. Every statement above is quoted from the cited Indian source document. " +
+    "Content hashes were computed with the Web Crypto API on the reader's device.\n";
+  var blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "anveshan-" + S.q.replace(/[^a-z0-9]+/gi, "-").slice(0, 40) + ".md";
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  toast("Exported as Markdown with citations");
+}
+
+function toast(msg) {
+  var t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.getElementById("toasts").appendChild(t);
+  setTimeout(function () {
+    t.style.transition = "opacity .3s";
+    t.style.opacity = "0";
+    setTimeout(function () { t.remove(); }, 320);
+  }, 2600);
+}
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function debounce(fn, ms) {
+  var t;
+  return function () { clearTimeout(t); t = setTimeout(fn, ms); };
+}
+
+/* --------------------------------------------------------------- events --- */
+function wireEvents() {
+  var q = document.getElementById("q");
+  q.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") doSearch(q.value, true);
+    if (e.key === "Escape") goHome();
+  });
+
+  document.getElementById("chatIn").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") sendChat();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      var f = document.getElementById("q2") || document.getElementById("q");
+      if (f) f.focus();
+    }
+    if (e.key === "Escape") { closeDrawer(); closePanel(); closeCmdk(); }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openCmdk(); }
+  });
+
+  document.getElementById("scrim").addEventListener("click", function () { closeDrawer(); });
+
+  document.getElementById("mic").addEventListener("click", voiceQuery);
+
+  var ci = document.getElementById("cmdkIn");
+  ci.addEventListener("input", function () { renderCmdk(ci.value); });
+  ci.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      var first = document.querySelector(".cmdk-item");
+      if (first) first.click();
+    }
+  });
+  document.getElementById("cmdk").addEventListener("click", function (e) {
+    if (e.target.id === "cmdk") closeCmdk();
+  });
+}
+
+function voiceQuery() {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var mic = document.getElementById("mic");
+  if (!SR) { toast("This browser has no speech engine. Chrome or Edge will work."); return; }
+  var rec = new SR();
+  rec.lang = "en-IN";
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+  mic.classList.add("rec");
+  toast("Listening...");
+  rec.onresult = function (e) {
+    var t = e.results[0][0].transcript;
+    document.getElementById("q").value = t;
+    doSearch(t, true);
+  };
+  rec.onerror = function () { toast("Did not catch that. Type instead."); };
+  rec.onend = function () { mic.classList.remove("rec"); };
+  rec.start();
+}
+
+/* ------------------------------------------------------------- cmd palette */
+var CMDS = [
+  { t: "Open: India-only stack", k: "panel", f: function () { openPanel("stack"); } },
+  { t: "Open: Satya ledger", k: "panel", f: function () { openPanel("ledger"); } },
+  { t: "Open: Reading list", k: "panel", f: function () { openPanel("saved"); } },
+  { t: "Open: Settings", k: "panel", f: function () { openPanel("settings"); } },
+  { t: "Ask Pragya", k: "agent", f: function () { toggleChat(true); } },
+  { t: "Export current results as Markdown", k: "action", f: function () { exportMarkdown(); } },
+  { t: "Copy index Merkle root", k: "action", f: function () { copy(TREE ? TREE.root : "", "Root copied"); } },
+  { t: "Go home", k: "action", f: function () { goHome(); } }
+];
+function openCmdk() {
+  document.getElementById("cmdk").classList.add("on");
+  document.getElementById("cmdkIn").value = "";
+  renderCmdk("");
+  setTimeout(function () { document.getElementById("cmdkIn").focus(); }, 60);
+}
+function closeCmdk() { document.getElementById("cmdk").classList.remove("on"); }
+function renderCmdk(q) {
+  var items = CMDS.filter(function (c) { return !q || c.t.toLowerCase().indexOf(q.toLowerCase()) >= 0; });
+  var list = document.getElementById("cmdkList");
+  list.innerHTML = items.map(function (c, i) {
+    return '<div class="cmdk-item' + (i === 0 ? " on" : "") + '" data-i="' + CMDS.indexOf(c) + '">' + esc(c.t) +
+      '<span class="k">' + c.k + "</span></div>";
+  }).join("") || '<div class="cmdk-item">No match</div>';
+  Array.prototype.forEach.call(list.querySelectorAll(".cmdk-item"), function (el) {
+    el.onclick = function () {
+      var idx = +el.getAttribute("data-i");
+      if (!isNaN(idx) && CMDS[idx]) { closeCmdk(); CMDS[idx].f(); }
+    };
+  });
+}
+
+/* ----------------------------------------------------------------- aurora -- */
+function drawAurora() {
+  var cv = document.getElementById("aurora");
+  if (!cv) return;
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var ctx = cv.getContext("2d");
+  var W, H, orbs = [];
+  function size() {
+    W = cv.width = window.innerWidth;
+    H = cv.height = window.innerHeight;
+    orbs = [];
+    var palette = ["255,159,67", "34,201,139", "77,214,255", "139,125,255"];
+    for (var i = 0; i < 5; i++) {
+      orbs.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: 160 + Math.random() * 260,
+        dx: (Math.random() - .5) * .18, dy: (Math.random() - .5) * .18,
+        c: palette[i % palette.length], a: .05 + Math.random() * .05
+      });
+    }
+  }
+  size();
+  window.addEventListener("resize", size);
+  var t = 0;
+  function frame() {
+    t += 0.006;
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < orbs.length; i++) {
+      var o = orbs[i];
+      o.x += o.dx + Math.sin(t + i) * .12;
+      o.y += o.dy + Math.cos(t * .8 + i) * .1;
+      if (o.x < -o.r) o.x = W + o.r;
+      if (o.x > W + o.r) o.x = -o.r;
+      if (o.y < -o.r) o.y = H + o.r;
+      if (o.y > H + o.r) o.y = -o.r;
+      var g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+      g.addColorStop(0, "rgba(" + o.c + "," + o.a + ")");
+      g.addColorStop(1, "rgba(" + o.c + ",0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (!reduce) requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* ------------------------------------------------------------------- go --- */
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
+</script>
+</body>
+</html>
