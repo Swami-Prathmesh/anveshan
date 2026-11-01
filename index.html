@@ -10615,6 +10615,10 @@ window.ANV_MATRIX = [
 
     var minGap = (opts.minGap != null) ? opts.minGap : 400;
     var wait = Math.max(0, (lastCall[id] || 0) + minGap - now());
+    // Never block a search for the sake of a slow source's rate window: past a
+    // couple of seconds the source is reported as rate-limited instead, and the
+    // reader gets their results from everyone else.
+    if (wait > 2500) throw new Error("rate-limited: retry in " + Math.ceil(wait / 1000) + "s");
     if (wait > 0) await new Promise(function (r) { setTimeout(r, wait); });
     lastCall[id] = now();
 
@@ -10873,12 +10877,14 @@ window.ANV_MATRIX = [
       }
     },
     {
-      id: "github", label: "GitHub", group: "code", ty: "code", a: 2, minGap: 2000,
+      id: "github", label: "GitHub", group: "code", ty: "code", a: 2, minGap: 6000,
       note: "Repositories and code; unauthenticated search allows a few requests a minute",
       async search(q, ctx) {
         var url = "https://api.github.com/search/repositories?q=" + encodeURIComponent(q) +
           "&sort=stars&order=desc&per_page=" + (ctx.perSource || 4);
-        var data = await getJSON("github", url, { minGap: 2000, headers: { Accept: "application/vnd.github+json" } });
+        // unauthenticated search allows 10 requests a minute, so the interval is
+        // set to stay inside that rather than to be fast
+        var data = await getJSON("github", url, { minGap: 6000, headers: { Accept: "application/vnd.github+json" } });
         return (data.items || []).map(function (r) {
           return {
             id: "gh-" + r.id, t: r.full_name, s: "GitHub", o: r.owner ? r.owner.login : "GitHub",
@@ -11465,6 +11471,10 @@ window.ANV_MATRIX = [
   function runLive(q, record) {
     var S = root.S;
     S.q = q;
+    // A new search invalidates any federation still in flight: without this a
+    // slow earlier query can paint over the results of a newer one.
+    state.gen = (state.gen || 0) + 1;
+    var gen = state.gen;
     doc.getElementById("hero").style.display = "none";
     var host = doc.getElementById("results");
     host.style.display = "block";
@@ -11491,11 +11501,13 @@ window.ANV_MATRIX = [
       lang: plan.language === "deva" ? ANV.live.detectLang(effective) : "en",
       perSource: 5,
       onSource: function (rep, docs) {
+        if (gen !== state.gen) return;
         for (var i = 0; i < sources.length; i++) if (sources[i].id === rep.id) sources[i] = rep;
         collected = collected.concat(docs);
         paintSources(sources, collected.length);
       }
     }).then(function (out) {
+      if (gen !== state.gen) return;      // a newer query already took over
       state.last = out;
       if (!out.results.length) {
         // a source that legitimately skips (no country named, no place in the
@@ -11545,6 +11557,7 @@ window.ANV_MATRIX = [
         try { history.replaceState(null, "", "#q=" + encodeURIComponent(q) + "&mode=web"); } catch (e) {}
       }
     }).catch(function (err) {
+      if (gen !== state.gen) return;
       var body = doc.getElementById("v4livebody");
       if (body) {
         body.innerHTML = '<div class="v4-block"><h4>Every source failed</h4><p class="v4-lead">' +
