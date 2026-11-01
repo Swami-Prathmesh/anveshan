@@ -1,0 +1,18 @@
+{
+  "name": "anveshan",
+  "version": "4.0.0",
+  "private": true,
+  "description": "ANVESHAN - an offline universal knowledge engine: hybrid semantic retrieval, claim-level verification, discovery paradigms and a self-learning loop in one HTML file",
+  "scripts": {
+    "build": "python3 tools/build.py --check",
+    "model": "python3 tools/build_model.py corpus.json src/data/model.js",
+    "test": "node tools/test_engine.js && node tools/test_layers.js && node tools/test_ingest.js && node tools/test_dom.js",
+    "test:engine": "node tools/test_engine.js",
+    "test:layers": "node tools/test_layers.js",
+    "test:ingest": "node tools/test_ingest.js",
+    "test:dom": "node tools/test_dom.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
+  }
+}
