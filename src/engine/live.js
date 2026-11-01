@@ -93,6 +93,10 @@
 
     var minGap = (opts.minGap != null) ? opts.minGap : 400;
     var wait = Math.max(0, (lastCall[id] || 0) + minGap - now());
+    // Never block a search for the sake of a slow source's rate window: past a
+    // couple of seconds the source is reported as rate-limited instead, and the
+    // reader gets their results from everyone else.
+    if (wait > 2500) throw new Error("rate-limited: retry in " + Math.ceil(wait / 1000) + "s");
     if (wait > 0) await new Promise(function (r) { setTimeout(r, wait); });
     lastCall[id] = now();
 
@@ -351,12 +355,14 @@
       }
     },
     {
-      id: "github", label: "GitHub", group: "code", ty: "code", a: 2, minGap: 2000,
+      id: "github", label: "GitHub", group: "code", ty: "code", a: 2, minGap: 6000,
       note: "Repositories and code; unauthenticated search allows a few requests a minute",
       async search(q, ctx) {
         var url = "https://api.github.com/search/repositories?q=" + encodeURIComponent(q) +
           "&sort=stars&order=desc&per_page=" + (ctx.perSource || 4);
-        var data = await getJSON("github", url, { minGap: 2000, headers: { Accept: "application/vnd.github+json" } });
+        // unauthenticated search allows 10 requests a minute, so the interval is
+        // set to stay inside that rather than to be fast
+        var data = await getJSON("github", url, { minGap: 6000, headers: { Accept: "application/vnd.github+json" } });
         return (data.items || []).map(function (r) {
           return {
             id: "gh-" + r.id, t: r.full_name, s: "GitHub", o: r.owner ? r.owner.login : "GitHub",

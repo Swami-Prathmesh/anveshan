@@ -158,12 +158,12 @@ npm install                         # jsdom, for the DOM suites
 node tools/test_engine.js           # 33  retrieval quality, language layer, latency
 node tools/test_layers.js           # 119 understanding, evidence, discovery, agent, learning, ingest
 node tools/test_ingest.js           # 21  real PDF / DOCX / XLSX / ZIP fixtures
-node tools/test_live.js             # 35  federation, adapters, LSA space, failures (network mocked)
+node tools/test_live.js             # 38  federation, adapters, LSA space, rate limits, failures
 node tools/test_dom.js              # 61  offline build driven in a DOM
 node tools/test_online.js           # 26  online build driven in a DOM (network mocked)
 ```
 
-295 checks. Deployment is GitHub Pages on `main` — push and it is live, because there is nothing to
+298 checks. Deployment is GitHub Pages on `main` — push and it is live, because there is nothing to
 deploy but a file.
 
 ### Adding a source

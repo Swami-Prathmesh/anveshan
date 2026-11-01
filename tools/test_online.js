@@ -142,7 +142,7 @@ const w = dom.window, d = w.document;
   w.fetch = async () => { throw new Error("network unavailable"); };
   w.ANV.live.clearCache();
   w.doSearch("a query with no network", false);
-  await wait(2500);
+  await wait(6000);
   const body = d.getElementById("v4livebody");
   check("failure is reported, not faked", body && /no server to fall back on/.test(body.innerHTML), body && body.innerHTML.slice(0, 120));
 

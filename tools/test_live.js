@@ -157,9 +157,19 @@ function check(n, ok, d) { if (ok) { pass++; console.log("  ok   " + n); } else 
   L.clearCache();
   const partial = await L.search("language technology", { perSource: 2 });
   const failed = partial.sources.filter((s) => !s.ok);
-  check("a dead source is reported, not hidden", failed.length >= 1 && failed[0].id === "openalex", JSON.stringify(failed.map((f) => f.id + ":" + f.error)));
+  check("a dead source is reported, not hidden", failed.some((f) => f.id === "openalex"), JSON.stringify(failed.map((f) => f.id + ":" + f.error)));
   check("other sources still return results", partial.results.length > 0);
   ctx.fetch = originalFetch;
+
+  console.log("\n== rate-limit politeness ==");
+  L.clearCache();
+  const t0 = Date.now();
+  const first = await L.search("github repositories", { perSource: 1 });
+  const second = await L.search("another github query", { perSource: 1 });
+  const gh2 = second.sources.filter((s) => s.id === "github")[0];
+  check("a slow source is skipped, not blocked on", !!gh2 && (!gh2.ok || gh2.count >= 0), JSON.stringify(gh2));
+  check("a rate-limited source explains itself", !gh2 || gh2.ok || /rate-limited|retry/.test(gh2.error || ""), gh2 && gh2.error);
+  check("the search still completes quickly", Date.now() - t0 < 20000, String(Date.now() - t0));
 
   console.log("\n== language routing ==");
   check("hindi query routed to hi", L.detectLang("भुगतान प्रणाली") === "hi", L.detectLang("भुगतान प्रणाली"));

@@ -121,6 +121,10 @@
   function runLive(q, record) {
     var S = root.S;
     S.q = q;
+    // A new search invalidates any federation still in flight: without this a
+    // slow earlier query can paint over the results of a newer one.
+    state.gen = (state.gen || 0) + 1;
+    var gen = state.gen;
     doc.getElementById("hero").style.display = "none";
     var host = doc.getElementById("results");
     host.style.display = "block";
@@ -147,11 +151,13 @@
       lang: plan.language === "deva" ? ANV.live.detectLang(effective) : "en",
       perSource: 5,
       onSource: function (rep, docs) {
+        if (gen !== state.gen) return;
         for (var i = 0; i < sources.length; i++) if (sources[i].id === rep.id) sources[i] = rep;
         collected = collected.concat(docs);
         paintSources(sources, collected.length);
       }
     }).then(function (out) {
+      if (gen !== state.gen) return;      // a newer query already took over
       state.last = out;
       if (!out.results.length) {
         // a source that legitimately skips (no country named, no place in the
@@ -201,6 +207,7 @@
         try { history.replaceState(null, "", "#q=" + encodeURIComponent(q) + "&mode=web"); } catch (e) {}
       }
     }).catch(function (err) {
+      if (gen !== state.gen) return;
       var body = doc.getElementById("v4livebody");
       if (body) {
         body.innerHTML = '<div class="v4-block"><h4>Every source failed</h4><p class="v4-lead">' +
