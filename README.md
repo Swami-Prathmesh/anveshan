@@ -1,74 +1,66 @@
-# ANVESHAN · अन्वेषण — v5, online
+# ANVESHAN · अन्वेषण — v6
 
 **Live: https://swami-prathmesh.github.io/anveshan/**
 
-A free, open-source research engine that runs in your browser. It searches fifteen open
-collections live, then applies semantic ranking, claim verification, contradiction detection, ten
-discovery paradigms, an autonomous investigator and a learning loop to what comes back. No account,
-no API key, no server, no tracking.
+A search engine with **its own crawled index**, running free on GitHub. A scheduled crawler builds a
+sharded inverted index and commits it to this repository; the browser queries those static files
+directly, with no server, no database and no account. Two more engines sit beside it: fifteen live
+public APIs, and a verified 170-document library.
 
-Open the link and type. Or open `index.html` from this repo — same engine, same result.
+Open the link and type. Or open `index.html` from the repo — same engine.
 
 ---
 
-## What "online" means here, precisely
+## Three engines, one intelligence layer
 
-This is not a central crawl. A crawl needs crawlers, storage, bandwidth and a budget; a static page
-has none of those, and pretending otherwise would be the dishonest version of this project.
+| Engine | What it is | Freshness | Where |
+| --- | --- | --- | --- |
+| **Index** | its own crawled corpus, sharded and served as static files | every 6 hours (Actions) | default |
+| **Live** | fifteen keyless public APIs queried at request time | at query time | `Live` button |
+| **Library** | 170 curated documents with full verification | static | `Library` button |
 
-So the engine federates instead. One query goes out to fifteen free, keyless, cross-origin APIs at
-the same time, each of which already indexed its own corner of the world:
+The same verification, contradiction, discovery, investigator and learning code runs over all three.
+That is the design decision that matters: coverage from the crawler, freshness from the federation,
+depth from the library, and one honest evidence layer across them.
 
-| Source | What it contributes | Group |
-| --- | --- | --- |
-| Wikipedia (en, hi, sa, bn, ta, te, mr, gu, kn, ml, pa, ur) | encyclopaedia articles, with intro text and cross-language links | encyclopaedia |
-| Wikidata | entities, labels, descriptions, aliases | knowledge graph |
-| OpenAlex | 250M+ scholarly works, citation counts, open-access links, retraction flags | peer-reviewed |
-| Crossref | DOI registry: publisher, type, licence, citations | peer-reviewed |
-| Semantic Scholar | abstracts and citation context | peer-reviewed |
-| Open Library | books, authors, editions | books |
-| Internet Archive | scanned texts, manuscripts, historical records | archives |
-| Wikisource | primary texts: treaties, speeches, classical documents | archives |
-| Stack Exchange | technical questions and accepted answers | community |
-| GitHub | repositories, topics, licences | code |
-| Openverse | openly licensed images and audio | media |
-| OpenStreetMap | places, coordinates, administrative context | place |
-| Open-Meteo | live weather measurements | live measurement |
-| USGS | live seismic measurements | live measurement |
-| World Bank | official country indicators | official statistics |
+### Shard-and-fetch retrieval
 
-Because every result is fetched at query time, the index cannot go stale — a paper published this
-morning is findable this morning.
+The crawler splits its index into 64 term shards and 16 document shards. A browser computes
+`fnv1a32(term) % 64` for its query terms and fetches **only those shards** — normally two or three
+small files — scores them with BM25, then fetches one document shard for the winners and reranks with
+an LSA space built on the spot.
 
-**Honest limits.** Each API has a fair-use rate limit, so "unlimited" is not something this page can
-promise and you should not believe any page that does. The engine stays polite on your behalf:
-per-source minimum intervals, one retry, eight-second timeouts and a ten-minute cache. A source that
-fails is shown as failed, with its error, rather than quietly dropped.
+The consequence: query cost is proportional to the query, not to the corpus, and the corpus can grow
+to tens of thousands of documents while remaining a set of static files in git. Python and JavaScript
+implement the same hash and the same stemmer, and the tests assert that parity — a mismatch would make
+the browser fetch files that do not contain its terms.
+
+Current index: **441 documents, 11,189 terms, 800 KB** (arXiv, Wikipedia English, Wikipedia Hindi,
+Internet Archive), 2–4 shard fetches and single-digit-millisecond scoring per query.
+
+## The "server"
+
+GitHub cannot run a server, and this project does not pretend otherwise. What it does instead:
+
+```
+GitHub Actions (cron, free)  →  crawler → dedupe → index build → commit index/
+                                                                       ↓
+                                        GitHub Pages serves index/ as static files
+                                                                       ↓
+                                            browser fetches 2-4 shards, ranks, renders
+```
+
+`ops/crawl.yml` is that pipeline. GitHub blocks integrations from creating workflow files, so a human
+copies it to `.github/workflows/crawl.yml` once — see `ops/README.md`. After that it runs every six
+hours by itself, and public repositories do not pay for Actions minutes.
 
 ---
 
 ## The engine, in layers
 
-```
-user  →  intent + context + plan
-          ↓
-   fifteen live adapters  ──┐        (browser → public APIs, no proxy)
-          ↓                 │
-   normalise → dedupe → rank ┘
-          ↓
-   per-query semantic space (LSA over the fetched set)
-          ↓
-   evidence: credibility · contradiction · independence · retraction
-          ↓
-   discovery: 10 paradigms · gaps · forecast · hidden relations
-          ↓
-   investigator: multi-round trace, hypotheses, experiments
-          ↓
-   learning loop: clicks → weights → NDCG gate → version or rollback
-```
-
 | Layer | File | What it does |
 | --- | --- | --- |
+| crawler | `crawler/` | nine source adapters, robots.txt compliance, dedupe, index build, sharding |
 | language | `src/engine/lang.js` | script detection, Devanagari ⇄ Latin transliteration, Hindi/Sanskrit stemmers, sandhi splitting |
 | semantic | `src/engine/semantic.js` | compiled PPMI+SVD embeddings, char-n-gram vectors, trilingual lexicon, hybrid BM25F + dense |
 | understanding | `src/engine/understand.js` | 12-intent classifier, multi-intent decomposition, disambiguation, conversation state, completion, expertise |
@@ -78,143 +70,135 @@ user  →  intent + context + plan
 | learning | `src/engine/learn.js` | click-trained LTR with an NDCG gate, corrections, versions, rollback, monitoring, memory, export |
 | ingest | `src/engine/ingest.js` | PDF, DOCX, PPTX, XLSX, ODT, CSV, JSON, HTML, Markdown, ZIP parsed in the tab |
 | ui | `src/engine/ui.js` | evidence strip per result, intelligence strip, six panels |
-| **live** | `src/engine/live.js` | the fifteen adapters, federation, politeness, per-query LSA, cross-source dedupe, live ranking |
-| **live ui** | `src/engine/live-ui.js` | live search flow, source chips, live brief, live drawer, Watch, Sources |
+| live | `src/engine/live.js` | fifteen adapters, federation, politeness, per-query LSA, cross-source dedupe |
+| live ui | `src/engine/live-ui.js` | live search flow, source chips, live brief, live drawer, Watch, Sources |
+| **central** | `src/engine/central.js` | shard-and-fetch client: BM25 over the crawled index, no server |
+| **central ui** | `src/engine/central-ui.js` | engine switcher, index status, index brief |
 
-### Why a per-query semantic space
+## Crawler
 
-The compiled model knows the vocabulary of the built-in library, not the live web's. So for each
-result set the engine builds a small semantic space on the spot: a tf-idf document matrix, a
-truncated SVD by power iteration on the document Gram matrix (cheap because the Gram matrix is
-80×80, not 4000×4000), term vectors from MᵀU, and query expansion inside that space. It is LSA over
-exactly the evidence available at that moment, and it adapts to what was actually fetched.
+Nine adapters, each isolated so one failure cannot stop a run:
 
----
+`feeds` (Nature, Science, Phys.org, arXiv RSS, MIT, NASA, The Hindu, Indian Express, PIB, World Bank,
+WHO, Our World in Data) · `wikipedia` (12 languages) · `arxiv` · `openalex` · `crossref` ·
+`internet_archive` · `wikisource` · `github` · `sitemap` (India Code, NITI Aayog, ISRO, RBI, arXiv,
+PLOS)
+
+Politeness is enforced, not promised: robots.txt is fetched and obeyed for every page, official APIs
+are called under their own published policies (arXiv one request per three seconds; OpenAlex and
+Crossref with a contact address; GitHub inside its unauthenticated limit), one request per host per
+second by default, with retries and backoff.
+
+```bash
+python3 -m crawler.run --out index --budget 20 --per-source 200
+python3 -m crawler.run --list
+python3 -m crawler.run --sources arxiv,wikipedia --budget 5 --out /tmp/ix
+```
+
+The run writes `index/last-run.json` with per-source counts, timings and every adapter error. A source
+that fails is named there; nothing is silently dropped.
 
 ## The self-learning property
 
-Learning is real, gated and reversible:
-
 1. A click is the only supervision signal. No click, no learning.
-2. Pairwise logistic regression adjusts six ranking weights (lexical, semantic, authority,
-   credibility, freshness, corrections).
-3. The candidate weights are adopted **only** if measured NDCG does not fall. Otherwise they are
-   discarded and the old ones stay.
+2. Pairwise logistic regression adjusts six ranking weights.
+3. Candidate weights are adopted **only** if measured NDCG does not fall; otherwise discarded.
 4. Every adoption is versioned; rollback restores the previous weights.
-5. Learning changes which sources surface. It never changes what a document says.
+5. Learning changes which sources surface, never what a document says.
 
-Learning lives in your browser's `localStorage`, not on a server, because there is no server. That
-means your learning is yours alone — it does not pool across users. Pooling would need a backend and
-a privacy design worth more care than a free static page can give it, and pretending otherwise would
-be the usual privacy theatre.
-
----
+Learning lives in `localStorage`, not on a server, because there is no server. It is per device by
+design, not by accident — pooling it would need a backend and a privacy design worth more care than a
+free static page can give.
 
 ## Verification
 
-Source reliability and claim truth are two different numbers here and are never collapsed into one.
+Source reliability and claim truth are two different numbers and are never collapsed into one.
 Credibility is six weighted factors, printed per result. Independence is checked at issuer level, so
 two arms of one ministry count once. Figures are normalised across crore/lakh/million/billion before
-comparison, and a difference across dates is called a trajectory, not a conflict. Retraction flags
-come straight from OpenAlex. A claim is "supported" only when an independent document says the same
-thing; everything else is "unverified", which is the most common and most honest verdict.
-
-## The ten paradigms
-
-Unknown · Possibility · Causal · Lost knowledge · Anomaly · Interdisciplinary · Reality · Simulation ·
-Temporal · Evolutionary — each computed over the current result set (live or library), each printing
-the basis it was computed from.
-
----
+comparison, and a difference across dates is a trajectory, not a conflict. Retraction flags come
+straight from OpenAlex. A claim is "supported" only when an independent document says the same thing;
+everything else is "unverified", which is the most common and most honest verdict.
 
 ## Capability audit
 
-`Audit` in the app lists every property from the specification with the mechanism behind it, and the
-rule is: nothing is marked **live** unless the code does it and you can exercise it.
+`Audit` in the app lists every property from the specification with the mechanism behind it. Nothing is
+marked **live** unless the code does it and you can exercise it.
 
-| Status | v4 (offline) | v5 (online) | Meaning |
+| Status | v5 | v6 | Meaning |
 | --- | --- | --- | --- |
-| live | 140 | **155** | runs here, exercisable |
-| partial | 49 | 55 | runs with a stated limit |
-| adapter | 5 | 0 | seam exists, connector needed |
-| not possible here | 14 | 9 | needs servers, sensors, models or scale |
+| live | 155 | 167 | runs here, exercisable |
+| partial | 55 | 53 | runs with a stated limit |
+| adapter | 0 | 0 | seam exists, connector needed |
+| not possible here | 9 | 9 | needs servers, sensors, models or scale |
 
-219 properties, 13 groups, re-checked line by line against the code.
-
----
+229 properties, 14 groups.
 
 ## Run, build, deploy
 
 ```bash
-# just use it
-open index.html                     # online engine (needs a network)
-open offline.html                   # same engine, no network, 170 built-in sources
+# use it
+open index.html                     # the engine (index + live + library)
+open offline.html                   # no network at all
 
-# rebuild after editing anything in src/
+# rebuild the page after editing src/
 python3 tools/build.py --check      # writes index.html + offline.html, syntax-checks every block
 
-# tests
-npm install                         # jsdom, for the DOM suites
-node tools/test_engine.js           # 33  retrieval quality, language layer, latency
-node tools/test_layers.js           # 119 understanding, evidence, discovery, agent, learning, ingest
-node tools/test_ingest.js           # 21  real PDF / DOCX / XLSX / ZIP fixtures
-node tools/test_live.js             # 38  federation, adapters, LSA space, rate limits, failures
-node tools/test_dom.js              # 61  offline build driven in a DOM
-node tools/test_online.js           # 26  online build driven in a DOM (network mocked)
+# refresh the crawled index
+python3 -m crawler.run --out index --budget 20
 ```
 
-298 checks. Deployment is GitHub Pages on `main` — push and it is live, because there is nothing to
-deploy but a file.
+### Tests — 374 checks in eight suites
 
-### Adding a source
-
-A source is about twenty lines. In `src/engine/live.js` add to `SOURCES`:
-
-```js
-{ id: "mysource", label: "My Source", group: "dataset", ty: "dataset", a: 4, minGap: 500,
-  note: "what it contributes",
-  async search(q, ctx) {
-    const data = await getJSON("mysource", "https://api.example.org/search?q=" + encodeURIComponent(q));
-    return (data.items || []).map(it => ({
-      id: "ms-" + it.id, t: it.title, s: "My Source", o: it.publisher,
-      ty: "dataset", y: it.year, d: it.date, u: it.url, l: "en", a: 4,
-      k: [], b: it.summary, e: [], live: { source: "mysource" }
-    }));
-  } }
+```bash
+npm install                          # jsdom, for the DOM suites
+node tools/test_engine.js            #  33  retrieval quality, language layer, latency
+node tools/test_layers.js            # 119  understanding, evidence, discovery, agent, learning, ingest
+node tools/test_ingest.js            #  21  real PDF / DOCX / XLSX / ZIP fixtures
+node tools/test_live.js              #  38  federation, adapters, LSA, rate limits (network mocked)
+node tools/test_central.js           #  36  the real sharded index, hash parity, shard economics
+python3 tools/test_index.py          #  28  crawler, index format, dedupe, incremental update
+node tools/test_dom.js               #  61  offline build driven in a DOM
+node tools/test_online.js            #  38  online build driven in a DOM, all three engines
 ```
-
-Then `python3 tools/build.py --check`. The source must send CORS headers, must not need a key, and
-must tolerate being called from a browser.
-
----
 
 ## Repository layout
 
 ```
-index.html                 online engine (GitHub Pages serves this)
-offline.html               same engine with no network
-src/base/index-v3.html     the v3 file this build extends
-src/engine/*.js            eleven layers
+index.html                 the engine (served by Pages)
+offline.html               same engine, no network
+index/                     the crawled, sharded index (committed by the crawler)
+crawler/                   crawler: core, sources, index, run
+src/engine/*.js            thirteen layers
 src/data/model.js          compiled semantic model
 src/data/v4_matrix.js      the capability audit
 src/styles/v4.css          interface additions
+tools/build.py             assembles both artefacts, syntax-checks every block
 tools/build_model.py       compiles the corpus into the semantic model
-tools/build.py             assembles both artefacts and syntax-checks every block
-tools/test_*.js            six suites
-fixtures/                  real files the ingest tests read
-corpus.json                the 170-document library, extracted
+tools/test_*.js|py         eight suites
+ops/crawl.yml              the GitHub Actions pipeline
+ops/README.md              how to activate it, index format, politeness policy
+SPEC.md                    the engineering specification this build is judged against
 ```
 
----
+## Honest limits
 
-## Prior art and what is actually new
+- **Not web-scale.** Tens of thousands of documents per run is what free compute carries. Google
+  crawls billions of pages with a datacentre; this does not, and says so.
+- **No audio or video understanding.** Needs codecs and models; transcripts are accepted instead.
+- **No server-side personalisation.** No server exists. Learning is per device.
+- **No uptime guarantee.** A static site plus public APIs has no SLA.
+- **Index growth is bounded by the repository.** Around 50k documents the index reaches ~80 MB; past
+  that this design needs sharding across repositories or an object store.
+
+## Prior art
 
 Nothing in the mathematics is invented here: BM25 and reciprocal rank fusion, PPMI and truncated SVD,
-NDCG and learning-to-rank, claim decomposition, provenance ledgers, half-life staleness. The
-novelty claimed is only the assembly — one free static file where live federated retrieval,
-verification, discovery paradigms, prediction and a gated learning loop share a single inspectable
-state, and where every number the reader sees can be traced to the code that produced it.
+NDCG and learning-to-rank, SimHash deduplication, claim decomposition, provenance ledgers, half-life
+staleness, and client-side sharded indexes. The novelty claimed is the assembly — one free static
+deployment where a scheduled crawler, a live federation, a verified library, ten discovery paradigms,
+an autonomous investigator and a gated learning loop share one inspectable state, and every number the
+reader sees is traceable to the code that produced it.
 
 ## Licence
 
-MIT. Fork it, host it, change it, sell nothing — see `LICENSE`.
+MIT — see `LICENSE`.

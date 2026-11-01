@@ -11,6 +11,13 @@ const calls = [];
 function route(url) {
   calls.push(String(url));
   const u = String(url);
+  // the shipped central index is served from disk, so the test exercises the real
+  // artefact the crawler produced rather than a stub
+  if (/^index\/.*\.json$/.test(u)) {
+    const file = path.join(ROOT, u);
+    if (!fs.existsSync(file)) return null;
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  }
   if (u.includes("wikipedia.org") && u.includes("list=search"))
     return { query: { search: [
       { title: "IndiaAI Mission", snippet: "national <b>AI</b> mission", timestamp: "2026-03-02T10:00:00Z", wordcount: 900 },
@@ -64,7 +71,12 @@ const dom = new JSDOM(html, {
     window.scrollTo = () => {};
     window.matchMedia = window.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
     window.requestAnimationFrame = (fn) => setTimeout(fn, 0);
-    window.fetch = async (url) => ({ ok: true, status: 200, text: async () => JSON.stringify(route(url)) });
+    window.fetch = async (url) => {
+      const body = route(url);
+      if (body === null) return { ok: false, status: 404, text: async () => "", json: async () => ({}) };
+      const text = JSON.stringify(body);
+      return { ok: true, status: 200, text: async () => text, json: async () => JSON.parse(text) };
+    };
     try {
       const { webcrypto } = require("crypto");
       Object.defineProperty(window, "crypto", { value: webcrypto, configurable: true, writable: true });
@@ -82,17 +94,37 @@ const dom = new JSDOM(html, {
 const w = dom.window, d = w.document;
 
 (async () => {
-  for (let i = 0; i < 50 && !(w.ANV && w.ANV.liveUI && w.ANV.liveUI.ready); i++) await wait(100);
+  for (let i = 0; i < 80 && !(w.ANV && w.ANV.liveUI && w.ANV.liveUI.ready && w.ANV.centralUI && w.ANV.centralUI.ready); i++) await wait(100);
 
   console.log("\n== boot ==");
   check("online engine booted", !!(w.ANV && w.ANV.liveUI && w.ANV.liveUI.ready));
   check("live layer present", !!w.ANV.live && w.ANV.live.SOURCES.length >= 15, String(w.ANV.live && w.ANV.live.SOURCES.length));
   check("default mode is web", w.ANV.liveUI.mode === "web", w.ANV.liveUI.mode);
   check("sources nav added", !!d.getElementById("navSources") && !!d.getElementById("navWatch"));
-  check("hero describes live sources", /open collections/.test(d.querySelector(".hero p.sub").textContent), d.querySelector(".hero p.sub").textContent.slice(0, 80));
+  check("hero describes the index", /document index/.test(d.querySelector(".hero p.sub").textContent), d.querySelector(".hero p.sub").textContent.slice(0, 80));
   check("no boot errors", errors.length === 0, errors.slice(0, 2).join(" | "));
 
+  console.log("\n== central index engine ==");
+  const hasIndex = fs.existsSync(path.join(ROOT, "index/manifest.json"));
+  check("shipped index exists", hasIndex);
+  check("central engine booted", !!(w.ANV.centralUI && w.ANV.centralUI.ready), JSON.stringify(w.ANV.centralUI && w.ANV.centralUI.info && w.ANV.centralUI.info()));
+  check("index engine is the default", w.ANV.centralUI.mode === "index", w.ANV.centralUI.mode);
+  check("index reports its corpus", w.ANV.centralUI.info().index.docs > 100, JSON.stringify(w.ANV.centralUI.info().index && w.ANV.centralUI.info().index.docs));
+  w.doSearch("groundwater depletion wells survey", true);
+  await wait(1200);
+  check("index search returns cards", d.querySelectorAll("#results .card").length > 0, String(d.querySelectorAll("#results .card").length));
+  check("index brief rendered", !!d.querySelector("#results .brief"));
+  check("index meta strip rendered", !!d.getElementById("v4ixmeta"));
+  check("meta strip reports shards", /term shards/.test((d.getElementById("v4ixmeta") || {}).textContent || ""));
+  check("engine tag says index", /index/.test((d.querySelector("#results .v4bar .v4-tag") || {}).textContent || ""));
+  check("engine switcher persists after repaint", !!d.getElementById("v4modes") && d.querySelectorAll("#v4modes .nbtn").length === 3,
+    String(d.querySelectorAll("#v4modes .nbtn").length));
+  const ixResults = w.S.results.length;
+  check("results are from the crawled corpus", ixResults > 0 && w.S.results.every((r) => String(r.doc.id).startsWith("ix-")), String(ixResults));
+
   console.log("\n== live search ==");
+  w.ANV.centralUI.setMode("live");
+  await wait(300);
   w.doSearch("india ai mission", true);
   await wait(1500);
   const cards = d.querySelectorAll("#results .card");
@@ -130,15 +162,18 @@ const w = dom.window, d = w.document;
   check("watch panel renders", /No questions watched yet/.test(d.getElementById("panelBody").innerHTML));
 
   console.log("\n== mode toggle ==");
-  w.ANV.liveUI.toggleMode();
-  await wait(400);
-  check("switched to library mode", w.ANV.liveUI.mode === "library");
+  w.ANV.centralUI.setMode("library");
+  await wait(600);
+  check("switched to library mode", w.ANV.centralUI.mode === "library");
   check("library mode searches the built-in corpus", d.querySelectorAll("#results .card").length > 0);
-  w.ANV.liveUI.toggleMode();
+  w.ANV.centralUI.setMode("index");
   await wait(1200);
-  check("switched back to web mode", w.ANV.liveUI.mode === "web");
+  check("switched back to index mode", w.ANV.centralUI.mode === "index");
+  check("index mode still retrieves", w.S.results.length > 0);
 
   console.log("\n== failure honesty ==");
+  w.ANV.centralUI.setMode("live");
+  await wait(400);
   w.fetch = async () => { throw new Error("network unavailable"); };
   w.ANV.live.clearCache();
   w.doSearch("a query with no network", false);

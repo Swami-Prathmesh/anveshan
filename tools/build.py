@@ -38,15 +38,16 @@ LAYERS = [
 LIVE_LAYERS = [
     ("src/engine/live.js", "live federation"),
     ("src/engine/live-ui.js", "live interface"),
+    ("src/engine/central.js", "central index client"),
+    ("src/engine/central-ui.js", "central index interface"),
 ]
 
-TITLE = "ANVESHAN - online knowledge engine"
+TITLE = "ANVESHAN - a search engine with its own index"
 OFFLINE_TITLE = "ANVESHAN - offline knowledge engine"
-DESC = ("ANVESHAN v5 is a free, open-source online research engine: it queries fifteen keyless open APIs "
-        "(Wikipedia in twelve languages, Wikidata, OpenAlex, Crossref, Internet Archive, Open Library, Wikisource, "
-        "Stack Exchange, GitHub, Openverse, live weather and seismic measurements, World Bank) from your browser, "
-        "then applies semantic reranking, claim verification, contradiction detection, ten discovery paradigms, "
-        "an autonomous investigator and a self-learning ranking loop. No account, no tracking, no server.")
+DESC = ("ANVESHAN is a free, open-source search engine with its own crawled index: a scheduled crawler builds a "
+        "sharded inverted index that the browser queries directly from static files, plus fifteen live open APIs "
+        "and a verified offline library. Semantic reranking, claim verification, contradiction detection, ten "
+        "discovery paradigms, an autonomous investigator and a gated self-learning loop. No account, no tracking.")
 
 
 def read(path):

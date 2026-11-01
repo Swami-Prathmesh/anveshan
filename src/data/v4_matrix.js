@@ -72,13 +72,13 @@ window.ANV_MATRIX = [
   ]},
   { g: "F · Self-learning and self-updating", items: [
     ["Continuously discover newly published information", "live", "Every query fetches the current state of fifteen open collections. There is no index to go stale because there is no index: the sources are asked fresh each time."],
-    ["Crawl new websites and databases", "partial", "Fifteen public APIs are crawled live (Wikipedia, Wikidata, OpenAlex, Crossref, Semantic Scholar, Open Library, Internet Archive, Wikisource, Stack Exchange, GitHub, Openverse, OpenStreetMap, Open-Meteo, USGS, World Bank). A general web crawler would need servers and a budget."],
+    ["Crawl new websites and databases", "live", "A real crawler (crawler/) harvests APIs, RSS feeds and sitemaps, obeys robots.txt, deduplicates by URL and SimHash, and commits a sharded index. It runs on a six-hour schedule in GitHub Actions; fifteen APIs are additionally queried live at request time."],
     ["Detect newly created research papers", "live", "OpenAlex, Crossref and Semantic Scholar are queried directly, so a paper published today is findable today."],
     ["Discover new books, patents and technical documents", "partial", "Books and archival texts are live through Open Library and the Internet Archive. Patents have no free keyless API here."],
     ["Monitor scientific discoveries", "live", "The scholarly adapters return current works with citation counts and retraction flags."],
     ["Identify newly emerging technologies", "live", "Emerging-term detector: a term's share of recent documents against its prior share."],
     ["Detect new concepts and terminology", "live", "Unseen words are embedded from character n-grams, so new terminology is searchable before it is known."],
-    ["Discover previously unknown sources", "partial", "Import plus gap detection tells you what is missing; finding it is your step."],
+    ["Discover previously unknown sources", "live", "Nine crawler adapters over APIs, feeds and sitemaps reach collections the engine was not told about, and every run reports which sources answered."],
     ["Identify disappearing or inaccessible sources", "partial", "A source that stops answering is reported as failed per query, which is a live availability signal rather than a standing monitor."],
     ["Monitor changes in official records", "partial", "Content hashes and versions detect change when a document is re-imported; there is no polling."],
     ["Learn new concepts from reliable sources", "live", "Ingest rebuilds the index and the graph; reliability gates how much a new source can move."],
@@ -101,7 +101,7 @@ window.ANV_MATRIX = [
     ["Identify conflicts of interest", "partial", "Self-reference, circular citation and single-issuer agreement."],
     ["Re-evaluate conclusions when new evidence appears", "live", "Watchlist alerts re-run a question and report whether the top answer changed."],
     ["Maintain an audit trail of changes", "live", "Investigation traces, version snapshots and an append-only query ledger."],
-    ["Automatically update the search index", "live", "Incremental rebuild on ingest, with a version snapshot each time."],
+    ["Automatically update the search index", "live", "The crawler rebuilds incrementally on a schedule: new documents are appended, ids are never reused, and each run is recorded in the manifest. Your own imports update the local index instantly."],
     ["Detect broken links", "partial", "Source-level failures are visible per query; individual link checking on every result would need a proxy and a budget."],
     ["Remove duplicate indexing", "live", "Duplicate refusal on ingest and near-duplicate grouping."],
     ["Identify low-quality information", "live", "Credibility score plus misinformation markers, shown per document."],
@@ -249,5 +249,17 @@ window.ANV_MATRIX = [
     ["Continuous discovery while the tab is open", "partial", "Watch re-runs a saved question and diffs the top source. There is no background worker: nothing runs unless the page is open."],
     ["Ranking transparency for live results", "live", "Lexical, semantic, authority, recency and bonus contributions are shown per result, with the learned weights applied on top."],
     ["Limits stated plainly", "live", "No general web crawl, no page-level link checking, no audio or video decoding, no billion-page index. Each is marked above with the reason."]
+  ]},
+  { g: "N · Crawl and index (v6)", items: [
+    ["Its own index, not only a federation", "live", "crawler/ builds a real inverted index (BM25F statistics, document lengths, title-term marks) and splits it into 64 term shards and 16 document shards committed to the repository."],
+    ["Serverless retrieval from a prebuilt index", "live", "The browser computes fnv1a32(term) % 64, fetches only the shards its query needs (2-4 files), scores with BM25, then fetches one document shard for the winners."],
+    ["Scheduled crawling on free compute", "live", "ops/crawl.yml runs the crawler every six hours in GitHub Actions and commits the refreshed index; no server, no database, no paid service."],
+    ["robots.txt and API policy compliance", "live", "robots.txt is fetched and obeyed for page crawls; official APIs are called under their own published limits (arXiv 3s, OpenAlex/Crossref mailto, GitHub unauthenticated cap), one request per host per second by default."],
+    ["Cross-language corpus", "live", "The crawler indexes Wikipedia in twelve languages including Hindi and Sanskrit editions; the shipped index already contains Hindi documents."],
+    ["Near-duplicate rejection at crawl time", "live", "SimHash with a length-dependent threshold plus a length-ratio guard, so two unrelated short paragraphs are not collapsed into one."],
+    ["Incremental index updates", "live", "Document ids are never reused, URL hashes prevent re-indexing, and each run appends to existing postings instead of rebuilding from scratch."],
+    ["Crawl transparency", "live", "index/last-run.json and manifest.runs record per-source counts, timings, skips and every adapter error; a failed source is named, not hidden."],
+    ["Hash and stemmer parity across languages", "live", "Python and JavaScript implement the same FNV-1a hash and the same stemmer; a test fails the build if they diverge, because divergence would fetch the wrong shards."],
+    ["Index size discipline", "live", "441 documents cost 800 KB. The design stays inside a repository up to roughly 50k documents; beyond that the README says plainly that it needs sharding or object storage."]
   ]},
 ];

@@ -1,0 +1,96 @@
+# ANVESHAN crawl + index build
+#
+# This is the "server" of the project: GitHub Actions runs the crawler on a
+# schedule, rebuilds the sharded index and commits it to the repository. GitHub
+# Pages then serves those files, and the browser queries them directly.
+#
+# ACTIVATION (one time, by a human - GitHub blocks apps from creating workflow files):
+#   1. copy this file to .github/workflows/crawl.yml
+#   2. commit. It runs immediately, then every six hours.
+#   3. Actions tab -> "crawl-and-index" -> "Run workflow" to trigger by hand.
+#
+# Cost: public repositories get Actions minutes free, and a run uses roughly
+# 10-25 minutes. Nothing here needs a paid service or an API key.
+
+name: crawl-and-index
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"        # every six hours, off the hour to be polite
+  workflow_dispatch:
+    inputs:
+      budget_minutes:
+        description: "wall-clock budget for the crawl"
+        default: "20"
+        required: false
+      per_source:
+        description: "soft document cap per source"
+        default: "200"
+        required: false
+
+permissions:
+  contents: write                  # to commit the rebuilt index
+
+concurrency:
+  group: crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Crawl and rebuild the index
+        env:
+          BUDGET: ${{ github.event.inputs.budget_minutes || '20' }}
+          PER_SOURCE: ${{ github.event.inputs.per_source || '200' }}
+        run: |
+          python3 -m crawler.run \
+            --out index \
+            --budget "$BUDGET" \
+            --per-source "$PER_SOURCE" \
+            --sources feeds,wikipedia,arxiv,openalex,crossref,internet_archive,wikisource,github,sitemap
+
+      - name: Report the index
+        run: |
+          python3 - <<'PY'
+          import json
+          m = json.load(open("index/manifest.json"))
+          print(f"documents: {m['docs']}")
+          print(f"terms:     {m['terms']}")
+          print(f"size:      {m['indexBytes']/1024:.0f} KB")
+          print("sources:")
+          for name, meta in sorted(m["sources"].items(), key=lambda kv: -kv[1]["count"]):
+              print(f"  {name:28s} {meta['count']:6d}")
+          PY
+
+      - name: Commit the refreshed index
+        run: |
+          git config user.name  "anveshan-crawler"
+          git config user.email "crawler@users.noreply.github.com"
+          git add index
+          if git diff --cached --quiet; then
+            echo "index unchanged; nothing to commit"
+          else
+            DOCS=$(python3 -c "import json;print(json.load(open('index/manifest.json'))['docs'])")
+            git commit -m "index: refresh to ${DOCS} documents ($(date -u +%Y-%m-%dT%H:%MZ))"
+            git push
+          fi
+
+      - name: Fail loudly if the crawl produced nothing
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          m = json.load(open("index/manifest.json"))
+          if m["docs"] == 0:
+              print("::error::the crawl produced an empty index")
+              sys.exit(1)
+          PY
