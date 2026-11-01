@@ -1,74 +1,65 @@
 # ANVESHAN - अन्वेषण
 
-A sovereign research engine. **170 indexed sources**, an Indian-built retrieval core, cryptographic
-provenance on every document, and a set of evidence and discovery layers that mainstream search does not have.
+A research and discovery engine: **170 indexed sources**, hybrid retrieval, cryptographic provenance,
+evidence science, and a capability matrix that audits itself.
 
-## Implemented (runs entirely in your browser, zero network calls)
+**Live: https://swami-prathmesh.github.io/anveshan/**
 
-**Search accuracy and intelligence**
-- Hybrid retrieval: BM25 (k1 1.45, b 0.72) over boosted title/tag fields, blended with TF-IDF cosine and a
-  trigram fallback. Relevance floor keeps the tail short.
-- Intent detection (definition / quantitative / temporal / procedural / comparative / list / evidence).
-- Multi-intent decomposition: compound questions are split into sub-questions you can run individually.
-- Natural-language and incomplete queries accepted; operators: `type:`, `org:`, `site:`, `after:`, `before:`,
-  `year:`, `"exact phrase"`, `-exclude`.
-- Multilingual: script-aware tokeniser, roman-to-Devanagari transliteration, Indic domain thesaurus.
-- Entity recognition over a 4,000-term index vocabulary, with word-boundary matching.
-- Disambiguation by facet: results that span several domains are presented as a choice, not a guess.
-- Deep research: six-pass dossier (definition, figures, timeline, mechanism, limits, context).
+## The capability matrix (in-app: "Capabilities")
 
-**Information quality**
-- Source authority: PageRank (damping 0.85, 28 iterations) over the index's entity graph, blended with
-  issuing-body tier. Not popularity.
-- Claim decomposition with heuristic typing: evidence / interpretation / hypothesis / statement, plus causal
-  and numeric flags.
-- Source independence detection: same issuer or near-duplicate wording is not corroboration.
-- Figure reconciliation (Matbhed radar): every numeric claim in scope is unit-normalised across crore, lakh,
-  million and billion, grouped by entity and metric, dated, and checked for genuine conflict within 200 days.
-- Information age: per-type half-life; decayed figures are flagged for revalidation.
-- Contradiction laboratory: conflicts and trajectories reported separately.
-- Evidence sufficiency: which research facets have no supporting sentence.
-- Citation traceability: every sentence carries a document id; every document carries a Merkle leaf.
+172 requested properties, each with a status and the mechanism behind it:
 
-**Knowledge organisation**
-- Entity graph rendered from co-occurrence in the top results.
-- Topic clustering by TF-IDF centroid similarity.
-- Timeline of publication dates.
-- Cross-disciplinary bridges and serendipity: documents from other domains that are still semantically close.
+| Status | Count | Meaning |
+| --- | --- | --- |
+| live | 89 | the code exists in this file and you can exercise it |
+| partial | 55 | implemented with a stated limit |
+| adapter | 6 | works once a connector (embeddings, MT, OCR, ASR, crawler) is added |
+| not possible here | 22 | needs servers, sensors or trained models |
 
-**User control and privacy**
-- User-controlled ranking: four sliders (lexical, semantic, authority, recency) that *are* the ranking function.
-- Time machine: restrict the index to documents published up to a chosen year.
-- Research projects, query log and information-gap record, all in localStorage.
-- Reading list, Markdown export, command palette, voice query, high-contrast mode, skip link, ARIA live region.
-- Zero network calls. No analytics. No accounts. Imported files never leave the device.
+Nothing is marked live unless it actually runs. The matrix is generated from the same source as the engine,
+so it cannot drift from reality without the engine changing too.
 
-**Integrity**
-- SHA-256 Merkle tree over all documents, verified leaf-to-root in the browser.
-- Append-only hash-linked query chain.
-- Injection scan on imported text: instruction-like content is indexed as data and never executed.
+## What runs now
+
+**Retrieval and query intelligence** - BM25 (k1 1.45, b 0.72) with title/tag field boosts, blended with
+TF-IDF cosine and a trigram fallback; relevance floor; operators (`type: org: site: after: before: year:`,
+`"phrase"`, `-exclude`); intent classification; multi-intent decomposition; follow-up context resolution
+("and in 2024?" merges with the previous query); entity recognition over 4,000 terms; facet-based
+disambiguation.
+
+**Evidence science** - claim decomposition into evidence / interpretation / hypothesis with causal and numeric
+flags; source-independence detection (shared issuer, near-duplicate wording); per-type half-life so stale
+figures are flagged; figure reconciliation across crore/lakh/million/billion with conflict vs trajectory
+separation; anomaly detection against group medians; consensus map (support vs hedge vs conflict);
+rank-health verdict; evidence sufficiency by research facet.
+
+**Knowledge organisation** - entity graph from co-occurrence, rendered as SVG; topic clustering by TF-IDF
+centroid; timeline; concept evolution (term drift per era); intellectual genealogy (chronological document
+chain per entity); cross-disciplinary bridges; near-duplicate grouping; 24-place gazetteer with region facet
+and coordinate plot.
+
+**Learning loop (local, inspectable)** - click-through query expansion, user correction flags that
+down-weight a source, zero-result gap log, and Merkle-root version history. Learning changes which sources
+surface, never what they say.
+
+**Control and privacy** - four ranking sliders that *are* the ranking function; time machine that restricts
+the index to a publication year; projects with notes; full JSON export of log, projects, corrections,
+learning and versions; reading list; accessibility (skip link, ARIA live, contrast mode, reduced motion);
+injection scan on imported text; zero network calls.
 
 ## Not implemented, and why
 
-- **Live crawling and continuous discovery of new sources.** A static file cannot crawl. Import covers
-  private corpora; a crawler needs servers, scheduling and politeness policy.
-- **Multimodal search (image, audio, video, 3D, satellite).** Needs encoders and storage. Voice input works
-  through the browser's own speech engine.
-- **Neural semantic embeddings, translation, generation.** Would need model files or an API. The optional
-  Sarvam-105B adapter covers generation with your own key.
-- **Predictive forecasting, simulation, hypothesis generation, causal proof.** These need domain models,
-  live data and compute. The Discovery panel computes gaps, mention lift, cross-domain similarity and
-  hedged-language separation from a fixed corpus, and labels each as what it is.
-- **Self-modifying learning.** The engine does not rewrite its own ranking. It records gaps and failed
-  queries; a human decides what to add.
+Live crawling, sensors, media forensics, neural embeddings, OCR, translation and forecasting need services a
+static page cannot host. Those are marked `adapter` or `not possible here` in the matrix, with the specific
+reason. The adapter panel lists the six slots and what each would unlock.
 
 ## Honest scope
 
 170 documents is a curated research library, not the web. Google indexes hundreds of billions of pages and
-crawls continuously; no browser-resident engine can match that, and claiming otherwise would be false.
-What this does better is narrower and verifiable: every sentence traceable to a named source, every document
-hash-verified, figures reconciled across sources and dates rather than averaged, gaps stated explicitly, and
-nothing you search transmitted anywhere. The Merkle ledger is local - it is not a live Vishvasya network node.
+crawls continuously; no browser-resident engine can match that. What this does better is narrower and
+verifiable: every sentence traceable to a named source, every document hash-verified, figures reconciled
+across sources and dates rather than averaged, gaps stated explicitly, ranking fully exposed, and nothing you
+search transmitted anywhere.
 
 ## Run it
 
